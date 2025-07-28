@@ -35,7 +35,7 @@
 ### UI Bundle
 - Download [Unity Hub](https://unity.com/unity-hub)
 - Install Unity `2021.3.16f1` with android build tools 
-- Open the project and select `Build AssetBundles` in the default context menu
+- Open the project and select `Build AssetBundles` in the default context menu (right click in the file inspector)
 - Your bundle will be in the AssetBundles folder inside the project
 
 # Installing
@@ -69,8 +69,7 @@
 - If the game crashes no matter what then you're out of luck, there is nothing you can do to fix it.
 ### Does this thing have cheats?
 - Release versions **NEVER** includeds cheats. If you want to get cheats compile it by yourself
-### Can I use this on Emulator?
 
 # Credits
 - Made using [LemonLoader](https://github.com/LemonLoader/MelonLoader_057)
-- [Repinek](https://github.com/repinek) and Toytyis - playtesting
+- [repinek](https://github.com/repinek) and Toytyis - playtesting
