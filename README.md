@@ -11,11 +11,9 @@
 - Unity log tracking
 - Some cheats (never included in the release version)
 
-> # Note
->
-> - <b>First launch takes up to ten minutes, the game may also crash</b>
-> - <b>If you don't want to wait for game resources to download, backup the .obb file inside the Android/obb/com.Mediatonic FallGuys_client/ folder, just restore it after installing the APK</b>
-<br><br>
+> [!NOTE]
+> First launch takes up to ten minutes, the game may also crash
+> If you don't want to wait for game resources to download, backup the .obb file inside the Android/obb/com.Mediatonic FallGuys_client/ folder, just restore it after installing the APK
 
 # Screenshots
 
