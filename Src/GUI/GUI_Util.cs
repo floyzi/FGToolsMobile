@@ -224,10 +224,7 @@ namespace NOTFGT.GUI
 
         void MenuEvent(OnMainMenuDisplayed evt)
         {
-            if (LastFailModal != null)
-            {
-                LastFailModal.Invoke();
-            }
+            LastFailModal?.Invoke();
 
             if (OnRepairScreen || HasGUIKilled)
                 return;
@@ -246,7 +243,7 @@ namespace NOTFGT.GUI
                 NOTFGTools.Instance.HandlePlayerState(NOTFGTools.PlayerState.Menu);
 
                 if (!WasInMenu)
-                    InternalTools.DoModal(LocalizationManager.LocalizedString("welcome_title", [BuildInfo.Name]), LocalizationManager.LocalizedString("welcome_desc", new object[] { BuildInfo.Name }), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default, new Action<bool>(toggle));
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [BuildInfo.Name]), LocalizationManager.LocalizedString("welcome_desc", new object[] { BuildInfo.Name }), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default, new Action<bool>(toggle));
                 else
                     toggle(true);
 
@@ -254,7 +251,7 @@ namespace NOTFGT.GUI
             }
             catch (Exception e)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("failed_title", [BuildInfo.Name]), InternalTools.FormatException(e), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [BuildInfo.Name]), FLZ_Extensions.FormatException(e), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
             }
         }
 
@@ -262,10 +259,18 @@ namespace NOTFGT.GUI
 
         void SaveSettings()
         {
-            var settings = NOTFGTools.Instance.SettingsMenu;
-            settings.RollChanges();
-            LogDisabledScreen.SetActive(!settings.GetValue<bool>(TrackGameDebug));
-            NOTFGTools.Instance.ApplyChanges();
+            try
+            {
+                var settings = NOTFGTools.Instance.SettingsMenu;
+                settings.RollChanges();
+                LogDisabledScreen.SetActive(!settings.GetValue<bool>(TrackGameDebug));
+                NOTFGTools.Instance.ApplyChanges();
+            }
+            catch (Exception ex)
+            {
+                FLZ_Extensions.CreateNotification("Whoops", $"Unable to save the settings, try resetting\n{ex.Message}", "", 5);
+                AudioManager.PlayOneShot("UI_Matchmaking_Failed");
+            }
         }
 
         void SetupGUI()
@@ -288,7 +293,7 @@ namespace NOTFGT.GUI
                 {
                     HasGUIKilled = true;
                     GameObject.Destroy(GUIObject);
-                    InternalTools.DoModal(LocalizationManager.LocalizedString("gui_destroyed_title"), LocalizationManager.LocalizedString("gui_destroyed_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_destroyed_title"), LocalizationManager.LocalizedString("gui_destroyed_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
                 }));
                 RoundIdInputField.onValueChanged.AddListener(new Action<string>((str) => { ReadyRound = str; }));
                 RoundLoadButton.onClick.AddListener(new Action(() =>
@@ -314,7 +319,7 @@ namespace NOTFGT.GUI
                 HideGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, false); }));
                 OpenGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, true); }));
                 deleteConfig.onClick.AddListener(new Action(() => {
-                    InternalTools.DoModal(LocalizationManager.LocalizedString("reset_config_alert_title"), LocalizationManager.LocalizedString("reset_config_alert_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, FGClient.UI.UIModalMessage.OKButtonType.Disruptive, new Action<bool>((val) => {
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("reset_config_alert_title"), LocalizationManager.LocalizedString("reset_config_alert_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, FGClient.UI.UIModalMessage.OKButtonType.Disruptive, new Action<bool>((val) => {
                         if (val)
                             NOTFGTools.Instance.SettingsMenu.ResetSettings();
                     } ));
@@ -332,7 +337,7 @@ namespace NOTFGT.GUI
             }
             catch (Exception e)
             {
-                var exstr = InternalTools.FormatException(e);
+                var exstr = FLZ_Extensions.FormatException(e);
                 MelonLogger.Msg($"GUI Setup failed. {exstr}");
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_setup_exception", [exstr]));
             }
@@ -394,7 +399,7 @@ namespace NOTFGT.GUI
                         continue;
 
                     if (!uniqRounds.ContainsKey(round.Value.GetSceneName()))
-                        uniqRounds.Add(scene, InternalTools.CleanStr(round.Value.DisplayName.Text));
+                        uniqRounds.Add(scene, FLZ_Extensions.CleanStr(round.Value.DisplayName.Text));
                 }
 
                 Il2CppSystem.Collections.Generic.List<string> roundNames = new();
@@ -417,7 +422,7 @@ namespace NOTFGT.GUI
 
                     foreach (var round in rounds)
                     {
-                        if (round.Value.DisplayName != null && InternalTools.CleanStr(round.Value.DisplayName.Text) == RoundsDropdown.options[val].text)
+                        if (round.Value.DisplayName != null && FLZ_Extensions.CleanStr(round.Value.DisplayName.Text) == RoundsDropdown.options[val].text)
                         {
                             scene = round.Value.GetSceneName();
                             break;
@@ -486,7 +491,7 @@ namespace NOTFGT.GUI
 
         void TryTriggerFailedToLoadUIModal(string addotionalMsg)
         {
-            LastFailModal = (new Action(() => { InternalTools.DoModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive); }));
+            LastFailModal = (new Action(() => { FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive); }));
         }
 
         void ConfigureObjects()
@@ -629,12 +634,7 @@ namespace NOTFGT.GUI
                         case MenuEntry.Type.Slider:
                             var slider = obj.GetComponentInChildren<Slider>();
                             entry.Config.TryGetValue(IsFloat, out var isFloat);
-
-                            if ((bool)isFloat)
-                                slider.value = float.Parse(entry.Value.ToString());
-                            else
-                                slider.value = Convert.ToInt32(entry.Value.ToString());
-
+                            slider.value = float.Parse(entry.Value.ToString());
                             slider.onValueChanged.Invoke(slider.value);
                             break;
                         case MenuEntry.Type.Button:
@@ -652,7 +652,7 @@ namespace NOTFGT.GUI
 
             foreach (var entry in configEntries.OrderBy(entry => entry.Category).ToList())
             {
-                MelonLogger.Msg($"[{base.GetType()}] CreateConfigMenu() - Creating entry \"{entry}\" with type \"{entry.ValueType}\"");
+                MelonLogger.Msg($"[{base.GetType()}] CreateConfigMenu() - Creating entry \"{entry.InternalName}\" with type \"{entry.ValueType}\"");
                 if (!string.IsNullOrEmpty(entry.Category) && !categories.Contains(entry.Category))
                 {
                     GameObject haderInst = GameObject.Instantiate(GUI_HeaderPrefab, ConfigTransform);
@@ -780,34 +780,23 @@ namespace NOTFGT.GUI
                             entry.Config.TryGetValue(SliderMin, out var min);
                             entry.Config.TryGetValue(SliderMax, out var max);
 
-                            if ((bool)isFloat)
+
+                            slider.minValue = float.Parse(min.ToString());
+                            slider.maxValue = float.Parse(max.ToString());
+
+                            slider.value = float.Parse(entry.Value.ToString());
+                            sliderValue.text = $"{entry.Value:F1} / {slider.maxValue:F1}";
+
+                            slider.onValueChanged.AddListener(new Action<float>(val =>
                             {
-                                slider.minValue = float.Parse(min.ToString());
-                                slider.maxValue = float.Parse(max.ToString());
+                                NOTFGTools.Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
 
-                                slider.value = float.Parse(entry.Value.ToString());
-                                sliderValue.text = $"{entry.Value:F1} / {slider.maxValue:F1}";
-
-                                slider.onValueChanged.AddListener(new Action<float>(val =>
-                                {
-                                    NOTFGTools.Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
+                                if ((bool)isFloat)
                                     sliderValue.text = $"{val:F1} / {slider.maxValue:F1}";
-                                }));
-                            }
-                            else
-                            {
-                                slider.minValue = Convert.ToInt32(min.ToString());
-                                slider.maxValue = Convert.ToInt32(max.ToString());
-
-                                slider.value = Convert.ToInt32(entry.Value.ToString()); ;
-                                sliderValue.text = $"{Convert.ToInt32(entry.Value)} / {Convert.ToInt32(slider.maxValue)}";
-
-                                slider.onValueChanged.AddListener(new Action<float>(val =>
-                                {
-                                    NOTFGTools.Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
+                                else
                                     sliderValue.text = $"{Convert.ToInt32(val)} / {Convert.ToInt32(slider.maxValue)}";
-                                }));
-                            }
+                            }));
+
                         }
                         else
                             Debug.LogError($"Can't setup slider {entry.InternalName}. Data is null");

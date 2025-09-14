@@ -1,6 +1,7 @@
 ﻿using Events;
 using FG.Common;
 using FG.Common.Character;
+using FG.Common.Messages;
 using FGClient;
 using FGClient.Rendering.XRay;
 using FGClient.UI;
@@ -12,9 +13,13 @@ using NOTFGT.Harmony;
 using NOTFGT.Loader;
 using NOTFGT.Localization;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,12 +37,39 @@ namespace NOTFGT.Logic
         public const string Description = "NOT FallGuys level loader by @floyzi102 on twitter";
         public const string Author = "Floyzi";
         public const string Company = null;
-        public const string Version = "1.0.1";
-        public const string DownloadLink = null;
+        public const string Version = "1.0.2";
+        public const string DownloadLink = "";
     }
 
     public class NOTFGTools : MelonMod
     {
+        internal struct PlayerMeta
+        {
+            internal PlayerMeta(PlayerInfoDisplay tag, string name, FallGuysCharacterController fgcc, string platfrom)
+            {
+                Tag = tag;
+                Name = name;
+                Platform = platfrom;
+                FGCC = fgcc;
+            }
+
+            public PlayerInfoDisplay Tag;
+            public string Name;
+            public string Platform;
+            public FallGuysCharacterController FGCC;
+            public readonly MPGNetID NetId
+            {
+                get
+                {
+                    if (FGCC != null && FGCC.NetObject != null)
+                        return FGCC.NetObject.NetID;
+
+                    return default;
+                }
+            }
+            public readonly bool LocalPlayer => FGCC != null && FGCC.IsLocalPlayer;
+        }
+
         public static NOTFGTools Instance { get; private set; }
 
         public enum PlayerState
@@ -52,7 +84,6 @@ namespace NOTFGT.Logic
         public static string AssetsDir;
         public static string MobileSplash;
 
-        readonly float guiPosBase = 280;
         Color BuildInfoColor = new(0.3764f, 0.0156f, 0.0156f, 1f);
 
         CharacterControllerData ActiveFGCCData;
@@ -63,7 +94,7 @@ namespace NOTFGT.Logic
         public RoundLoaderService RoundLoader = new();
 
         readonly string NextLogDate = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string allLogs = string.Empty;
+        StringBuilder AllLogs = new();
         bool playersHidden = false;
 
         Action<string, string, LogType> _logAction;
@@ -74,9 +105,14 @@ namespace NOTFGT.Logic
         EventSystem.Handle GuiInit = null;
         EventSystem.Handle OnSpectator = null;
         EventSystem.Handle OnRoundOver = null;
+        EventSystem.Handle OnMenu = null;
 
         public static bool CaptureTools { get { return Instance.SettingsMenu.GetValue<bool>(ToolsMenu.UseCaptureTools); } }
 
+        DateTime Startup;
+        const string AdvancedNamePattern = "[{0}] | {1} | [{2}]";
+        readonly List<PlayerMeta> PlayerMetas = [];
+        readonly Dictionary<string, string> NamesMap = [];
 
         public override void OnInitializeMelon()
         {
@@ -88,6 +124,8 @@ namespace NOTFGT.Logic
                 LogDir = Path.Combine(MainDir, "Logs");
                 AssetsDir = Path.Combine(MainDir, "Assets");
                 MobileSplash = Path.Combine(AssetsDir, "FGToolsMSplash.png");
+
+                Startup = DateTime.UtcNow;
 
                 Instance = this;
 
@@ -101,8 +139,10 @@ namespace NOTFGT.Logic
 
                 Msg("Starting common setup.");
 
+                HarmonyInstance.PatchAll(typeof(HarmonyPatches.Default));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.CaptureTools));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.GUITweaks));
+                HarmonyInstance.PatchAll(typeof(HarmonyPatches.RoundLoader));
 
                 if (SettingsMenu.GetValue<bool>(ToolsMenu.TrackGameDebug))
                 {
@@ -116,6 +156,7 @@ namespace NOTFGT.Logic
                 GuiInit = Broadcaster.Instance.Register<InitialiseClientOverlayEvent>(new Action<InitialiseClientOverlayEvent>(OnGUIInit));
                 OnSpectator = Broadcaster.Instance.Register<ClientGameManagerSpectatorModeChanged>(new Action<ClientGameManagerSpectatorModeChanged>(OnSpectatorEvent));
                 OnRoundOver = Broadcaster.Instance.Register<OnRoundOver>(new Action<OnRoundOver>(OnRoundOverEvent));
+                OnMenu = Broadcaster.Instance.Register<OnMainMenuDisplayed>(new Action<OnMainMenuDisplayed>(MenuEvent));
 
                 HandlePlayerState(PlayerState.Loading);
 
@@ -126,6 +167,43 @@ namespace NOTFGT.Logic
                 Error($"Startup failed! Error: {e.Message}\n StackTrace: {e.StackTrace}");
                 GUIUtil.ShowRepairGUI(e);
             }
+        }
+
+        internal void RegisterTag(PlayerInfoDisplay tag)
+        {
+
+        }
+
+        internal void SetNames()
+        {
+            if (PlayerMetas == null || PlayerMetas.Count == 0)
+                return;
+
+            foreach (var name in PlayerMetas)
+            {
+                var cleanName = Regex.Replace(name.Name, @"<size=(.*?)>|</size>", "");
+
+                if (!NamesMap.ContainsKey(cleanName))
+                    NamesMap.Add(cleanName, name.Name);
+
+                string pName;
+
+                if (SettingsMenu.GetValue<bool>(ToolsMenu.HideBigNames))
+                    pName = cleanName;
+                else
+                    pName = name.Name;
+
+                if (SettingsMenu.GetValue<bool>(ToolsMenu.SeePlayerPlatforms))
+                    name.Tag.SetText(string.Format(AdvancedNamePattern, name.FGCC.NetObject.NetID, pName, name.Platform));
+                else
+                    name.Tag.SetText($"{pName}");
+            }
+        }
+
+        private void MenuEvent(OnMainMenuDisplayed displayed)
+        {
+            foreach (var fgcc in Resources.FindObjectsOfTypeAll<FallGuysCharacterController>())
+                fgcc.MotorAgent._motorFunctionsConfig = FG.Common.Character.MotorSystem.MotorAgent.MotorAgentConfiguration.Default;
         }
 
         public void HandlePlayerState(PlayerState playerState)
@@ -174,58 +252,26 @@ namespace NOTFGT.Logic
 
         void OnIntroEnd(IntroCameraSequenceEndedEvent evt)
         {
+            SetNames();
+
             if (RoundLoaderService.CGM == null || ActivePlayerState != PlayerState.RoundLoader)
                 return;
 
-            var gameLoading = RoundLoaderService.GameLoading;
-            gameLoading.SetPlayerReadyIfNecessary();
-            if (RoundLoaderService.CGM.CameraDirector != null && RoundLoaderService.CGM.CameraDirector.IsUsingIntroShots)
-                gameLoading._clientGameManager.CameraDirector.UseCloseShot();
-            gameLoading._clientGameManager.FinishPreparationPhase();
-
-            RoundLoaderService.UIM = gameLoading._clientGameManager._inGameUiManager;
-            gameLoading._clientGameManager.FinishPreparationPhase();
-            Resources.FindObjectsOfTypeAll<PhysicsSimulator>().FirstOrDefault().ToggleRunningPhysicsAutomatically();
-            gameLoading._clientGameManager.SetReady(PlayerReadinessState.IntroComplete, null, null);
-            RoundLoader.RoundCamera?.SnapCameraNextFrame();
-            RoundLoader.RoundCamera?.ForceRecenterToHeading();
-            RoundLoader.RoundCamera?.AddCloseCameraTarget(FallGuyBehaviour.FGBehaviour.FallGuy, true);
-            FallGuyBehaviour.FGBehaviour.FGCC.SetupOnClient(GlobalGameStateClient.Instance.NetObjectManager, FallGuyBehaviour.FGBehaviour.FGMPG);
-            RoundLoaderService.UIM.SwitchToState(InGameUiManager.InGameState.Countdown);
-            RoundLoaderService.CGM._gameSession.SetSessionState(GameSession.SessionState.Countdown);
-            RoundLoaderService.UIM._inGameCountdownState._countdownViewModel.PlayAnimation();
+            RoundLoader.RoundLoadingAllowed = true;
+            FallGuyBehaviour.Create();
             SpeedBoostManager SPM = FallGuyBehaviour.FGBehaviour.FGCC.SpeedBoostManager;
             SPM.SetAuthority(true);
             SPM.SetCharacterController(FallGuyBehaviour.FGBehaviour.FGCC);
-            Resources.FindObjectsOfTypeAll<XRayMeshRendererTracker>().FirstOrDefault().AddXRayControllerForCharacter(FallGuyBehaviour.FGBehaviour.FGCC);
-            RoundLoader.RoundLoadingAllowed = true;
+
+
             RoundLoaderService.GameLoading.HandleGameServerStartGame(new GameMessageServerStartGame(0, RoundLoaderService.CGM.CurrentGameSession.EndRoundTime, 0, 1, RoundLoaderService.CGM.GameRules.NumPerVsGroup, 1, 0));
 
         }
 
         void OnGUIInit(InitialiseClientOverlayEvent evt)
         {
-            if (ActivePlayerState == PlayerState.RoundLoader)
-            {
-                var gameLoading = RoundLoaderService.GameLoading;
-                RoundLoaderService.CGM = gameLoading._clientGameManager;
-                RoundLoaderService.PTM = gameLoading._clientGameManager._playerTeamManager;
-
-                gameLoading._clientGameManager.GameRules.PreparePlayerStartingPositions(1);
-
-                foreach (CameraDirector cam in Resources.FindObjectsOfTypeAll<CameraDirector>())
-                {
-                    if (!cam.gameObject.activeSelf)
-                        UnityEngine.Object.Destroy(cam.gameObject);
-                }
-
-                RoundLoader.RoundCamera = gameLoading._clientGameManager.CameraDirector;
-                RoundLoader.SpawnFallGuy();
-                FallGuyBehaviour.FGBehaviour.Init();
-                RoundLoader.HideLoadingScreens();
-
-                gameLoading.OnServerRequestStartIntroCameras();
-            }
+            if (ActivePlayerState != PlayerState.RoundLoader)
+                return;
         }
 
         void OnSpectatorEvent(ClientGameManagerSpectatorModeChanged evt)
@@ -240,6 +286,7 @@ namespace NOTFGT.Logic
 #if CHEATS
             ForceUnHidePlayers();
 #endif
+            PlayerMetas.Clear();
         }
 
         public void LoadRound(string roundId)
@@ -250,7 +297,7 @@ namespace NOTFGT.Logic
             }
             catch (Exception e)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic", [roundId, LoadSceneMode.Single, e.Message]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic", [roundId, LoadSceneMode.Single, e.Message]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
             }
         }
 
@@ -303,7 +350,7 @@ namespace NOTFGT.Logic
             }
             catch (Exception ex)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("error_settings_save_title"), LocalizationManager.LocalizedString("error_settings_save_desc", [ex.Message]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_settings_save_title"), LocalizationManager.LocalizedString("error_settings_save_desc", [ex.Message]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
             }
         }
 
@@ -314,12 +361,12 @@ namespace NOTFGT.Logic
             GUIStyle upper = new(UnityEngine.GUI.skin.label)
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = (int)(0.014f * Screen.height),
+                fontSize = (int)(0.016f * Screen.height),
             };
             GUIStyle bottom = new(UnityEngine.GUI.skin.label)
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = (int)(0.014f * Screen.height),
+                fontSize = (int)(0.016f * Screen.height),
                 normal = { textColor = BuildInfoColor },
             };
 
@@ -363,13 +410,17 @@ namespace NOTFGT.Logic
                         break;
                 }*/
 
-                allLogs += "\n" + FileEntry;
+                AllLogs.AppendLine(FileEntry);
+
+                if (!Directory.Exists(LogDir))
+                    Directory.CreateDirectory(LogDir);  
 
                 string a = Path.Combine(LogDir, $"Log_{NextLogDate}.log");
+
                 if (!File.Exists(a))
                     File.Create(a);
 
-                File.WriteAllText(a, allLogs);
+                File.WriteAllText(a, AllLogs.ToString());
             }
         }
 #if CHEATS
@@ -435,7 +486,7 @@ namespace NOTFGT.Logic
             var finish = Resources.FindObjectsOfTypeAll<COMMON_ObjectiveReachEndZone>().FirstOrDefault();
             if (finish == null)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_no_finish"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_no_finish"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
                 return;
             }
 
@@ -485,12 +536,12 @@ namespace NOTFGT.Logic
         {
             if (GlobalGameStateClient.Instance.IsInMainMenu)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_in_menu"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_in_menu"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
                 return false;
             }
             if (!GlobalGameStateClient.Instance.GameStateView.IsGamePlaying)
             {
-                InternalTools.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_game_not_active"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_game_not_active"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive);
                 return false;
             }
             
@@ -513,25 +564,45 @@ namespace NOTFGT.Logic
             GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
         }
 
+        double _peakMemUsage;
+
         public override void OnGUI()
         {
-            if (SettingsMenu.GetValue<bool>(ToolsMenu.GUI))
-            {
-                var debugLabel = 
-                $"<b>DEBUG</b>\n\n" +
-                $"Active state: {ActivePlayerState}\n" + 
-                $"Prev state: {PreviousPlayerState}\n" +
-                $"Version: {BuildInfo.Version}\n" +
-                $"Game Version: {Application.version}";
-                var size = UnityEngine.GUI.skin.label.CalcSize(new(debugLabel));
-
-                UnityEngine.GUI.Box(new Rect(10f, guiPosBase + 10, size.x + 10f, size.y + 10f), "");
-                UnityEngine.GUI.Label(new Rect(15f, guiPosBase + 15, size.x + 10f, size.y + 10f), debugLabel);
-            
-            }
-
-            if (SettingsMenu.GetValue<bool>(ToolsMenu.Watermark)) 
+            if (SettingsMenu.GetValue<bool>(ToolsMenu.Watermark))
                 WatermarkGUI();
+
+            if (!SettingsMenu.GetValue<bool>(ToolsMenu.GUI))
+                return;
+
+            GUIStyle debugL = new(UnityEngine.GUI.skin.label)
+            {
+                fontSize = (int)(0.018f * Screen.height),
+            };
+
+            var sb = new StringBuilder();
+            //var memUsage = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0;
+            //if (memUsage > _peakMemUsage)
+            //    _peakMemUsage = memUsage;
+
+            sb.AppendLine("<b>DEBUG</b>");
+
+            sb.AppendLine($"Active state: {ActivePlayerState}");
+            sb.AppendLine($"Prev state: {PreviousPlayerState}");
+            sb.AppendLine($"Version: {BuildInfo.Version}");
+            sb.AppendLine($"Game Version: {Application.version}");
+            //sb.AppendLine($"MEM: {memUsage:F2} MB");
+            //sb.AppendLine($"MEM PEAK: {_peakMemUsage:F2} MB");
+            sb.AppendLine($"Session Length: {DateTime.UtcNow - Startup:hh\\:mm\\:ss}");
+
+            var s = sb.ToString();
+            var size = debugL.CalcSize(new(s));
+            var offset = 25f;
+
+            UnityEngine.GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
+            UnityEngine.GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
+            UnityEngine.GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
+
+            UnityEngine.GUI.Label(new Rect(offset, 15, size.x + 10f, size.y + 10f), s, debugL);
         }
     }
 }

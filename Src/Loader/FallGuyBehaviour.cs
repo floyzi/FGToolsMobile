@@ -30,24 +30,26 @@ namespace NOTFGT.Loader
 
         bool finishedEndRoundAct = false;
 
-        public void PreInit()
+        public static void Create()
         {
-            FGBehaviour = this;
+            var player = Resources.FindObjectsOfTypeAll<FallGuysCharacterController>().First(x => x.IsLocalPlayer);
+            if (player == null)
+                return;
 
-            gameObject.GetComponent<Rigidbody>().isKinematic = true;
-            FallGuy = gameObject;
-            FGCC = gameObject.GetComponent<FallGuysCharacterController>();
-            FGMPG = gameObject.GetComponent<MPGNetObject>();
+            var inst = player.gameObject.AddComponent<FallGuyBehaviour>();
+            FGBehaviour = inst;
 
-            gamemodeType = RoundLoaderService.CGM._round.Archetype.Id.Split('_')[1];
-            var vfxplayer = gameObject.GetComponent<FallGuyVFXController>();
+            inst.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+            inst.FallGuy = inst.gameObject;
+            inst.FGCC = inst.gameObject.GetComponent<FallGuysCharacterController>();
+            inst.FGMPG = inst.gameObject.GetComponent<MPGNetObject>();
+
+            inst.gamemodeType = RoundLoaderService.CGM._round.Archetype.Id.Split('_')[1];
+            var vfxplayer = inst.gameObject.GetComponent<FallGuyVFXController>();
             vfxplayer.InjectCameraScreenController(Resources.FindObjectsOfTypeAll<CameraScreenVFXController>().Last());
-            PreFixObstacles();
-        }
 
-        public void Init()
-        {
-            CalculateRespawnPos();
+            inst.PreFixObstacles();
+            inst.CalculateRespawnPos();
         }
 
         public void LoadGPActions()
@@ -90,9 +92,9 @@ namespace NOTFGT.Loader
         void RespawnPlayer()
         {
             FGCC.TeleportMotorFunction.RequestTeleport(spawnpoint.transform.position, spawnpoint.transform.rotation);
+            FGCC.TeleportMotorFunction.ForceState(FGCC.TeleportMotorFunction.GetState<MotorFunctionTeleportStateActive>().ID);
             FallGuy.GetComponent<FallGuysCharacterController>().ResetToDefaultState();
             FallGuy.gameObject.GetComponent<Rigidbody>().velocity = new Vector3(0, 5, 0);
-            NOTFGTools.Instance.RoundLoader.RoundCamera.OnRecenterAndSnapCameraNextFrameRequested();
         }
 
         void Checkpoint()

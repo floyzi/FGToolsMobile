@@ -29,7 +29,7 @@
     { "Key": "cheat_entry_unlock_fps_title", "Value": "Unlock FPS" },
     { "Key": "cheat_entry_unlock_fps_desc", "Value": "" },
     { "Key": "cheat_entry_target_fps_title", "Value": "Target FPS" },
-    { "Key": "cheat_entry_target_fps_desc", "Value": "" },
+    { "Key": "cheat_entry_target_fps_desc", "Value": "May not work, depends on ROM" },
     { "Key": "cheat_entry_run_speed_title", "Value": "Run Speed Modifier" },
     { "Key": "cheat_entry_run_speed_desc", "Value": "" },
     { "Key": "cheat_entry_jump_y_title", "Value": "Jump Height Modifier" },
@@ -87,5 +87,9 @@
     { "Key": "error_fallguy_spawn", "Value": "Fall Guy spawn failed.\n\n{0}" },
     { "Key": "generic_error_title", "Value": "ERROR" },
     { "Key": "reset_config_alert_title", "Value": "RESET TO DEFAULTS?" },
-    { "Key": "reset_config_alert_desc", "Value": "All changes that was made will be lost." }
+    { "Key": "reset_config_alert_desc", "Value": "All changes that was made will be lost." },
+    { "Key": "cheat_entry_platforms_title", "Value": "Advanced Names" },
+    { "Key": "cheat_entry_platforms_desc", "Value": "" },
+    { "Key": "cheat_entry_big_names_title", "Value": "Hide Big Names" },
+    { "Key": "cheat_entry_big_names_title", "Value": "" }
 ]

@@ -54,6 +54,8 @@ namespace NOTFGT.GUI
         public const string HidePlayers = "HidePlayers";
         public const string ForceMenu = "ForceMenu";
         public const string FGDebugScale = "FGDebugScale";
+        public const string SeePlayerPlatforms = "SeePlayerPlatforms";
+        public const string HideBigNames = "HideBigNames";
 
         private static readonly Dictionary<string, (string Category, string DisplayName, string Description, object Value, Dictionary<string, object> Config, MenuEntry.Type ValueType)> EditableMenu = new()
         {
@@ -73,33 +75,18 @@ namespace NOTFGT.GUI
                 { SliderMax, 1f },
                 { IsFloat, true }
             }, MenuEntry.Type.Slider) },
+            { SeePlayerPlatforms, (Gameplay_Cat, "cheat_entry_platforms_title", "cheat_entry_platforms_desc", false, null, MenuEntry.Type.Bool) },
 
 #if CHEATS
             { UseCaptureTools, (Def_Cat, "cheat_entry_capture_tools_title", "cheat_entry_capture_tools_desc", false, null, MenuEntry.Type.Bool) },
-            { RunSpeedModifier, (FGCC_Cat, "cheat_entry_run_speed_title", "cheat_entry_run_speed_desc", 0.0f, new() {
-               { SliderMin, 0f },
-               { SliderMax, 999f },
-               { IsFloat, true }
-            }, MenuEntry.Type.Slider) },
+            { RunSpeedModifier, (FGCC_Cat, "cheat_entry_run_speed_title", "cheat_entry_run_speed_desc", 0.0f, null, MenuEntry.Type.Float) },
             { JumpYModifier, (FGCC_Cat, "cheat_entry_jump_y_title", "cheat_entry_jump_y_desc", 0.0f, null, MenuEntry.Type.Float) },
             { DiveSens, (FGCC_Cat, "cheat_entry_dive_sens_title", "cheat_entry_dive_sens_desc", 70.0f, null, MenuEntry.Type.Float) },
             { DisableMonitorCheck, (FGCC_Cat, "cheat_entry_fgcc_check_title", "cheat_entry_fgcc_check_desc", true, null, MenuEntry.Type.Bool) },
             { DisableAFK, (Gameplay_Cat, "cheat_entry_afk_title", "cheat_entry_afk_desc", false, null, MenuEntry.Type.Bool) },
-            { GravityChange, (FGCC_Cat, "cheat_entry_gravity_vel_title", "cheat_entry_gravity_vel_desc", 60f, new() {
-               { SliderMin, 0f },
-               { SliderMax, 100f },
-               { IsFloat, true }
-            }, MenuEntry.Type.Slider) },
-            { DiveForce, (FGCC_Cat, "cheat_entry_dive_force_title", "cheat_entry_dive_force_desc", 16.5f, new() {
-                { SliderMin, 1f },
-                { SliderMax, 999f },
-                { IsFloat, true },
-            }, MenuEntry.Type.Slider) },
-            { DiveInAirForce, (FGCC_Cat, "cheat_entry_air_dive_force_title", "cheat_entry_air_dive_force_desc", 7.0f, new() {
-                { SliderMin, 1f },
-                { SliderMax, 999f },
-                { IsFloat, true },
-            }, MenuEntry.Type.Slider) },
+            { GravityChange, (FGCC_Cat, "cheat_entry_gravity_vel_title", "cheat_entry_gravity_vel_desc", 60f, null, MenuEntry.Type.Float) },
+            { DiveForce, (FGCC_Cat, "cheat_entry_dive_force_title", "cheat_entry_dive_force_desc", 16.5f, null, MenuEntry.Type.Float) },
+            { DiveInAirForce, (FGCC_Cat, "cheat_entry_air_dive_force_title", "cheat_entry_air_dive_force_desc", 7.0f, null, MenuEntry.Type.Float) },
             { JoinAsSpectator, (Def_Cat, "cheat_entry_spectator_title", "cheat_entry_spectator_desc", false, null, MenuEntry.Type.Bool) },
 #endif
         };
@@ -133,7 +120,7 @@ namespace NOTFGT.GUI
             var definitions = new HashSet<string>
             {
                 GUI, TrackGameDebug, FPSCoutner, WholeFGDebug, UnlockFPS, TargetFPS, 
-                FGDebugScale, Watermark,
+                FGDebugScale, Watermark, SeePlayerPlatforms,
 #if CHEATS
                 JoinAsSpectator, UseCaptureTools,
                 RunSpeedModifier, JumpYModifier, DiveSens, 

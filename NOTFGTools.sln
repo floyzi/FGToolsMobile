@@ -10,8 +10,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.ActiveCfg = NonCheats|Any CPU
-		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.Build.0 = NonCheats|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.ActiveCfg = Cheats|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.Build.0 = Cheats|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,8 +10,6 @@ using BuildInfo = NOTFGT.Logic.BuildInfo;
 [assembly: AssemblyProduct(BuildInfo.Name)]
 [assembly: AssemblyCopyright("Created by " + BuildInfo.Author)]
 [assembly: AssemblyTrademark(BuildInfo.Company)]
-[assembly: AssemblyVersion(BuildInfo.Version)]
-[assembly: AssemblyFileVersion(BuildInfo.Version)]
 [assembly: MelonInfo(typeof(NOTFGTools), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author, BuildInfo.DownloadLink)]
 [assembly: MelonColor()]
 [assembly: MelonGame(null, null)]
