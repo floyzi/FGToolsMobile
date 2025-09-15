@@ -1,16 +1,7 @@
-﻿using FG.Common.CMS;
-using MelonLoader;
+﻿using MelonLoader;
 using Newtonsoft.Json;
-using NOTFGT.Logic;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using UnityEngine;
-using static MPG.Utility.MPGMonoBehaviour;
 
 namespace NOTFGT.Localization
 {

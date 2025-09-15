@@ -1,28 +1,19 @@
-﻿using FG.Common.CMS;
-using FG.Common;
-using FGClient.UI.Core;
-using FGClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static FG.Common.GameStateMachine;
-using static MPG.Utility.MPGMonoBehaviour;
+﻿using Il2CppFG.Common;
+using Il2CppFG.Common.Audio;
+using Il2CppFG.Common.CMS;
+using Il2CppFG.Common.Definition;
+using Il2CppFGClient;
+using Il2CppFGClient.UI;
+using Il2CppFGClient.UI.Core;
+using MelonLoader;
+using NOTFGT.Localization;
+using NOTFGT.Logic;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
-using UnityEngine;
-using FG.Common.Audio;
-using UnityEngine.InputSystem.LowLevel;
-using FG.Common.Definition;
 using UnityEngine.UI;
-using FG.Common.Character.MotorSystem;
+using static Il2CppFG.Common.GameStateMachine;
 using Random = UnityEngine.Random;
-using FGClient.UI;
-using MelonLoader;
-using FG.Common.LODs;
-using NOTFGT.Logic;
-using NOTFGT.Localization;
 
 namespace NOTFGT.Loader
 {

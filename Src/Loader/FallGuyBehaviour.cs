@@ -1,12 +1,10 @@
-﻿using FG.Common;
-using FG.Common.Character;
-using FGClient;
-using FGClient.UI;
-using Levels.Progression;
-using Levels.SeeSaw;
-using NOTFGT.Logic;
-using System;
-using System.Linq;
+﻿using Il2Cpp;
+using Il2CppFG.Common;
+using Il2CppFG.Common.Character;
+using Il2CppFGClient;
+using Il2CppFGClient.UI;
+using Il2CppLevels.Progression;
+using Il2CppLevels.SeeSaw;
 using UnityEngine;
 
 namespace NOTFGT.Loader

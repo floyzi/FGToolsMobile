@@ -1,21 +1,22 @@
-﻿using Events;
-using FG.Common.CMS;
-using FGClient;
+﻿using Il2Cpp;
+using Il2CppEvents;
+using Il2CppFG.Common.CMS;
+using Il2CppFGClient;
+using Il2CppInterop.Runtime.Injection;
+using Il2CppUniRx;
 using MelonLoader;
+using NOTFGT.Loader;
 using NOTFGT.Localization;
 using NOTFGT.Logic;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using static Il2CppFGClient.UI.UIModalMessage;
+using static NOTFGT.GUI.ToolsMenu;
 using Action = System.Action;
 using Application = UnityEngine.Application;
-using BuildInfo = NOTFGT.Logic.BuildInfo;
+using BuildInfo = NOTFGT.BuildInfo;
 using Text = UnityEngine.UI.Text;
-using static NOTFGT.GUI.ToolsMenu;
 
 namespace NOTFGT.GUI
 {
@@ -167,6 +168,7 @@ namespace NOTFGT.GUI
             _menuDisplayed = Broadcaster.Instance.Register<OnMainMenuDisplayed>(new Action<OnMainMenuDisplayed>(MenuEvent));
 
             MelonLogger.Msg($"[{base.GetType()}] Successful GUI_Util register. Is bundle loaded: {GUI_Bundle != null}");
+
             TryToLoadGUI();
         }
 
@@ -208,16 +210,16 @@ namespace NOTFGT.GUI
             switch (toggle)
             {
                 case GUIHideState.Full:
-                    DefaultStyle.gameObject.SetActive(false);
-                    HiddenStyle.gameObject.SetActive(false);
+                    DefaultStyle?.SetActive(false);
+                    HiddenStyle?.SetActive(false);
                     break;
                 case GUIHideState.Hidden:
-                    DefaultStyle.gameObject.SetActive(false);
-                    HiddenStyle.gameObject.SetActive(true);
+                    DefaultStyle?.SetActive(false);
+                    HiddenStyle?.SetActive(true);
                     break;
                 case GUIHideState.Active:
-                    DefaultStyle.gameObject.SetActive(true);
-                    HiddenStyle.gameObject.SetActive(false);
+                    DefaultStyle?.SetActive(true);
+                    HiddenStyle?.SetActive(false);
                     break;
             }
         }
@@ -243,7 +245,7 @@ namespace NOTFGT.GUI
                 NOTFGTools.Instance.HandlePlayerState(NOTFGTools.PlayerState.Menu);
 
                 if (!WasInMenu)
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [BuildInfo.Name]), LocalizationManager.LocalizedString("welcome_desc", new object[] { BuildInfo.Name }), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default, new Action<bool>(toggle));
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [BuildInfo.Name]), LocalizationManager.LocalizedString("welcome_desc", new object[] { BuildInfo.Name }), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
                 else
                     toggle(true);
 
@@ -251,7 +253,7 @@ namespace NOTFGT.GUI
             }
             catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [BuildInfo.Name]), FLZ_Extensions.FormatException(e), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [BuildInfo.Name]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
             }
         }
 
@@ -293,7 +295,7 @@ namespace NOTFGT.GUI
                 {
                     HasGUIKilled = true;
                     GameObject.Destroy(GUIObject);
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_destroyed_title"), LocalizationManager.LocalizedString("gui_destroyed_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Default);
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_destroyed_title"), LocalizationManager.LocalizedString("gui_destroyed_desc"), ModalType.MT_OK, OKButtonType.Default);
                 }));
                 RoundIdInputField.onValueChanged.AddListener(new Action<string>((str) => { ReadyRound = str; }));
                 RoundLoadButton.onClick.AddListener(new Action(() =>
@@ -319,13 +321,13 @@ namespace NOTFGT.GUI
                 HideGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, false); }));
                 OpenGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, true); }));
                 deleteConfig.onClick.AddListener(new Action(() => {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("reset_config_alert_title"), LocalizationManager.LocalizedString("reset_config_alert_desc"), FGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, FGClient.UI.UIModalMessage.OKButtonType.Disruptive, new Action<bool>((val) => {
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("reset_config_alert_title"), LocalizationManager.LocalizedString("reset_config_alert_desc"), ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((val) => {
                         if (val)
                             NOTFGTools.Instance.SettingsMenu.ResetSettings();
                     } ));
                 
                 }));
-                RoundIDEntry.SetActive(false);
+                RoundIDEntryV2.gameObject.SetActive(false);
                 Header.text = $"{BuildInfo.Name} V{BuildInfo.Version}";
                 Slogan.text = $"{BuildInfo.Description}";
                 ConfigureTabs();
@@ -342,7 +344,7 @@ namespace NOTFGT.GUI
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_setup_exception", [exstr]));
             }
         }
-        
+
         void TryToLoadGUI()
         {
             if (HasGUIKilled || GUIObject != null)
@@ -364,8 +366,7 @@ namespace NOTFGT.GUI
                 return;
             }
 
-            GameObject.Instantiate(theGUI.asset);
-            GUIObject = GameObject.Find($"{assetName}(Clone)");
+            GUIObject = GameObject.Instantiate(theGUI.asset).Cast<GameObject>();
             if (GUIObject != null)
             {
                 GameObject.DontDestroyOnLoad(GUIObject);
@@ -377,6 +378,7 @@ namespace NOTFGT.GUI
             else
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_object", [$"{assetName}(Clone)"]));
         }
+
 
         void InitRoundsDropdown()
         {
@@ -491,7 +493,7 @@ namespace NOTFGT.GUI
 
         void TryTriggerFailedToLoadUIModal(string addotionalMsg)
         {
-            LastFailModal = (new Action(() => { FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]), FGClient.UI.UIModalMessage.ModalType.MT_OK, FGClient.UI.UIModalMessage.OKButtonType.Disruptive); }));
+            LastFailModal = (new Action(() => { FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]), ModalType.MT_OK, OKButtonType.Disruptive); }));
         }
 
         void ConfigureObjects()
@@ -507,6 +509,7 @@ namespace NOTFGT.GUI
                     var refrerence = field.GetCustomAttribute<GUIReferenceAttribute>();
                     if (refrerence != null && refrerence.Name == t.name)
                     {
+                        MelonLogger.Msg($"{t.name}");
                         object component = null;
 
                         if (field.FieldType == typeof(Button))
@@ -523,9 +526,9 @@ namespace NOTFGT.GUI
                             component = t;
 
                         if (component != null)
-                        {
-                            try{field.SetValue(this, component);} catch {}
-                        }
+                            field.SetValue(this, component);
+                        else
+                            MelonLogger.Msg($"FAILE");
                     }
                 }
 
@@ -535,6 +538,9 @@ namespace NOTFGT.GUI
                 if (t.gameObject.name.StartsWith("TAB_") && !Tabs.Exists(target => target.name == t.gameObject.name))
                     Tabs.Add(t.gameObject);
             }
+
+            MelonLogger.Msg($"GameplayActive is {(GameplayActive == null ? "null" : "set")}");
+
         }
 
         void ConfigureTabs()
@@ -603,9 +609,13 @@ namespace NOTFGT.GUI
 
         void ResetGPUI()
         {
+            MelonLogger.Msg(GameplayActive != null);
             GameplayActive.SetActive(false);
+            MelonLogger.Msg(GameplayHidden != null);
             GameplayHidden.SetActive(true);
+            MelonLogger.Msg(GameplayStyle != null);
             GameplayStyle.SetActive(false);
+            MelonLogger.Msg(GameplayActions != null);
             GameplayActions.Clear();
         }
 

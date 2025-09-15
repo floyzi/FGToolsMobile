@@ -1,163 +1,893 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <langversion>latest</langversion>
-    <Configuration Condition=" '$(Configuration)' == '' ">NonCheats</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{788BC472-59F7-46F6-B760-65C18BA74389}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NOTFGT</RootNamespace>
-    <AssemblyName>NOT FGTools</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NBGV_PublicRelease>true</NBGV_PublicRelease>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NonCheats|AnyCPU'">
-    <OutputPath>Output\</OutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <DebugType>None</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>
-    </DefineConstants>
-    <WarningLevel>5</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Cheats|AnyCPU'">
-    <OutputPath>Output\</OutputPath>
-    <DefineConstants>;CHEATS</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\Lib\0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2Cppmscorlib">
-      <HintPath>..\Lib\Il2Cppmscorlib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MelonLoader">
-      <HintPath>..\Lib\MelonLoader.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MT.FGClient">
-      <HintPath>..\Lib\MT.FGClient.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MTNetwork">
-      <HintPath>..\Lib\MTNetwork.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="mvvmbindings">
-      <HintPath>..\Lib\mvvmbindings.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Lib\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="ParsingUtils_Runtime">
-      <HintPath>..\Lib\ParsingUtils_Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Json">
-      <HintPath>..\Lib\System.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TheMultiplayerGuys.FGCommon">
-      <HintPath>..\Lib\TheMultiplayerGuys.FGCommon.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TheMultiplayerGuys.Utility">
-      <HintPath>..\Lib\TheMultiplayerGuys.Utility.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnhollowerBaseLib">
-      <HintPath>..\Lib\UnhollowerBaseLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UniRx">
-      <HintPath>..\Lib\UniRx.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Addressables">
-      <HintPath>..\Lib\Unity.Addressables.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.InputSystem">
-      <HintPath>..\Lib\Unity.InputSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.ResourceManager">
-      <HintPath>..\Lib\Unity.ResourceManager.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>..\Lib\Unity.TextMeshPro.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\Lib\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>..\Lib\UnityEngine.AssetBundleModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\Lib\UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\Lib\UnityEngine.ImageConversionModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\Lib\UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\Lib\UnityEngine.InputLegacyModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.InputModule">
-      <HintPath>..\Lib\UnityEngine.InputModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\Lib\UnityEngine.PhysicsModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\Lib\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\Lib\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\Lib\UnityEngine.UIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Loader\FallGuyBehaviour.cs" />
-    <Compile Include="Logic\FLZ_Extensions.cs" />
-    <Compile Include="Localization\LocalizationManager.cs" />
-    <Compile Include="GUI\ToolsMenu.cs" />
-    <Compile Include="GUI\GUI_Util.cs" />
-    <Compile Include="Harmony\HarmonyPatches.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Logic\Main.cs" />
-    <Compile Include="Loader\RoundLoaderService.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<langversion>latest</langversion>
+		<RootNamespace>NOTFGT</RootNamespace>
+		<AssemblyName>NOT FGTools</AssemblyName>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<AssemblyVersion>1.0.2.0</AssemblyVersion>
+		<FileVersion>1.0.2.0</FileVersion>
+		<IsPackable>false</IsPackable>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <OutputPath>Output\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="GUI\GUI_Util.cs" />
+		<Compile Include="GUI\ToolsMenu.cs" />
+		<Compile Include="Harmony\HarmonyPatches.cs" />
+		<Compile Include="Loader\FallGuyBehaviour.cs" />
+		<Compile Include="Loader\RoundLoaderService.cs" />
+		<Compile Include="Localization\LocalizationManager.cs" />
+		<Compile Include="Logic\FLZ_Extensions.cs" />
+		<Compile Include="Core.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="0Harmony">
+	    <HintPath>..\Lib\MelonNet8\0Harmony.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AsmResolver">
+	    <HintPath>..\Lib\MelonNet8\AsmResolver.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AsmResolver.DotNet">
+	    <HintPath>..\Lib\MelonNet8\AsmResolver.DotNet.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AsmResolver.PE">
+	    <HintPath>..\Lib\MelonNet8\AsmResolver.PE.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AsmResolver.PE.File">
+	    <HintPath>..\Lib\MelonNet8\AsmResolver.PE.File.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Assembly-CSharp">
+	    <HintPath>..\Lib\FallGuys\Assembly-CSharp.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Assembly-CSharp-firstpass">
+	    <HintPath>..\Lib\FallGuys\Assembly-CSharp-firstpass.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AssetRipper.VersionUtilities">
+	    <HintPath>..\Lib\MelonNet8\AssetRipper.VersionUtilities.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="AssetsTools.NET">
+	    <HintPath>..\Lib\MelonNet8\AssetsTools.NET.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="bHapticsLib">
+	    <HintPath>..\Lib\MelonNet8\bHapticsLib.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Disarm">
+	    <HintPath>..\Lib\MelonNet8\Disarm.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Iced">
+	    <HintPath>..\Lib\MelonNet8\Iced.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCatapult.Core">
+	    <HintPath>..\Lib\FallGuys\Il2CppCatapult.Core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCatapult.Modules.Items.Protocol">
+	    <HintPath>..\Lib\FallGuys\Il2CppCatapult.Modules.Items.Protocol.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCatapult.Protocol">
+	    <HintPath>..\Lib\FallGuys\Il2CppCatapult.Protocol.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCatapult.Services.Gateway.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppCatapult.Services.Gateway.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCatapult.Services.Login.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppCatapult.Services.Login.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCinemachine">
+	    <HintPath>..\Lib\FallGuys\Il2CppCinemachine.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCMS_Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppCMS_Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppCoffee.UIParticle">
+	    <HintPath>..\Lib\FallGuys\Il2CppCoffee.UIParticle.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppcom.Epic.OnlineServices">
+	    <HintPath>..\Lib\FallGuys\Il2Cppcom.Epic.OnlineServices.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppcom.onestore.onestoresdk.Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2Cppcom.onestore.onestoresdk.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppcom.playeveryware.eos">
+	    <HintPath>..\Lib\FallGuys\Il2Cppcom.playeveryware.eos.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppcom.playeveryware.eos.core">
+	    <HintPath>..\Lib\FallGuys\Il2Cppcom.playeveryware.eos.core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppDeviceIO">
+	    <HintPath>..\Lib\FallGuys\Il2CppDeviceIO.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppDOTween">
+	    <HintPath>..\Lib\FallGuys\Il2CppDOTween.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppDOTween.Modules">
+	    <HintPath>..\Lib\FallGuys\Il2CppDOTween.Modules.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppEOS.K3S">
+	    <HintPath>..\Lib\FallGuys\Il2CppEOS.K3S.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Client.Protocol">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Client.Protocol.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Common.Debug.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Common.Debug.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Common.Targeting.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Common.Targeting.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Gateway.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Gateway.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.GeneratedProtocol">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.GeneratedProtocol.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Level.Protocol.AuthTokens">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Level.Protocol.AuthTokens.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Lobby.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Lobby.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Lobby.Protocol.Common">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Lobby.Protocol.Common.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Match.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Match.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Player.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Player.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Scheduling.Config">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Scheduling.Config.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Scheduling.Resolution">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Scheduling.Resolution.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFallGuys.Store.Protocol.Client">
+	    <HintPath>..\Lib\FallGuys\Il2CppFallGuys.Store.Protocol.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFMODUnity">
+	    <HintPath>..\Lib\FallGuys\Il2CppFMODUnity.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppFMODUnityResonance">
+	    <HintPath>..\Lib\FallGuys\Il2CppFMODUnityResonance.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppHazel">
+	    <HintPath>..\Lib\FallGuys\Il2CppHazel.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppInterop.Common">
+	    <HintPath>..\Lib\MelonNet8\Il2CppInterop.Common.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppInterop.Generator">
+	    <HintPath>..\Lib\MelonNet8\Il2CppInterop.Generator.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppInterop.Runtime">
+	    <HintPath>..\Lib\MelonNet8\Il2CppInterop.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.Automation.FallGuys">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.Automation.FallGuys.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.Benchmarking">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.Benchmarking.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.Catapult.ClientSdk.Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.Catapult.ClientSdk.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.CommandLineUtils">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.CommandLineUtils.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.ErrorMonitor">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.ErrorMonitor.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.Pooling">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.Pooling.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMediatonic.Strings">
+	    <HintPath>..\Lib\FallGuys\Il2CppMediatonic.Strings.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMiniJson_Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppMiniJson_Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMono.Security">
+	    <HintPath>..\Lib\FallGuys\Il2CppMono.Security.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMPG.Android.OBBFileDownloader">
+	    <HintPath>..\Lib\FallGuys\Il2CppMPG.Android.OBBFileDownloader.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMPG.Android.PauseResumeApp">
+	    <HintPath>..\Lib\FallGuys\Il2CppMPG.Android.PauseResumeApp.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMPG.PreInit.Config">
+	    <HintPath>..\Lib\FallGuys\Il2CppMPG.PreInit.Config.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppmscorlib">
+	    <HintPath>..\Lib\FallGuys\Il2Cppmscorlib.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMT.FGClient">
+	    <HintPath>..\Lib\FallGuys\Il2CppMT.FGClient.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMTLog">
+	    <HintPath>..\Lib\FallGuys\Il2CppMTLog.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppMTNetwork">
+	    <HintPath>..\Lib\FallGuys\Il2CppMTNetwork.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppmvvmbindings">
+	    <HintPath>..\Lib\FallGuys\Il2Cppmvvmbindings.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppNewtonsoft.Json">
+	    <HintPath>..\Lib\FallGuys\Il2CppNewtonsoft.Json.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppOEBIF">
+	    <HintPath>..\Lib\FallGuys\Il2CppOEBIF.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppParsingUtils_Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppParsingUtils_Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppprotobuf-net">
+	    <HintPath>..\Lib\FallGuys\Il2Cppprotobuf-net.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppRemoteImages">
+	    <HintPath>..\Lib\FallGuys\Il2CppRemoteImages.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppRewired_Android">
+	    <HintPath>..\Lib\FallGuys\Il2CppRewired_Android.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppRewired_Core">
+	    <HintPath>..\Lib\FallGuys\Il2CppRewired_Core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cppspine-unity">
+	    <HintPath>..\Lib\FallGuys\Il2Cppspine-unity.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSplineEditor">
+	    <HintPath>..\Lib\FallGuys\Il2CppSplineEditor.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Configuration">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Configuration.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Core">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Data">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Data.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.IO.Compression">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.IO.Compression.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Net.Http">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Net.Http.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Numerics">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Numerics.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Runtime.Serialization">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Runtime.Serialization.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Xml">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Xml.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppSystem.Xml.Linq">
+	    <HintPath>..\Lib\FallGuys\Il2CppSystem.Xml.Linq.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTheMultiplayerGuys.FGCommon">
+	    <HintPath>..\Lib\FallGuys\Il2CppTheMultiplayerGuys.FGCommon.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTheMultiplayerGuys.Utility">
+	    <HintPath>..\Lib\FallGuys\Il2CppTheMultiplayerGuys.Utility.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTonicSounds">
+	    <HintPath>..\Lib\FallGuys\Il2CppTonicSounds.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTonicSoundsFMOD">
+	    <HintPath>..\Lib\FallGuys\Il2CppTonicSoundsFMOD.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTonicTools">
+	    <HintPath>..\Lib\FallGuys\Il2CppTonicTools.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppTweenTool">
+	    <HintPath>..\Lib\FallGuys\Il2CppTweenTool.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppUniRx">
+	    <HintPath>..\Lib\FallGuys\Il2CppUniRx.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppWushu.AsyncFileIO.Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppWushu.AsyncFileIO.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2CppWushu.LevelEditor.Runtime">
+	    <HintPath>..\Lib\FallGuys\Il2CppWushu.LevelEditor.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Il2Cpp__Generated">
+	    <HintPath>..\Lib\FallGuys\Il2Cpp__Generated.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="IndexRange">
+	    <HintPath>..\Lib\MelonNet8\IndexRange.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="JNISharp">
+	    <HintPath>..\Lib\MelonNet8\JNISharp.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MelonLoader">
+	    <HintPath>..\Lib\MelonNet8\MelonLoader.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MelonLoader.NativeHost">
+	    <HintPath>..\Lib\MelonNet8\MelonLoader.NativeHost.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Diagnostics.NETCore.Client">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Diagnostics.NETCore.Client.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Diagnostics.Runtime">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Diagnostics.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Configuration">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Configuration.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Configuration.Binder">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Logging">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Logging.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Options">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Options.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Extensions.Primitives">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Extensions.Primitives.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Microsoft.Win32.SystemEvents">
+	    <HintPath>..\Lib\MelonNet8\Microsoft.Win32.SystemEvents.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Mono.Cecil">
+	    <HintPath>..\Lib\MelonNet8\Mono.Cecil.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Mono.Cecil.Mdb">
+	    <HintPath>..\Lib\MelonNet8\Mono.Cecil.Mdb.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Mono.Cecil.Pdb">
+	    <HintPath>..\Lib\MelonNet8\Mono.Cecil.Pdb.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Mono.Cecil.Rocks">
+	    <HintPath>..\Lib\MelonNet8\Mono.Cecil.Rocks.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.Backports">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.Backports.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.Core">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.Core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.Iced">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.Iced.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.ILHelpers">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.ILHelpers.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.Patcher">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.Patcher.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.RuntimeDetour">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.RuntimeDetour.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="MonoMod.Utils">
+	    <HintPath>..\Lib\MelonNet8\MonoMod.Utils.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Newtonsoft.Json">
+	    <HintPath>..\Lib\MelonNet8\Newtonsoft.Json.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="System.Configuration.ConfigurationManager">
+	    <HintPath>..\Lib\MelonNet8\System.Configuration.ConfigurationManager.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="System.Diagnostics.EventLog">
+	    <HintPath>..\Lib\MelonNet8\System.Diagnostics.EventLog.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="System.Drawing.Common">
+	    <HintPath>..\Lib\MelonNet8\System.Drawing.Common.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="System.Security.Cryptography.ProtectedData">
+	    <HintPath>..\Lib\MelonNet8\System.Security.Cryptography.ProtectedData.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Tomlet">
+	    <HintPath>..\Lib\MelonNet8\Tomlet.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Addressables">
+	    <HintPath>..\Lib\FallGuys\Unity.Addressables.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Burst">
+	    <HintPath>..\Lib\FallGuys\Unity.Burst.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Burst.Unsafe">
+	    <HintPath>..\Lib\FallGuys\Unity.Burst.Unsafe.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Collections">
+	    <HintPath>..\Lib\FallGuys\Unity.Collections.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Collections.LowLevel.ILSupport">
+	    <HintPath>..\Lib\FallGuys\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.InputSystem">
+	    <HintPath>..\Lib\FallGuys\Unity.InputSystem.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Localization">
+	    <HintPath>..\Lib\FallGuys\Unity.Localization.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Mathematics">
+	    <HintPath>..\Lib\FallGuys\Unity.Mathematics.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Networking.BackgroundDownload">
+	    <HintPath>..\Lib\FallGuys\Unity.Networking.BackgroundDownload.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Notifications.Android">
+	    <HintPath>..\Lib\FallGuys\Unity.Notifications.Android.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Postprocessing.Runtime">
+	    <HintPath>..\Lib\FallGuys\Unity.Postprocessing.Runtime.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Profiling.Core">
+	    <HintPath>..\Lib\FallGuys\Unity.Profiling.Core.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.ResourceManager">
+	    <HintPath>..\Lib\FallGuys\Unity.ResourceManager.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.TextMeshPro">
+	    <HintPath>..\Lib\FallGuys\Unity.TextMeshPro.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.Timeline">
+	    <HintPath>..\Lib\FallGuys\Unity.Timeline.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.ucg.QoS">
+	    <HintPath>..\Lib\FallGuys\Unity.ucg.QoS.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AccessibilityModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AccessibilityModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AIModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AIModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AndroidJNIModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AndroidJNIModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AnimationModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AnimationModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ARModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ARModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AssetBundleModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AssetBundleModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.AudioModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.AudioModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ClothModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ClothModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ClusterInputModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ClusterInputModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ClusterRendererModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ClusterRendererModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.CoreModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.CoreModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.CrashReportingModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.CrashReportingModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.DirectorModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.DirectorModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.DSPGraphModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.DSPGraphModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.GameCenterModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.GameCenterModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.GIModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.GIModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.GridModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.GridModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.HotReloadModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.HotReloadModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.Il2CppAssetBundleManager">
+	    <HintPath>..\Lib\MelonNet8\UnityEngine.Il2CppAssetBundleManager.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.Il2CppImageConversionManager">
+	    <HintPath>..\Lib\MelonNet8\UnityEngine.Il2CppImageConversionManager.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ImageConversionModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ImageConversionModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.IMGUIModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.IMGUIModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.InputLegacyModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.InputLegacyModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.InputModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.InputModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.JSONSerializeModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.JSONSerializeModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.LocalizationModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.LocalizationModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.NVIDIAModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.NVIDIAModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ParticleSystemModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ParticleSystemModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.PerformanceReportingModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.PerformanceReportingModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.Physics2DModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.Physics2DModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.PhysicsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.PhysicsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ProfilerModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ProfilerModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.ScreenCaptureModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.ScreenCaptureModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.SharedInternalsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.SharedInternalsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.SpriteMaskModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.SpriteMaskModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.SpriteShapeModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.SpriteShapeModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.StreamingModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.StreamingModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.SubstanceModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.SubstanceModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.SubsystemsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.SubsystemsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TerrainModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TerrainModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TerrainPhysicsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TextCoreFontEngineModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TextCoreTextEngineModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TextRenderingModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TextRenderingModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TilemapModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TilemapModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.TLSModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.TLSModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UI">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UI.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UIElementsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UIElementsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UIElementsNativeModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UIElementsNativeModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UIModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UIModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UmbraModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UmbraModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UNETModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UNETModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityAnalyticsCommonModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityAnalyticsCommonModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityAnalyticsModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityConnectModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityConnectModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityCurlModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityCurlModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityTestProtocolModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityTestProtocolModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityWebRequestModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityWebRequestModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.VehiclesModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.VehiclesModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.VFXModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.VFXModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.VideoModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.VideoModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.VirtualTexturingModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.VirtualTexturingModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.VRModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.VRModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.WindModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.WindModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.XRModule">
+	    <HintPath>..\Lib\FallGuys\UnityEngine.XRModule.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	  <Reference Include="WebSocketDotNet">
+	    <HintPath>..\Lib\MelonNet8\WebSocketDotNet.dll</HintPath>
+	    <Private>False</Private>
+	  </Reference>
+	</ItemGroup>
 </Project>

@@ -1,19 +1,17 @@
-﻿using FG.Common;
-using FG.Common.Messages;
-using FGClient;
-using FGClient.UI;
-using FGDebug;
-using HarmonyLib;
+﻿using HarmonyLib;
+using Il2Cpp;
+using Il2CppFG.Common;
+using Il2CppFG.Common.Messages;
+using Il2CppFGClient;
+using Il2CppFGDebug;
+using Il2CppTMPro;
 using NOTFGT.GUI;
 using NOTFGT.Loader;
 using NOTFGT.Localization;
 using NOTFGT.Logic;
-using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using TMPro;
 using UnityEngine;
-using static SRF.UI.SRSpinner;
+using static Il2CppFG.Common.LODs.LodController;
+using static Il2CppFGClient.UI.UIModalMessage;
 
 namespace NOTFGT.Harmony
 {
@@ -67,7 +65,7 @@ namespace NOTFGT.Harmony
                             NetID = GlobalGameStateClient.Instance.NetObjectManager.GetNextNetID(),
                             _additionalSpawnData = new PlayerSpawnData(GlobalGameStateClient.Instance.GetLocalClientNetworkID(), 1, GlobalGameStateClient.Instance.GetLocalClientAccountID(), "android_ega", GlobalGameStateClient.Instance.GetLocalPlayerName(), "", 0, -1, "", 0, false, GlobalGameStateClient.Instance.PlayerProfile.CustomisationSelections),
                             _creationMode = NetObjectCreationMode.Spawn,
-                            _lodControllerBehaviour = FG.Common.LODs.LodController.LodControllerBehaviour.Default,
+                            _lodControllerBehaviour = LodControllerBehaviour.Default,
                             _prefabHash = -491682846,
                             _scale = Vector3.one,
                             _spawnObjectType = EnumSpawnObjectType.PLAYER,
@@ -149,7 +147,7 @@ namespace NOTFGT.Harmony
                 if (NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck) && PlayerPrefs.GetInt("FLZ_CONNECT_WARN") != 1)
                 {
                     PlayerPrefs.SetInt("FLZ_CONNECT_WARN", 1);
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("fgcc_alert_title"), LocalizationManager.LocalizedString("fgcc_alert_desc"), UIModalMessage.ModalType.MT_OK_CANCEL, UIModalMessage.OKButtonType.Disruptive, new Action<bool>(Go));
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("fgcc_alert_title"), LocalizationManager.LocalizedString("fgcc_alert_desc"), ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>(Go));
                 }
                 else
                     Go(true);

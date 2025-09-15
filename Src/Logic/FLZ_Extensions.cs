@@ -1,26 +1,25 @@
-﻿using FG.Common.CMS;
-using FGClient.UI;
-using FGClient.UI.Notifications;
+﻿using Il2Cpp;
+using Il2CppFG.Common.CMS;
+using Il2CppFGClient.UI;
+using Il2CppFGClient.UI.Notifications;
+using Il2CppTMPro;
+using Il2CppUniRx;
 using NOTFGT.Localization;
-using System;
-using System.Globalization;
-using System.IO;
 using System.Text.RegularExpressions;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static FGClient.UI.UIModalMessage;
+using static Il2CppFGClient.UI.UIModalMessage;
 
 namespace NOTFGT.Logic
 {
     public static class FLZ_Extensions
     {
-        public static void DoModal(string title, string msg, ModalType type, OKButtonType btnType, Il2CppSystem.Action<bool> act = null, bool doSfx = true, string btnOkStr = null, TMPro.TextAlignmentOptions al = TMPro.TextAlignmentOptions.Center, float closeDelay = 0f)
+        public static void DoModal(string title, string msg, ModalType type, OKButtonType btnType, Il2CppSystem.Action<bool> act = null, bool doSfx = true, string btnOkStr = null, TextAlignmentOptions al = TextAlignmentOptions.Center, float closeDelay = 0f)
         {
             if (btnOkStr != null)
                 NewCmsStr("latest_btn_ok", btnOkStr);
 
-            Il2CppSystem.IObservable<UniRx.Unit> acceptWaitObs = ModalMessageBaseData.CreateTimerObservable(closeDelay);
+            Il2CppSystem.IObservable<Unit> acceptWaitObs = ModalMessageBaseData.CreateTimerObservable(closeDelay);
             string okStr = btnOkStr == null ? null : $"latest_btn_ok";
 
             var ModalMessageDataDisclaimer = new ModalMessageData
