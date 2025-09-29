@@ -1,6 +1,6 @@
 # FGTools Mobile
 
-![Logo](Assets/GitHubImages/FGToolsMSplash.png)
+![Logo](Assets/GitHubImages/Splash.png)
 
 <p align="center">Mobile version of FGTools</p>
 
@@ -27,7 +27,7 @@
 
 ### Project
 - Open it with Visual Studio
-- Update the references in the `Lib` folder if needed (to do that use [this version of MelonLoader](https://github.com/LavaGang/MelonLoader/releases/tag/v0.5.7) on the desktop version of the game)
+- Update the references in the `Lib` folder if needed (to do that use [this version of MelonLoader](https://github.com/LemonLoader/MelonLoader/releases/tag/0.6.5.1) on the desktop version of the game)
 - To build with cheats included set "Cheats" configuration in configuration manager
 
 ### UI Bundle
@@ -40,20 +40,14 @@
 ## Without modifying anything 
 - [Download the latest release](https://github.com/floyzi/FGToolsMobile/releases/latest)
 - Install it 
+- DONE!!!
 
 ## With modifying 
-### With access to Android/data folder
-- Make sure your game is patched by this version of [LemonLoader](https://github.com/LemonLoader/MelonLoader_057/releases/tag/0.2.0.1) 
-- Navigate Android/data/com.Mediatonic.FallGuys_client/files/
-- Put the `NOT_FGTools` folder from the Assets folder and `NOT FGTools.dll` that you built into the `Mods` folder 
+- Get Fall Guys APK that is patched via this version of [LemonLoader](https://github.com/LemonLoader/MelonLoader/releases/tag/0.6.5.1) 
+- Navigate to `Melonloader/GAME_PACKAGE_NAME/Mods`
+- Put the `NOT_FGTools` folder from the Assets folder and `NOT FGTools.dll` that you built there
 - Launch the game
-
-### Without access to Android/data folder
-- Get Fall Guys APK that is patched via this version of [LemonLoader](https://github.com/LemonLoader/MelonLoader_057/releases/tag/0.2.0.1) 
-- Open it with any APK editor (MT Manager or APKTool M on Android or APK Editor Studio on Windows)
-- Inside the Assets folder create a folder named `copyToData` there you need to create `Mods` folder and also put the `NOT_FGTools` folder from the Assets folder in this repo 
-- Pack the APK and sign it
-- Once everything is done, launch the game
+- Profit
 
 # FAQ
 ### Can I play online with this?
@@ -63,11 +57,16 @@
 ### Will I get banned for this?
 - If you're using a version with cheats, probably. If not then you're safe, there's nothing that can ban you
 ### My game crashes, what do I do!?
-- If it was the first launch, just open it again <b>and wait around five or ten minutes sitting on black screen!!</b>
+- If it was the first launch, just open it again **and wait around five or ten minutes sitting on black screen!!**
 - If the game crashes no matter what then you're out of luck, there is nothing you can do to fix it.
 ### Does this thing have cheats?
 - Release versions **NEVER** includeds cheats. If you want to get cheats compile it by yourself
+### Where is the update?
+- I update the mod when I have time and motivation to do so, it's an open source project and all building and usage instructions are listed above, it's not that hard to update it by yourself. 
+If you don't have PC then wait, and wait more, nothing else
+### FGTools Mobile Download
+![The Answer](Assets/GitHubImages/answer.jpg)
 
 # Credits
-- Made using [LemonLoader](https://github.com/LemonLoader/MelonLoader_057)
+- Made using [LemonLoader](https://github.com/LemonLoader/MelonLoader)
 - [repinek](https://github.com/repinek) and Toytyis - playtesting
