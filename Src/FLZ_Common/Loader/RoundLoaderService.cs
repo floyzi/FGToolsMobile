@@ -6,16 +6,18 @@ using Il2CppFGClient;
 using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Core;
 using MelonLoader;
-using NOTFGT.Localization;
-using NOTFGT.Logic;
+using NOTFGT.FLZ_Common.Localization;
+using NOTFGT.FLZ_Common.Logic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Il2CppFG.Common.GameStateMachine;
+using static Il2CppFGClient.UI.UIModalMessage;
 using Random = UnityEngine.Random;
+using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
-namespace NOTFGT.Loader
+namespace NOTFGT.FLZ_Common.Loader
 {
     public class RoundLoaderService
     {
@@ -29,6 +31,18 @@ namespace NOTFGT.Loader
         public static InGameUiManager UIM;
 
         public void SetNewRound(Round Round) => CurrentRound = Round;
+
+        public void LoadRound(string roundId)
+        {
+            try
+            {
+                LoadCmsRound(roundId, LoadSceneMode.Single);
+            }
+            catch (Exception e)
+            {
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic", [roundId, LoadSceneMode.Single, e.Message]), ModalType.MT_OK, OKButtonType.Default);
+            }
+        }
 
         public void GenerateCMSList(Transform idsView, Button prefab)
         {
@@ -44,9 +58,9 @@ namespace NOTFGT.Loader
                     {
                         string roundName = cmsData.DisplayName != null && cmsData.DisplayName != "ЛЫЖЕПАД" ? cmsData.DisplayName : cmsData.DisplayName + " КСТА";
                         string levelType = cmsData.Archetype != null && cmsData.Archetype.Name != null ? cmsData.Archetype.Name : "(EMPTY)";
-                        string scene = (cmsData.SceneData != null && cmsData.SceneData.PrimeLevel != null && cmsData.SceneData.PrimeLevel.SceneName != null) ? cmsData.SceneData.PrimeLevel.SceneName : "(EMPTY)";
+                        string scene = cmsData.SceneData != null && cmsData.SceneData.PrimeLevel != null && cmsData.SceneData.PrimeLevel.SceneName != null ? cmsData.SceneData.PrimeLevel.SceneName : "(EMPTY)";
                         string cleanName = FLZ_Extensions.CleanStr(roundName);
-                        var obj = GameObject.Instantiate(prefab, idsView);
+                        var obj = UnityEngine.Object.Instantiate(prefab, idsView);
                         obj.gameObject.SetActive(true);
                         obj.transform.GetComponentInChildren<Text>().text = $"{lineNumber}. {cleanName} - {pair.Key}";
                         obj.onClick.AddListener(new Action(() => { GUIUtility.systemCopyBuffer = pair.key; }));
@@ -65,7 +79,7 @@ namespace NOTFGT.Loader
                     ids.Add(round.Key);
             }
             var target = ids[Random.Range(0, ids.Count)];
-            MelonLogger.Msg($"[{base.GetType()}] Loading round with id {target}...");
+            MelonLogger.Msg($"[{GetType()}] Loading round with id {target}...");
             LoadCmsRound(target, LoadSceneMode.Single);
         }
 
@@ -74,12 +88,14 @@ namespace NOTFGT.Loader
         {
             if (RoundLoadingAllowed)
             {
-                if (NOTFGTools.Instance.ActivePlayerState == NOTFGTools.PlayerState.RealGame)
+                if (IsInRealGame)
                 {
                     FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_real_game"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
                     return;
                 }
+
                 RoundLoadingAllowed = false;
+
                 try
                 {
                     if (CMSLoader.Instance.CMSData.Rounds.ContainsKey(roundToFind))
@@ -118,7 +134,7 @@ namespace NOTFGT.Loader
                     {
                         Resources.FindObjectsOfTypeAll<UICanvas>().FirstOrDefault().RemoveAllScreens();
                         StartLoadingScreen();
-                        NOTFGTools.Instance.HandlePlayerState(NOTFGTools.PlayerState.RoundLoader);
+                        Instance.HandlePlayerState(PlayerState.RoundLoader);
                         NetworkGameData.SetGameOptionsFromRoundData(CurrentRound);
                         NetworkGameData.SetInitialRoundPlayerCount(1);
                         GameLoading = new StateGameLoading(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), GamePermission.Player, false, false);

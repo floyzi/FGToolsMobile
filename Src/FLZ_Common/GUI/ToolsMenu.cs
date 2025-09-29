@@ -6,9 +6,11 @@ using System.Linq;
 using UnityEngine;
 using File = System.IO.File;
 using Path = System.IO.Path;
+using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
-namespace NOTFGT.GUI
+namespace NOTFGT.FLZ_Common.GUI
 {
+    //i need to rewrite this
     public class ToolsMenu
     {
         //name of config file
@@ -54,7 +56,6 @@ namespace NOTFGT.GUI
         public const string ForceMenu = "ForceMenu";
         public const string FGDebugScale = "FGDebugScale";
         public const string SeePlayerPlatforms = "SeePlayerPlatforms";
-        public const string HideBigNames = "HideBigNames";
 
         private static readonly Dictionary<string, (string Category, string DisplayName, string Description, object Value, Dictionary<string, object> Config, MenuEntry.Type ValueType)> EditableMenu = new()
         {
@@ -113,9 +114,9 @@ namespace NOTFGT.GUI
 
         public void LoadConfig(bool reset)
         {
-            string path = Path.Combine(NOTFGTools.AssetsDir, TargetCfgName);
+            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
 
-            MelonLogger.Msg($"[{base.GetType()}] Loading config at path {path}. Reset = {reset}");
+            MelonLogger.Msg($"[{GetType()}] Loading config at path {path}. Reset = {reset}");
             var definitions = new HashSet<string>
             {
                 GUI, TrackGameDebug, FPSCoutner, WholeFGDebug, UnlockFPS, TargetFPS, 
@@ -133,7 +134,7 @@ namespace NOTFGT.GUI
 
             if (!File.Exists(path) || reset)
             {
-                MelonLogger.Msg($"[{base.GetType()}] Config not found, creating a new one...");
+                MelonLogger.Msg($"[{GetType()}] Config not found, creating a new one...");
                 foreach (var entry in EditableMenu)
                 {
                     RegisterEntry(entry.Key, entry.Value.Category, entry.Value.DisplayName, entry.Value.Description, entry.Value.Value, entry.Value.Config, entry.Value.ValueType);
@@ -143,7 +144,7 @@ namespace NOTFGT.GUI
             {
                 var knownDefinitions = new Dictionary<string, MenuEntry>();
 
-                MelonLogger.Msg($"[{base.GetType()}] Found existing config, it will be loaded");
+                MelonLogger.Msg($"[{GetType()}] Found existing config, it will be loaded");
 
                 foreach (var entry in JsonConvert.DeserializeObject<List<MenuEntry>>(File.ReadAllText(path)))
                 {
@@ -153,7 +154,7 @@ namespace NOTFGT.GUI
                     }
                 }
 
-                MelonLogger.Msg($"[{base.GetType()}] Loading config...");
+                MelonLogger.Msg($"[{GetType()}] Loading config...");
 
                 foreach (var entry2 in definitions)
                 {
@@ -172,19 +173,19 @@ namespace NOTFGT.GUI
                 }
             }
 
-            MelonLogger.Msg($"[{base.GetType()}] Config loaded!");
+            MelonLogger.Msg($"[{GetType()}] Config loaded!");
 
             var json = JsonConvert.SerializeObject(_entries);
             File.WriteAllText(path, json);
 
             CreateStaticConfig();
 
-            MelonLogger.Msg($"[{base.GetType()}] All done!");
+            MelonLogger.Msg($"[{GetType()}] All done!");
         }
 
         public void DeleteConfig()
         {
-            string path = Path.Combine(NOTFGTools.AssetsDir, TargetCfgName);
+            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
             if (File.Exists(path))
                 File.Delete(path);
             Application.Quit();
@@ -203,7 +204,7 @@ namespace NOTFGT.GUI
                 { ForceMenu, (Gameplay_Cat, "cheat_entry_force_menu_title", "cheat_entry_force_menu_desc", "ForceMainMenu", null, MenuEntry.Type.Button) },
             };
 
-            MelonLogger.Msg($"[{base.GetType()}] Creating static section...");
+            MelonLogger.Msg($"[{GetType()}] Creating static section...");
 
             foreach (var entry in StaticConfig)
                 RegisterEntry(entry.Key, entry.Value.Category, entry.Value.DisplayName, entry.Value.Description, entry.Value.Value, entry.Value.AdditionalData, entry.Value.ValueType);
@@ -214,15 +215,15 @@ namespace NOTFGT.GUI
 
         public void RollSave()
         {
-            string path = Path.Combine(NOTFGTools.AssetsDir, TargetCfgName);
+            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
             var json = JsonConvert.SerializeObject(_entries);
             File.WriteAllText(path, json);
-            MelonLogger.Msg($"[{base.GetType()}] Saved config...");
+            MelonLogger.Msg($"[{GetType()}] Saved config...");
         }
 
         public void RegisterEntry(string internalName, string category, string displayName, string desc, object value, Dictionary<string, object> AdditionalData, MenuEntry.Type type)
         {
-            MelonLogger.Msg($"[{base.GetType()}] Register for entry \"{internalName}\" with type \"{type}\"");
+            MelonLogger.Msg($"[{GetType()}] Register for entry \"{internalName}\" with type \"{type}\"");
 
             _entries.Add(new MenuEntry {
                 InternalName = internalName, 
@@ -242,7 +243,7 @@ namespace NOTFGT.GUI
             {
                 var changedEntry = _changedEntries.FirstOrDefault(e => e.InternalName == name);
 
-                NOTFGTools.Instance.GUIUtil.TriggerPendingChanges(true);
+                FLZ_ToolsManager.Instance.GUIUtil.TriggerPendingChanges(true);
 
                 if (changedEntry == null)
                 {
@@ -270,19 +271,19 @@ namespace NOTFGT.GUI
             {
                 var entry = _entries.FirstOrDefault(e => e.InternalName == changedEntry.InternalName);
 
-                if (changedEntry.InternalName == ToolsMenu.WholeFGDebug && (bool)changedEntry.Value)
+                if (changedEntry.InternalName == WholeFGDebug && (bool)changedEntry.Value)
                     _entries.Find(x => x.InternalName == FPSCoutner).Value = false;
 
-                if (changedEntry.InternalName == ToolsMenu.FPSCoutner && (bool)changedEntry.Value)
+                if (changedEntry.InternalName == FPSCoutner && (bool)changedEntry.Value)
                     _entries.Find(x => x.InternalName == WholeFGDebug).Value = false;
 
                 if (entry != null)
                     entry.Value = changedEntry.Value;
             }
 
-            NOTFGTools.Instance.GUIUtil.UpdateActiveEntries(_changedEntries);
+            Instance.GUIUtil.UpdateActiveEntries(_changedEntries);
             _changedEntries.Clear();
-            NOTFGTools.Instance.GUIUtil.TriggerPendingChanges(false);
+            Instance.GUIUtil.TriggerPendingChanges(false);
         }
 
         public T GetValue<T>(string name)
@@ -301,10 +302,10 @@ namespace NOTFGT.GUI
         public void ResetSettings()
         {
             LoadConfig(true);
-            NOTFGTools.Instance.GUIUtil.UpdateActiveEntries();
+            Instance.GUIUtil.UpdateActiveEntries();
             _changedEntries.Clear();
-            NOTFGTools.Instance.ApplyChanges();
-            NOTFGTools.Instance.GUIUtil.TriggerPendingChanges(false);
+            Instance.ApplyChanges();
+            Instance.GUIUtil.TriggerPendingChanges(false);
         }
 
 

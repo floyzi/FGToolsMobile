@@ -3,27 +3,32 @@ using Il2Cpp;
 using Il2CppFG.Common;
 using Il2CppFG.Common.Messages;
 using Il2CppFGClient;
+using Il2CppFGClient.UI.Notifications;
 using Il2CppFGDebug;
+using Il2CppInterop.Runtime;
 using Il2CppTMPro;
-using NOTFGT.GUI;
-using NOTFGT.Loader;
-using NOTFGT.Localization;
-using NOTFGT.Logic;
+using NOTFGT.FLZ_Common.GUI;
+using NOTFGT.FLZ_Common.Loader;
+using NOTFGT.FLZ_Common.Localization;
+using NOTFGT.FLZ_Common.Logic;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using static Il2CppFG.Common.LODs.LodController;
 using static Il2CppFGClient.UI.UIModalMessage;
+using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
-namespace NOTFGT.Harmony
+namespace NOTFGT.FLZ_Common
 {
     public class HarmonyPatches
     {
         public class CaptureTools
         {
-            [HarmonyLib.HarmonyPostfix]
-            [HarmonyLib.HarmonyPatch(typeof(CaptureToolsManager), "CanUseCaptureTools", HarmonyLib.MethodType.Getter)]
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CaptureToolsManager), "CanUseCaptureTools", MethodType.Getter)]
             public static void CanUseCaptureTools(ref bool __result)
             {
-                __result = NOTFGTools.CaptureTools;
+                __result = IsUsingCaptureTools;
             }
         }
 
@@ -34,18 +39,42 @@ namespace NOTFGT.Harmony
             {
                 foreach (var tag in __instance._spawnedInfoObjects)
                 {
-                    NOTFGTools.Instance.RegisterTag(tag.playerInfo);
+                    Instance.InGameManager.RegisterTag(tag.playerInfo);
                 }
+            }
+
+            [HarmonyPatch(typeof(TMP_InputField), nameof(TMP_InputField.OnSelect)), HarmonyPrefix]
+            static bool OnSelect(TMP_InputField __instance, PointerEventData eventData)
+            {
+                return __instance.name != "SLOP";
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(NotificationViewModelBase), nameof(NotificationViewModelBase.Update))]
+            static void Update([Obfuscation(Exclude = true)] NotificationViewModelBase __instance)
+            {
+                if (__instance.GetIl2CppType() != Il2CppType.Of<TextNotificationViewModel>())
+                    return;
+
+                //why not lol
+                if (__instance.name.StartsWith("PB_UI_"))
+                    __instance.name = __instance.transform.position.x.ToString();
+
+                if (Instance.GUIUtil.IsUIActive)
+                    //slop!
+                    __instance.transform.localPosition = new Vector3(float.Parse(__instance.transform.name) + Instance.GUIUtil.PanelBG.rect.width + 175, __instance.transform.localPosition.y, __instance.transform.localPosition.z);
+                else
+                    __instance.transform.localPosition = new Vector3(float.Parse(__instance.transform.name), __instance.transform.localPosition.y, __instance.transform.localPosition.z);
             }
         }
 
 
         public class RoundLoader
         {
-            [HarmonyLib.HarmonyPatch(typeof(ClientGameManager), nameof(ClientGameManager.SetReady)), HarmonyLib.HarmonyPostfix]
+            [HarmonyPatch(typeof(ClientGameManager), nameof(ClientGameManager.SetReady)), HarmonyPostfix]
             static void SetReady(ClientGameManager __instance, PlayerReadinessState readinessState, string sceneName, string levelHash)
             {
-                if (NOTFGTools.Instance.ActivePlayerState != NOTFGTools.PlayerState.RoundLoader)
+                if (!IsInRoundLoader)
                     return;
 
                 switch (readinessState)
@@ -99,11 +128,11 @@ namespace NOTFGT.Harmony
 
         public class GUITweaks
         {
-            [HarmonyLib.HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleMinimalisticFPSCounter)), HarmonyLib.HarmonyPrefix]
+            [HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleMinimalisticFPSCounter)), HarmonyPrefix]
             static bool ToggleMinimalisticFPSCounter(GvrFPS __instance, GlobalDebug.DebugToggleMinimalisticFPSCounter toggleEvent)
             {
-                var target = NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner);
-                if (target && !NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug))
+                var target = Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner);
+                if (target && !Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug))
                 {
                     if (!__instance.gameObject.activeSelf)
                     {
@@ -125,11 +154,11 @@ namespace NOTFGT.Harmony
                 return false;
             }
 
-            [HarmonyLib.HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleFPSCounter)), HarmonyLib.HarmonyPrefix]
+            [HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleFPSCounter)), HarmonyPrefix]
             static bool ToggleFPSCounter(GvrFPS __instance, GlobalDebug.DebugToggleFPSCounter toggleEvent)
             {
-                var target = NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug);
-                if (target && !NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner))
+                var target = Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug);
+                if (target && !Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner))
                 {
                     __instance.gameObject.SetActive(target);
                     foreach (TextMeshProUGUI TMP in __instance.GetComponentsInChildren<TextMeshProUGUI>(true))
@@ -141,10 +170,10 @@ namespace NOTFGT.Harmony
                 return false;
             }
 
-            [HarmonyLib.HarmonyPatch(typeof(StateMainMenu), nameof(StateMainMenu.HandleConnectEvent)), HarmonyLib.HarmonyPrefix]
+            [HarmonyPatch(typeof(StateMainMenu), nameof(StateMainMenu.HandleConnectEvent)), HarmonyPrefix]
             static bool HandleConnectEvent(StateMainMenu __instance, ConnectEvent evt)
             {
-                if (NOTFGTools.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck) && PlayerPrefs.GetInt("FLZ_CONNECT_WARN") != 1)
+                if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck) && PlayerPrefs.GetInt("FLZ_CONNECT_WARN") != 1)
                 {
                     PlayerPrefs.SetInt("FLZ_CONNECT_WARN", 1);
                     FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("fgcc_alert_title"), LocalizationManager.LocalizedString("fgcc_alert_desc"), ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>(Go));
@@ -158,18 +187,18 @@ namespace NOTFGT.Harmony
                     {
                         ServerSettings serverSettings = evt.playerProfile.serverSettings;
                         __instance.StartConnecting(serverSettings.ServerAddress, serverSettings.ServerPort, serverSettings.MatchmakingEnv);
-                        NOTFGTools.Instance.HandlePlayerState(NOTFGTools.PlayerState.RealGame);
+                        Instance.HandlePlayerState(PlayerState.RealGame);
                     }
                 }
                 return false;
             }
-            [HarmonyLib.HarmonyPatch(typeof(LoadingScreenViewModel), nameof(LoadingScreenViewModel.Awake)), HarmonyLib.HarmonyPrefix]
+            [HarmonyPatch(typeof(LoadingScreenViewModel), nameof(LoadingScreenViewModel.Awake)), HarmonyPrefix]
             static bool ShowScreen(LoadingScreenViewModel __instance)
             {
                 __instance._canvasFader = __instance.GetComponent<CanvasGroupFader>();
-                if (File.Exists(NOTFGTools.MobileSplash))
+                if (File.Exists(Launcher.MobileLoading))
                 {
-                    var spr = FLZ_Extensions.SetSpriteFromFile(NOTFGTools.MobileSplash, 1920, 1080);
+                    var spr = FLZ_Extensions.SetSpriteFromFile(Launcher.MobileLoading, 1920, 1080);
                     __instance.gameObject.transform.FindChild("SplashScreen_Image").gameObject.GetComponent<UnityEngine.UI.Image>().sprite = spr;
                     __instance.SplashLoadingScreenSprite = spr;
                 }

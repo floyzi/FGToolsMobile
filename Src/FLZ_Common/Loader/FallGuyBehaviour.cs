@@ -6,13 +6,12 @@ using Il2CppFGClient.UI;
 using Il2CppLevels.Progression;
 using Il2CppLevels.SeeSaw;
 using UnityEngine;
+using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
-namespace NOTFGT.Loader
+namespace NOTFGT.FLZ_Common.Loader
 {
     public class FallGuyBehaviour : MonoBehaviour
     {
-        public FallGuyBehaviour(IntPtr ptr) : base(ptr) { }
-
         public static FallGuyBehaviour FGBehaviour;
 
         public GameObject spawnpoint;
@@ -52,7 +51,7 @@ namespace NOTFGT.Loader
 
         public void LoadGPActions()
         {
-            NOTFGTools.Instance.GUIUtil.UpdateGPActions(new()
+            Instance.GUIUtil.UpdateGPActions(new()
             {
                 { RespawnPlayer, "Respawn" },
                 { Checkpoint, "Checkpoint" },
@@ -84,7 +83,7 @@ namespace NOTFGT.Loader
 
         void OnDestroy()
         {
-            NOTFGTools.Instance.GUIUtil.UpdateGPActions(null);
+            Instance.GUIUtil.UpdateGPActions(null);
         }
 
         void RespawnPlayer()

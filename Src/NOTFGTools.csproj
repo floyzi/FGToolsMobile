@@ -5,31 +5,47 @@
 		<RootNamespace>NOTFGT</RootNamespace>
 		<AssemblyName>NOT FGTools</AssemblyName>
 		<NeutralLanguage>en-US</NeutralLanguage>
+		<Version>1.0.2</Version>
 		<AssemblyVersion>1.0.2.0</AssemblyVersion>
 		<FileVersion>1.0.2.0</FileVersion>
 		<IsPackable>false</IsPackable>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<Configurations>NonCheats;Cheats</Configurations>
 	</PropertyGroup>
+	
+		
+	<ItemGroup>
+		<AssemblyMetadata Include="BuildDate" Value="$([System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" />
+	</ItemGroup>
 	
 	<PropertyGroup>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NonCheats|AnyCPU'">
+	  <OutputPath>Output\</OutputPath>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Cheats|AnyCPU'">
 	  <OutputPath>Output\</OutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="GUI\GUI_Util.cs" />
-		<Compile Include="GUI\ToolsMenu.cs" />
-		<Compile Include="Harmony\HarmonyPatches.cs" />
-		<Compile Include="Loader\FallGuyBehaviour.cs" />
-		<Compile Include="Loader\RoundLoaderService.cs" />
-		<Compile Include="Localization\LocalizationManager.cs" />
-		<Compile Include="Logic\FLZ_Extensions.cs" />
-		<Compile Include="Core.cs" />
+		<Compile Include="Definitions.cs" />
+		<Compile Include="FLZ_Common\FLZ_Game.cs" />
+		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
+		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
+		<Compile Include="FLZ_Common\GUI\UnityDragFix.cs" />
+		<Compile Include="FLZ_Common\GUI\ToolsMenu.cs" />
+		<Compile Include="FLZ_Common\HarmonyPatches.cs" />
+		<Compile Include="FLZ_Common\Loader\FallGuyBehaviour.cs" />
+		<Compile Include="FLZ_Common\Loader\RoundLoaderService.cs" />
+		<Compile Include="FLZ_Common\Localization\LocalizationManager.cs" />
+		<Compile Include="FLZ_Common\FLZ_Extensions.cs" />
+		<Compile Include="Launcher.cs" />
+		<Compile Include="FLZ_Common\FLZ_ToolsManager.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

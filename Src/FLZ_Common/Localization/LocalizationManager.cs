@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace NOTFGT.Localization
+namespace NOTFGT.FLZ_Common.Localization
 {
     public static class LocalizationManager
     {
@@ -18,7 +18,7 @@ namespace NOTFGT.Localization
 
         public static void Setup()
         {
-            var path = Path.Combine(Application.persistentDataPath, NOTFGTools.AssetsDir, "text.json");
+            var path = Path.Combine(Application.persistentDataPath, Launcher.AssetsDir, "text.json");
             LangEntries = JsonConvert.DeserializeObject<List<LangEntry>>(File.ReadAllText(path));
         }
 

@@ -4,13 +4,13 @@ using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Notifications;
 using Il2CppTMPro;
 using Il2CppUniRx;
-using NOTFGT.Localization;
+using NOTFGT.FLZ_Common.Localization;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 
-namespace NOTFGT.Logic
+namespace NOTFGT.FLZ_Common.Logic
 {
     public static class FLZ_Extensions
     {
@@ -25,7 +25,7 @@ namespace NOTFGT.Logic
             var ModalMessageDataDisclaimer = new ModalMessageData
             {
                 Title = title,
-                Message = $"<size=70%>{msg}</size>",
+                Message = $"{msg}",
                 LocaliseTitle = LocaliseOption.NotLocalised,
                 LocaliseMessage = LocaliseOption.NotLocalised,
                 ModalType = type,
@@ -84,7 +84,7 @@ namespace NOTFGT.Logic
         {
             byte[] ImageAsByte = File.ReadAllBytes(path);
             Texture2D Texture = new(Width, Height, TextureFormat.RGBA32, false);
-            if (ImageConversion.LoadImage(Texture, ImageAsByte))
+            if (Texture.LoadImage(ImageAsByte))
             {
                 Texture.filterMode = FilterMode.Point;
                 return Sprite.Create(Texture, new Rect(0.0f, 0.0f, Texture.width, Texture.height), new Vector2(0.5f, 0.5f));
