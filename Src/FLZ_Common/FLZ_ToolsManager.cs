@@ -4,6 +4,7 @@ using Il2CppFG.Common;
 using Il2CppFG.Common.Character;
 using Il2CppFGClient;
 using Il2CppFGClient.UI;
+using Il2CppFGClient.UI.Core;
 using Il2CppFGDebug;
 using MelonLoader;
 using NOTFGT.FLZ_Common.GUI;
@@ -18,6 +19,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static Il2Cpp.GameStateEvents;
 using static Il2CppFG.Common.CommonEvents;
+using static Il2CppFG.Common.GameStateMachine;
 using static Il2CppFGClient.GlobalGameStateClient;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static MelonLoader.MelonLogger;
@@ -27,7 +29,6 @@ namespace NOTFGT.FLZ_Common
     internal class FLZ_ToolsManager : MonoBehaviour
     {
         internal static FLZ_ToolsManager Instance;
-        public static bool IsUsingCaptureTools => Instance.SettingsMenu.GetValue<bool>(ToolsMenu.UseCaptureTools);
         internal static bool IsInGameplay => GlobalGameStateClient.Instance.GameStateView.IsGamePlaying;
         internal static bool IsOnRound => GlobalGameStateClient.Instance.GameStateView.IsGameLevelLoaded;
         internal static bool IsOnCountdown => GlobalGameStateClient.Instance.GameStateView.IsGameCountingDown;
@@ -47,6 +48,45 @@ namespace NOTFGT.FLZ_Common
         internal static Action OnFinished;
         internal static Action<string, string, LogType> OnLog;
         internal static Action OnGUIInit;
+
+        internal bool TrackGameLog = true;
+        bool _FPSCounter;
+        internal bool FPSCounter
+        {
+            get => _FPSCounter;
+            set
+            {
+                if (value)
+                {
+                    _FPSCounter = true;
+                    _FGDebug = false;
+                }
+                else
+                {
+                    _FPSCounter = false;
+                }
+            }
+        }
+        bool _FGDebug;
+        internal bool FGDebug
+        {
+            get => _FGDebug;
+            set
+            {
+                if (value)
+                {
+                    _FGDebug = true;
+                    _FPSCounter = false;
+                }
+                else
+                {
+                    _FGDebug = false;
+                }
+            }
+        }
+        internal bool UnlockFPS;
+        internal int TargetFPS = 60;
+        internal float FGDebugScale = 0.6f;
 
         public enum PlayerState
         {
@@ -72,19 +112,17 @@ namespace NOTFGT.FLZ_Common
             Instance = this;
 
             GUIUtil = new();
-            SettingsMenu = new();
             RoundLoader = new();
             InGameManager = new();
+            SettingsMenu = new();
 
             GUIUtil.Register();
 
             LocalizationManager.Setup();
 
-            SettingsMenu.LoadConfig(false);
-
             HandlePlayerState(PlayerState.Loading);
 
-            if (SettingsMenu.GetValue<bool>(ToolsMenu.TrackGameDebug))
+            if (TrackGameLog)
             {
                 OnLog = new(OnLogHandle);
                 Application.add_logMessageReceived(OnLog);
@@ -110,7 +148,7 @@ namespace NOTFGT.FLZ_Common
         void OnOverlayInit(InitialiseClientOverlayEvent evt) => OnGUIInit();
         void OnLogHandle(string logString, string stackTrace, LogType type)
         {
-            if (SettingsMenu.GetValue<bool>(ToolsMenu.TrackGameDebug))
+            if (TrackGameLog)
             {
                 var c = new GUI_LogEntry()
                 {
@@ -142,10 +180,10 @@ namespace NOTFGT.FLZ_Common
 
                 AllLogs.AppendLine(entry);
 
-                if (!Directory.Exists(Launcher.LogDir))
-                    Directory.CreateDirectory(Launcher.LogDir);
+                if (!Directory.Exists(Core.LogDir))
+                    Directory.CreateDirectory(Core.LogDir);
 
-                var a = Path.Combine(Launcher.LogDir, $"Log_{NextLogDate}.log");
+                var a = Path.Combine(Core.LogDir, $"Log_{NextLogDate}.log");
 
                 if (!File.Exists(a))
                     File.Create(a);
@@ -154,54 +192,34 @@ namespace NOTFGT.FLZ_Common
             }
         }
 
+        [Obsolete("")]
         public void ApplyChanges()
         {
             try
             {
-                MelonLogger.Msg("1");
-                var debug = SettingsMenu.GetValue<bool>(ToolsMenu.TrackGameDebug);
-                if (debug && OnLog == null)
+                if (TrackGameLog && OnLog == null)
                 {
                     OnLog = new(OnLogHandle);
                     Application.add_logMessageReceived(OnLog);
                 }
-                else if (OnLog != null && !debug)
+                else if (OnLog != null && !TrackGameLog)
                 {
                     Application.remove_logMessageReceived(OnLog);
                 }
 
-                MelonLogger.Msg("1");
-                if (SettingsMenu.GetValue<bool>(ToolsMenu.UnlockFPS))
-                    Application.targetFrameRate = Convert.ToInt32(SettingsMenu.GetValue<object>(ToolsMenu.TargetFPS));
+                if (UnlockFPS)
+                    Application.targetFrameRate = TargetFPS;
                 else
                     Application.targetFrameRate = 60;
 
-                MelonLogger.Msg("1");
-                var fgdebug = Resources.FindObjectsOfTypeAll<GvrFPS>().FirstOrDefault();
-                if (fgdebug != null)
-                {
-                    fgdebug.gameObject.SetActive(false);
-                    fgdebug._keepActive = false;
-                    var scale = Convert.ToSingle(SettingsMenu.GetValue<object>(ToolsMenu.FGDebugScale));
-                    fgdebug.transform.localScale = new Vector3(scale, scale, scale);
-                }
-                MelonLogger.Msg("1");
 #if CHEATS
                 foreach (var afk in Resources.FindObjectsOfTypeAll<AFKManager>())
-                    afk.enabled = SettingsMenu.GetValue<bool>(ToolsMenu.DisableAFK);
+                    afk.enabled = InGameManager.DisableAFK;
 
-                GlobalDebug.DebugJoinAsSpectatorEnabled = SettingsMenu.GetValue<bool>(ToolsMenu.JoinAsSpectator);
-
-                //InGameManager.RollFGCCSettings();
 #endif
-                MelonLogger.Msg("1");
-                Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleMinimalisticFPSCounter());
 
-                Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleFPSCounter());
+                SettingsMenu.SaveConfig();
 
-                MelonLogger.Msg("5");
-                SettingsMenu.RollSave();
-                MelonLogger.Msg("6");
                 AudioManager.Instance.PlayOneShot(AudioManager.EventMasterData.SettingsAccept, null, default);
             }
             catch (Exception ex)
@@ -210,10 +228,31 @@ namespace NOTFGT.FLZ_Common
             }
         }
 
+        internal void ResolveFGDebug()
+        {
+            var fgdebug = Resources.FindObjectsOfTypeAll<GvrFPS>().FirstOrDefault();
+            if (fgdebug != null)
+            {
+                fgdebug.gameObject.SetActive(false);
+                fgdebug._keepActive = false;
+                fgdebug.transform.localScale = new Vector3(FGDebugScale, FGDebugScale, FGDebugScale);
+            }
+
+            Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleMinimalisticFPSCounter());
+            Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleFPSCounter());
+        }
+
         public void HandlePlayerState(PlayerState playerState)
         {
             PreviousPlayerState = ActivePlayerState;
             ActivePlayerState = playerState;
+        }
+
+        public void ForceMainMenu()
+        {
+            UIManager.Instance.RemoveAllScreens();
+            GlobalGameStateClient.Instance.ResetGame();
+            GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
         }
     }
 }

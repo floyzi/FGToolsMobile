@@ -1,6 +1,7 @@
 ﻿using Il2Cpp;
 using Il2CppCoffee.UIParticleInternal;
 using Il2CppEvents;
+using Il2CppFG.Common;
 using Il2CppFG.Common.CMS;
 using Il2CppFGClient;
 using Il2CppTMPro;
@@ -202,7 +203,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         public void Register()
         {
-            BundlePath = Path.Combine(Launcher.AssetsDir, BundleName);
+            BundlePath = Path.Combine(Core.AssetsDir, BundleName);
             MelonLogger.Msg($"EXPECTED BUNDLE PATH IS: \"{BundlePath}\"");
 
             GUI_Bundle = AssetBundle.LoadFromFile(BundlePath);
@@ -284,13 +285,13 @@ namespace NOTFGT.FLZ_Common.GUI
                 {
                     ToggleGUI(UIState.Active);
                     ToggleTab(Tabs[0], TabsButtons[0].GetComponent<Button>());
-                    SaveSettings();
+                    Instance.SettingsMenu.ReleaseQueue();
                 }
 
                 Instance.HandlePlayerState(PlayerState.Menu);
 
                 if (!WasInMenu)
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [BuildInfo.Name]), LocalizationManager.LocalizedString("welcome_desc", [BuildInfo.Name]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [Core.BuildInfo.DisplayName]), LocalizationManager.LocalizedString("welcome_desc", [Core.BuildInfo.DisplayName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
                 else
                     toggle(true);
 
@@ -298,7 +299,7 @@ namespace NOTFGT.FLZ_Common.GUI
             }
             catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [BuildInfo.Name]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [Core.BuildInfo.DisplayName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
             }
         }
 
@@ -308,9 +309,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             try
             {
-                var settings = Instance.SettingsMenu;
-                settings.RollChanges();
-                LogDisabledScreen.SetActive(!settings.GetValue<bool>(TrackGameDebug));
+                LogDisabledScreen.SetActive(!Instance.TrackGameLog);
                 Instance.ApplyChanges();
             }
             catch (Exception ex)
@@ -390,13 +389,13 @@ namespace NOTFGT.FLZ_Common.GUI
 
             var aboutSb = new StringBuilder();
             aboutSb.AppendLine($"{DefaultName} by @floyzi102 on Twitter");
-            aboutSb.AppendLine($"Compiled on: {Launcher.BuildInfo.BuildDate} (UTC)");
-            aboutSb.AppendLine($"Commit: #{Launcher.BuildInfo.GetCommit()}");
+            aboutSb.AppendLine($"Compiled on: {Core.BuildInfo.BuildDate} (UTC)");
+            aboutSb.AppendLine($"Commit: #{Core.BuildInfo.GetCommit()}");
 
             var socialBtns = new Dictionary<string, string>()
             {
                 { "Source Code On GitHub", GitHubURL },
-                { "Commit Details", $"{GitHubURL}/commit/{Launcher.BuildInfo.Commit}" },
+                { "Commit Details", $"{GitHubURL}/commit/{Core.BuildInfo.Commit}" },
                 { "Twitter", TwitterURL },
                 { "Discord", DiscordURL },
             };
@@ -478,11 +477,11 @@ namespace NOTFGT.FLZ_Common.GUI
                 
                 }));
                 RoundIDEntryV2.gameObject.SetActive(false);
-                Header.text = $"{DefaultName} V{Launcher.BuildInfo.Version}";
+                Header.text = $"{DefaultName} V{Core.BuildInfo.Version}";
                 Slogan.text = $"{Description}";
 
                 ConfigureTabs();
-                CreateConfigMenu(configMenu, Instance.SettingsMenu.GetAllEntries());
+                CreateConfigMenu(configMenu);
                 InitRoundsDropdown();
                 UpdateLogStatsText();
                 CreateCreditsScreen();
@@ -782,54 +781,18 @@ namespace NOTFGT.FLZ_Common.GUI
             GameplayActions.Clear();
         }
 
-        public void UpdateActiveEntries(List<MenuEntry> changed = null)
-        {
-            foreach (GameObject obj in EntryInstances)
-            {
-                var entry = Instance.SettingsMenu.TryGetEntry(obj.name);
-                if (entry != null)
-                {
-                    switch (entry.ValueType)
-                    {
-                        case MenuEntry.Type.Bool:
-                            var toggle = obj.GetComponentInChildren<Toggle>();
-                            var tVal = Convert.ToBoolean(entry.Value);
-                            toggle.isOn = tVal;
-                            toggle.onValueChanged.Invoke(tVal);
-                            break;
-                        case MenuEntry.Type.Int:
-                        case MenuEntry.Type.Float:
-                        case MenuEntry.Type.String:
-                            var field = obj.GetComponentInChildren<TMP_InputField>();
-                            field.text = entry.Value.ToString();
-                            field.onValueChanged.Invoke(field.text);
-                            break;
-                        case MenuEntry.Type.Slider:
-                            var slider = obj.GetComponentInChildren<Slider>();
-                            entry.Config.TryGetValue(IsFloat, out var isFloat);
-                            slider.value = float.Parse(entry.Value.ToString());
-                            slider.onValueChanged.Invoke(slider.value);
-                            break;
-                        case MenuEntry.Type.Button:
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
-        void CreateConfigMenu(Transform ConfigTransform, List<MenuEntry> configEntries)
+        void CreateConfigMenu(Transform ConfigTransform)
         {
             HashSet<string> categories = [];
 
             SetupFont(GUI_HeaderPrefab.GetComponentInChildren<TextMeshProUGUI>(), TMPFontTitanOne, "DropShadowAlpha_2_0");
 
-            foreach (var entry in configEntries.OrderBy(entry => entry.Category).ToList())
+            foreach (var entry in Instance.SettingsMenu.Entries.OrderBy(entry => entry.Category).ToList())
             {
                 try
                 {
-                    MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.InternalName}\" with type \"{entry.ValueType}\"");
+                    MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ConfigID}\" with type \"{entry.EntryType}\"");
+
                     if (!string.IsNullOrEmpty(entry.Category) && !categories.Contains(entry.Category))
                     {
                         GameObject haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, ConfigTransform);
@@ -846,15 +809,18 @@ namespace NOTFGT.FLZ_Common.GUI
 
                     var localizedDesc = LocalizationManager.LocalizedString(entry.Description);
 
-                    switch (entry.ValueType)
+                    switch (entry.EntryType)
                     {
-                        case MenuEntry.Type.Bool:
+                        case MenuEntry.Type.Toggle:
                             GameObject toggleInst = UnityEngine.Object.Instantiate(GUI_TogglePrefab, ConfigTransform);
                             toggleInst.SetActive(true);
-                            toggleInst.name = entry.InternalName;
+                            toggleInst.name = entry.ConfigID;
 
                             var toggle = toggleInst.transform.Find("Toggle").GetComponent<Toggle>();
                             toggle.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
+                            var toggleTracker = toggle.gameObject.AddComponent<TrackedEntry>();
+                            toggleTracker.Create(entry);
+                            toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = (bool)entry.GetValue(); });
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
@@ -866,26 +832,26 @@ namespace NOTFGT.FLZ_Common.GUI
                             if (toggleTitle != null)
                                 toggleTitle.text = LocalizationManager.LocalizedString(entry.DisplayName);
 
-                            toggle.isOn = Convert.ToBoolean(entry.Value);
-
-                            toggle.onValueChanged.AddListener(new Action<bool>(val =>
-                            {
-                                Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
-                            }));
+                            toggle.isOn = (bool)entry.GetValue();
+                            toggle.onValueChanged.AddListener(new Action<bool>(val => { entry.Set(val); }));
 
                             EntryInstances.Add(toggleInst);
                             break;
 
-                        case MenuEntry.Type.Int:
-                        case MenuEntry.Type.Float:
-                        case MenuEntry.Type.String:
+                        case MenuEntry.Type.InputField:
                             GameObject fieldInst = UnityEngine.Object.Instantiate(GUI_TextFieldPrefab, ConfigTransform);
                             fieldInst.SetActive(true);
-                            fieldInst.name = entry.InternalName;
+                            fieldInst.name = entry.ConfigID;
 
                             var inputField = fieldInst.transform.Find("InputField (TMP)").GetComponent<TMP_InputField>();
                             inputField.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             inputField.gameObject.name = "SLOP"; //yeah...
+                            var fieldTracker = inputField.gameObject.AddComponent<TrackedEntry>();
+                            fieldTracker.Create(entry);
+                            fieldTracker.OnEntryUpdated += new Action<object>(newVal =>
+                            {
+                                inputField.text = newVal.ToString();
+                            });
 
                             var fieldTitle = fieldInst.transform.Find("FieldTitle").GetComponent<TextMeshProUGUI>();
                             var fieldDesc = fieldInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
@@ -898,55 +864,61 @@ namespace NOTFGT.FLZ_Common.GUI
                             if (fieldTitle != null)
                                 fieldTitle.text = LocalizationManager.LocalizedString(entry.DisplayName);
 
-                            inputField.text = entry.Value.ToString();
+                            inputField.text = entry.GetValue().ToString();
 
-                            if (entry.Config != null && entry.Config != null && entry.Config.Count == 1)
+                            if (entry.AdditionalConfig.Count > 1 && entry.AdditionalConfig[1] != null)
+                                inputField.characterLimit = Convert.ToInt32(entry.AdditionalConfig[1]);
+
+                            var t = entry.AdditionalConfig[0] as Type;
+                            if (t == typeof(string))
                             {
-                                entry.Config.TryGetValue(CharLimit, out var limit);
-                                inputField.characterLimit = Convert.ToInt32(limit.ToString());
+                                inputField.contentType = TMP_InputField.ContentType.Standard;
+                                inputField.onValueChanged.AddListener(new Action<string>(val =>
+                                {
+                                    entry.Set(val);
+                                }));
                             }
-
-                            if (entry.ValueType == MenuEntry.Type.Int)
+                            else if (t == typeof(int))
                             {
                                 inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
                                 inputField.onValueChanged.AddListener(new Action<string>(val =>
                                 {
                                     if (int.TryParse(val, out int intVal))
                                     {
-                                        Instance.SettingsMenu.UpdateValue(entry.InternalName, intVal);
+                                        entry.Set(intVal);
                                     }
                                 }));
                             }
-                            else if (entry.ValueType == MenuEntry.Type.Float)
+                            else
                             {
                                 inputField.contentType = TMP_InputField.ContentType.DecimalNumber;
                                 inputField.onValueChanged.AddListener(new Action<string>(val =>
                                 {
                                     if (float.TryParse(val, out float floatVal))
                                     {
-                                        Instance.SettingsMenu.UpdateValue(entry.InternalName, floatVal);
+                                        entry.Set(floatVal);
                                     }
-                                }));
-                            }
-                            else if (entry.ValueType == MenuEntry.Type.String)
-                            {
-                                inputField.contentType = TMP_InputField.ContentType.Standard;
-                                inputField.onValueChanged.AddListener(new Action<string>(val =>
-                                {
-                                    Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
                                 }));
                             }
 
                             EntryInstances.Add(fieldInst);
                             break;
                         case MenuEntry.Type.Slider:
+                            if (entry.AdditionalConfig == null || entry.AdditionalConfig.Count != 3)
+                            {
+                                MelonLogger.Error($"Can't create slider {entry.ConfigID}. Inavlid data");
+                                return;
+                            }
+
                             GameObject sliderInst = UnityEngine.Object.Instantiate(GUI_SliderPrefab, ConfigTransform);
                             sliderInst.SetActive(true);
-                            sliderInst.name = entry.InternalName;
+                            sliderInst.name = entry.ConfigID;
+
+                            var st = entry.AdditionalConfig[0] as Type;
 
                             var slider = sliderInst.transform.Find("Slider").GetComponent<Slider>();
                             slider.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
-
+ 
                             var sliderTitle = sliderInst.transform.Find("SliderTitle").GetComponent<TextMeshProUGUI>();
                             var sliderDesc = sliderInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
@@ -959,39 +931,45 @@ namespace NOTFGT.FLZ_Common.GUI
                                 sliderTitle.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
 
                             var sliderValue = slider.transform.Find("SliderValue").GetComponent<TextMeshProUGUI>();
-                            if (entry.Config != null && entry.Config.Count == 3)
+
+                            var sliderTracker = slider.gameObject.AddComponent<TrackedEntry>();
+                            sliderTracker.Create(entry);
+                            sliderTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
-                                entry.Config.TryGetValue(IsFloat, out var isFloat);
-                                entry.Config.TryGetValue(SliderMin, out var min);
-                                entry.Config.TryGetValue(SliderMax, out var max);
+                                if (float.TryParse(newVal.ToString(), out var res))
+                                    slider.value = res;
 
+                                if (st == typeof(float))
+                                    sliderValue.text = $"{slider.value:F1} / {slider.maxValue:F1}";
+                                else
+                                    sliderValue.text = $"{Convert.ToInt32(slider.value)} / {Convert.ToInt32(slider.maxValue)}";
+                            });
 
-                                slider.minValue = float.Parse(min.ToString());
-                                slider.maxValue = float.Parse(max.ToString());
+                            slider.minValue = float.Parse(entry.AdditionalConfig[1].ToString());
+                            slider.maxValue = float.Parse(entry.AdditionalConfig[2].ToString());
+                            slider.value = float.Parse(entry.InitialValue.ToString());
 
-                                slider.value = float.Parse(entry.Value.ToString());
-                                sliderValue.text = $"{entry.Value:F1} / {slider.maxValue:F1}";
-
-                                slider.onValueChanged.AddListener(new Action<float>(val =>
-                                {
-                                    Instance.SettingsMenu.UpdateValue(entry.InternalName, val);
-
-                                    if ((bool)isFloat)
-                                        sliderValue.text = $"{val:F1} / {slider.maxValue:F1}";
-                                    else
-                                        sliderValue.text = $"{Convert.ToInt32(val)} / {Convert.ToInt32(slider.maxValue)}";
-                                }));
-
-                            }
+                            if (st == typeof(float))
+                                sliderValue.text = $"{slider.value:F1} / {slider.maxValue:F1}";
                             else
-                                Debug.LogError($"Can't setup slider {entry.InternalName}. Data is null");
+                                sliderValue.text = $"{Convert.ToInt32(slider.value)} / {Convert.ToInt32(slider.maxValue)}";
+
+                            slider.onValueChanged.AddListener(new Action<float>(val =>
+                            {
+                                entry.Set(val);
+
+                                if (st == typeof(float))
+                                    sliderValue.text = $"{val:F1} / {slider.maxValue:F1}";
+                                else
+                                    sliderValue.text = $"{Convert.ToInt32(val)} / {Convert.ToInt32(slider.maxValue)}";
+                            }));
 
                             EntryInstances.Add(sliderInst);
                             break;
                         case MenuEntry.Type.Button:
                             GameObject buttonInst = UnityEngine.Object.Instantiate(GUI_ButtonPrefab, ConfigTransform);
                             buttonInst.SetActive(true);
-                            buttonInst.name = entry.InternalName;
+                            buttonInst.name = entry.ConfigID;
 
                             var button = buttonInst.transform.Find("Button").GetComponent<Button>();
                             button.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
@@ -1006,19 +984,18 @@ namespace NOTFGT.FLZ_Common.GUI
 
                             button.onClick.AddListener(new Action(() =>
                             {
-                                MethodInfo theMethod = typeof(Launcher).GetMethod(entry.Value.ToString());
-                                theMethod.Invoke(Instance, null);
+                                entry.Set(null);
                             }));
                             EntryInstances.Add(buttonInst);
                             break;
                         default:
-                            Debug.LogWarning($"Fallback on: {entry.InternalName}");
+                            Debug.LogWarning($"Fallback on: {entry.ConfigID}");
                             break;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    MelonLogger.Error($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.InternalName}\" with type \"{entry.ValueType}\" failed! {ex}");
+                    MelonLogger.Error($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ConfigID}\" with type \"{entry.EntryType}\" failed! {ex}");
                 }
             }
         }

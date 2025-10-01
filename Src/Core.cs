@@ -14,11 +14,11 @@ using static Il2CppFG.Common.GameStateMachine;
 using static MelonLoader.MelonLogger;
 
 //version from this attribute is not used, change version in project instead
-[assembly: MelonInfo(typeof(Launcher), DefaultName, "0.0.0", "Floyzi", null)]
+[assembly: MelonInfo(typeof(Core), DefaultName, "0.0.0", "Floyzi", null)]
 [assembly: MelonGame("Mediatonic", "Fall Guys")]
 namespace NOTFGT
 {
-    public class Launcher : MelonMod
+    public class Core : MelonMod
     {
         public readonly struct BuildDetails
         {
@@ -59,6 +59,7 @@ namespace NOTFGT
         public static string AssetsDir => Path.Combine(MainDir, "Assets");
         public static string MobileLoading => Path.Combine(AssetsDir, "loading_screen.png");
         public static string MobileSplash => Path.Combine(AssetsDir, "splash.png");
+        public static string ConfigFile => Path.Combine(AssetsDir, "ConfigV3.json");
         #endregion
 
         internal static DateTime StartupDate;
@@ -66,6 +67,9 @@ namespace NOTFGT
 
         internal static Action OnUpdateСommon;
         internal static Action OnDrawGUI;
+
+        internal static bool ShowDebugUI;
+        internal static bool ShowWatermark = true;
 
         public override void OnInitializeMelon()
         {
@@ -87,6 +91,7 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
                 ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
+                ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();
 
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.Default));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.CaptureTools));
@@ -149,20 +154,14 @@ namespace NOTFGT
             GUI.Label(new Rect(labelX, labelY - 2f, labelWidth, labelHeight), watermark, upper);
         }
 
-        public void ForceMainMenu()
-        {
-            UIManager.Instance.RemoveAllScreens();
-            GlobalGameStateClient.Instance.ResetGame();
-            GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
-        }
 
         double _peakMemUsage;
         public override void OnGUI()
         {
-            if (FLZ_ToolsManager.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.Watermark))
+            if (ShowWatermark)
                 WatermarkGUI();
 
-            if (!FLZ_ToolsManager.Instance.SettingsMenu.GetValue<bool>(ToolsMenu.GUI))
+            if (!ShowDebugUI)
                 return;
 
             GUIStyle debugL = new(GUI.skin.label)

@@ -59,6 +59,18 @@ namespace NOTFGT.FLZ_Common
 
         bool playersHidden = false;
 
+        internal bool SeePlayerPlatforms;
+        internal bool UseCaptureTools;
+        internal float RunSpeedModifier;
+        internal float JumpYModifier;
+        internal float DiveSens;
+        internal bool DisableFGCCCheck;
+        internal bool DisableAFK;
+        internal float GravityModifier;
+        internal float DiveForce;
+        internal float DiveForceInAir;
+
+
         public FLZ_Game()
         {
             OnMenuEnter += MenuEvent;
@@ -85,7 +97,7 @@ namespace NOTFGT.FLZ_Common
 
                 NamesMap.TryAdd(cleanName, name.Name);
 
-                if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.SeePlayerPlatforms))
+                if (SeePlayerPlatforms)
                     name.Tag.SetText(string.Format(AdvancedNamePattern, name.FGCC.NetObject.NetID, cleanName, name.Platform));
                 else
                     name.Tag.SetText($"{cleanName}");
@@ -203,26 +215,28 @@ namespace NOTFGT.FLZ_Common
     }
         public void RollFGCCSettings()
         {
-            var player = Resources.FindObjectsOfTypeAll<FallGuysCharacterController>().ToList().Find(a => a.IsLocalPlayer == true);
-            if (player != null)
-            {
-                var motorAgent = player.MotorAgent;
+            //REWRITE
 
-                if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck))
-                {
-                    Vector3 defJump = (Vector3)DefaultFGCCData[1];
-                    ActiveFGCCData.normalMaxSpeed = (float)DefaultFGCCData[0] + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.RunSpeedModifier).ToString());
-                    ActiveFGCCData.jumpForceUltimateParty = new Vector3(defJump.x, defJump.y + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.JumpYModifier).ToString()), defJump.z); ;
-                    ActiveFGCCData.divePlayerSensitivity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveSens).ToString());
-                    ActiveFGCCData.maxGravityVelocity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.GravityChange).ToString());
-                    ActiveFGCCData.diveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveForce).ToString());
-                    ActiveFGCCData.airDiveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveInAirForce).ToString());
-                }
-                else
-                    ResetFGCCData();
+            //var player = Resources.FindObjectsOfTypeAll<FallGuysCharacterController>().ToList().Find(a => a.IsLocalPlayer == true);
+            //if (player != null)
+            //{
+            //    var motorAgent = player.MotorAgent;
 
-                motorAgent.GetMotorFunction<MotorFunctionJump>()._jumpForce = ActiveFGCCData.jumpForceUltimateParty;
-            }
+            //    if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck))
+            //    {
+            //        Vector3 defJump = (Vector3)DefaultFGCCData[1];
+            //        ActiveFGCCData.normalMaxSpeed = (float)DefaultFGCCData[0] + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.RunSpeedModifier).ToString());
+            //        ActiveFGCCData.jumpForceUltimateParty = new Vector3(defJump.x, defJump.y + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.JumpYModifier).ToString()), defJump.z); ;
+            //        ActiveFGCCData.divePlayerSensitivity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveSens).ToString());
+            //        ActiveFGCCData.maxGravityVelocity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.GravityChange).ToString());
+            //        ActiveFGCCData.diveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveForce).ToString());
+            //        ActiveFGCCData.airDiveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveInAirForce).ToString());
+            //    }
+            //    else
+            //        ResetFGCCData();
+
+            //    motorAgent.GetMotorFunction<MotorFunctionJump>()._jumpForce = ActiveFGCCData.jumpForceUltimateParty;
+            //}
         }
 
 

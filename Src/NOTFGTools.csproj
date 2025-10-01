@@ -37,6 +37,7 @@
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
+		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\UnityDragFix.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsMenu.cs" />
 		<Compile Include="FLZ_Common\HarmonyPatches.cs" />
@@ -44,7 +45,7 @@
 		<Compile Include="FLZ_Common\Loader\RoundLoaderService.cs" />
 		<Compile Include="FLZ_Common\Localization\LocalizationManager.cs" />
 		<Compile Include="FLZ_Common\FLZ_Extensions.cs" />
-		<Compile Include="Launcher.cs" />
+		<Compile Include="Core.cs" />
 		<Compile Include="FLZ_Common\FLZ_ToolsManager.cs" />
 	</ItemGroup>
 

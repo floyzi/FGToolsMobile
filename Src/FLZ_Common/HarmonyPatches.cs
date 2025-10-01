@@ -6,6 +6,7 @@ using Il2CppFGClient;
 using Il2CppFGClient.UI.Notifications;
 using Il2CppFGDebug;
 using Il2CppInterop.Runtime;
+using Il2CppRewired.Utils.Classes.Data;
 using Il2CppTMPro;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
@@ -28,7 +29,7 @@ namespace NOTFGT.FLZ_Common
             [HarmonyPatch(typeof(CaptureToolsManager), "CanUseCaptureTools", MethodType.Getter)]
             public static void CanUseCaptureTools(ref bool __result)
             {
-                __result = IsUsingCaptureTools;
+                __result = Instance.InGameManager.UseCaptureTools;
             }
         }
 
@@ -46,6 +47,9 @@ namespace NOTFGT.FLZ_Common
             [HarmonyPatch(typeof(TMP_InputField), nameof(TMP_InputField.OnSelect)), HarmonyPrefix]
             static bool OnSelect(TMP_InputField __instance, PointerEventData eventData)
             {
+                //by default it activates input field the moment you touch it (without releasing the finger)
+                //Had to make this to disable such behavior in my UI because it makes navigation almost impossible
+
                 return __instance.name != "SLOP";
             }
 
@@ -131,8 +135,8 @@ namespace NOTFGT.FLZ_Common
             [HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleMinimalisticFPSCounter)), HarmonyPrefix]
             static bool ToggleMinimalisticFPSCounter(GvrFPS __instance, GlobalDebug.DebugToggleMinimalisticFPSCounter toggleEvent)
             {
-                var target = Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner);
-                if (target && !Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug))
+                var target = Instance.FPSCounter;
+                if (target && !Instance.FGDebug)
                 {
                     if (!__instance.gameObject.activeSelf)
                     {
@@ -157,8 +161,8 @@ namespace NOTFGT.FLZ_Common
             [HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleFPSCounter)), HarmonyPrefix]
             static bool ToggleFPSCounter(GvrFPS __instance, GlobalDebug.DebugToggleFPSCounter toggleEvent)
             {
-                var target = Instance.SettingsMenu.GetValue<bool>(ToolsMenu.WholeFGDebug);
-                if (target && !Instance.SettingsMenu.GetValue<bool>(ToolsMenu.FPSCoutner))
+                var target = Instance.FGDebug;
+                if (target && !Instance.FPSCounter)
                 {
                     __instance.gameObject.SetActive(target);
                     foreach (TextMeshProUGUI TMP in __instance.GetComponentsInChildren<TextMeshProUGUI>(true))
@@ -167,13 +171,14 @@ namespace NOTFGT.FLZ_Common
                     }
                     __instance._keepActive = __instance.gameObject.activeSelf;
                 }
+
                 return false;
             }
 
             [HarmonyPatch(typeof(StateMainMenu), nameof(StateMainMenu.HandleConnectEvent)), HarmonyPrefix]
             static bool HandleConnectEvent(StateMainMenu __instance, ConnectEvent evt)
             {
-                if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck) && PlayerPrefs.GetInt("FLZ_CONNECT_WARN") != 1)
+                if (Instance.InGameManager.DisableFGCCCheck && PlayerPrefs.GetInt("FLZ_CONNECT_WARN") != 1)
                 {
                     PlayerPrefs.SetInt("FLZ_CONNECT_WARN", 1);
                     FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("fgcc_alert_title"), LocalizationManager.LocalizedString("fgcc_alert_desc"), ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>(Go));
@@ -196,9 +201,9 @@ namespace NOTFGT.FLZ_Common
             static bool ShowScreen(LoadingScreenViewModel __instance)
             {
                 __instance._canvasFader = __instance.GetComponent<CanvasGroupFader>();
-                if (File.Exists(Launcher.MobileLoading))
+                if (File.Exists(Core.MobileLoading))
                 {
-                    var spr = FLZ_Extensions.SetSpriteFromFile(Launcher.MobileLoading, 1920, 1080);
+                    var spr = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading, 1920, 1080);
                     __instance.gameObject.transform.FindChild("SplashScreen_Image").gameObject.GetComponent<UnityEngine.UI.Image>().sprite = spr;
                     __instance.SplashLoadingScreenSprite = spr;
                 }

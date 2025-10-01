@@ -1,319 +1,229 @@
-﻿using MelonLoader;
-using Newtonsoft.Json;
+﻿using Il2CppFGDebug;
+using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using UnityEngine;
+using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 using File = System.IO.File;
 using Path = System.IO.Path;
-using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
 namespace NOTFGT.FLZ_Common.GUI
 {
-    //i need to rewrite this
     public class ToolsMenu
     {
-        //name of config file
-        const string TargetCfgName = "ConfigV2.json";
-
-        //sections
         const string FGCC_Cat = "menu_fgcc_section";
         const string FPS_Cat = "menu_fps_section";
         const string Def_Cat = "menu_section";
-        const string Debug_Cat = "menu_debug_section";
         const string Gameplay_Cat = "menu_gp_section";
-
-        //slider config
-        public const string SliderMin = "sliderMin";
-        public const string SliderMax = "sliderMax";
-        public const string IsFloat = "isFloat";
-
-        //field config
-        public const string CharLimit = "charLimit";
-
-        //menu entries
-        public const string GUI = "GUI";
-        public const string JoinAsSpectator = "JoinAsSpectator";
-        public const string UseCaptureTools = "UseCaptureTools";
-        public const string TrackGameDebug = "TrackGameDebug";
-        public const string FPSCoutner = "FPSCoutner";
-        public const string WholeFGDebug = "WholeFGDebug";
-        public const string UnlockFPS = "UnlockFPS";
-        public const string TargetFPS = "TargetFPS";
-        public const string RunSpeedModifier = "RunSpeedModifier";
-        public const string JumpYModifier = "JumpYModifier";
-        public const string Watermark = "Watermark";
-        public const string DiveSens = "DiveSens";
-        public static string DisableMonitorCheck => "DisableMonitorCheck";
-        public const string ToFinish = "ToFinish";
-        public const string DisableAFK = "DisableAFK";
-        public const string GravityChange = "GravityChange";
-        public const string DiveForce = "DiveForce";
-        public const string DiveInAirForce = "DiveInAirForce";
-        public const string ToSafe = "ToSafe";
-        public const string ToRandomPlayer = "ToRandomPlayer";
-        public const string HidePlayers = "HidePlayers";
-        public const string ForceMenu = "ForceMenu";
-        public const string FGDebugScale = "FGDebugScale";
-        public const string SeePlayerPlatforms = "SeePlayerPlatforms";
-
-        private static readonly Dictionary<string, (string Category, string DisplayName, string Description, object Value, Dictionary<string, object> Config, MenuEntry.Type ValueType)> EditableMenu = new()
-        {
-            { GUI, (Def_Cat, "cheat_entry_gui_title", "cheat_entry_gui_desc", false, null, MenuEntry.Type.Bool) },
-            { TrackGameDebug, (Debug_Cat, "cheat_entry_track_debug_title", "cheat_entry_track_debug_desc", false, null, MenuEntry.Type.Bool) },
-            { FPSCoutner, (FPS_Cat, "cheat_entry_fps_counter_title", "cheat_entry_fps_counter_desc", true, null, MenuEntry.Type.Bool) },
-            { WholeFGDebug, (Debug_Cat, "cheat_entry_fg_debug_title", "cheat_entry_fg_debug_desc", false, null, MenuEntry.Type.Bool) },
-            { UnlockFPS, (FPS_Cat, "cheat_entry_unlock_fps_title", "cheat_entry_unlock_fps_desc", true, null, MenuEntry.Type.Bool) },
-            { TargetFPS, (FPS_Cat, "cheat_entry_target_fps_title", "cheat_entry_target_fps_desc", 60, new() {
-                { SliderMin, 1 },
-                { SliderMax, 300 },
-                { IsFloat, false },
-            }, MenuEntry.Type.Slider) },
-            { Watermark, (Def_Cat, "cheat_entry_watermark_title", "cheat_entry_watermark_desc", true, null, MenuEntry.Type.Bool) },
-            { FGDebugScale, (Debug_Cat, "cheat_entry_fg_debug_scale_title", "cheat_entry_fg_debug_scale_desc", 0.602f, new() {
-                { SliderMin, 0f },
-                { SliderMax, 1f },
-                { IsFloat, true }
-            }, MenuEntry.Type.Slider) },
-            { SeePlayerPlatforms, (Gameplay_Cat, "cheat_entry_platforms_title", "cheat_entry_platforms_desc", false, null, MenuEntry.Type.Bool) },
-
-#if CHEATS
-            { UseCaptureTools, (Def_Cat, "cheat_entry_capture_tools_title", "cheat_entry_capture_tools_desc", false, null, MenuEntry.Type.Bool) },
-            { RunSpeedModifier, (FGCC_Cat, "cheat_entry_run_speed_title", "cheat_entry_run_speed_desc", 0.0f, null, MenuEntry.Type.Float) },
-            { JumpYModifier, (FGCC_Cat, "cheat_entry_jump_y_title", "cheat_entry_jump_y_desc", 0.0f, null, MenuEntry.Type.Float) },
-            { DiveSens, (FGCC_Cat, "cheat_entry_dive_sens_title", "cheat_entry_dive_sens_desc", 70.0f, null, MenuEntry.Type.Float) },
-            { DisableMonitorCheck, (FGCC_Cat, "cheat_entry_fgcc_check_title", "cheat_entry_fgcc_check_desc", true, null, MenuEntry.Type.Bool) },
-            { DisableAFK, (Gameplay_Cat, "cheat_entry_afk_title", "cheat_entry_afk_desc", false, null, MenuEntry.Type.Bool) },
-            { GravityChange, (FGCC_Cat, "cheat_entry_gravity_vel_title", "cheat_entry_gravity_vel_desc", 60f, null, MenuEntry.Type.Float) },
-            { DiveForce, (FGCC_Cat, "cheat_entry_dive_force_title", "cheat_entry_dive_force_desc", 16.5f, null, MenuEntry.Type.Float) },
-            { DiveInAirForce, (FGCC_Cat, "cheat_entry_air_dive_force_title", "cheat_entry_air_dive_force_desc", 7.0f, null, MenuEntry.Type.Float) },
-            { JoinAsSpectator, (Def_Cat, "cheat_entry_spectator_title", "cheat_entry_spectator_desc", false, null, MenuEntry.Type.Bool) },
-#endif
-        };
-
-        public class MenuEntry
+       
+        internal class MenuEntry(MenuEntry.Type type, string configId, string category, string displayName, string desc, Func<object, object> setter = null, Action onSet = null, List<object> additionalConfig = null)
         {
             public enum Type
             {
-                Bool,
-                Int,
-                Float,
-                String,
+                Toggle,
+                InputField,
                 Slider,
                 Button
             }
 
-            public string InternalName { get; set; }
-            public string Category { get; set; }
-            public string DisplayName { get; set; }
-            public string Description { get; set; } 
+            /// <summary>
+            /// Name of this entry in config file, should be unique for each entry
+            /// </summary>
+            internal string ConfigID { get; set; } = configId;
+
+            /// <summary>
+            /// Category where element will be placed on UI.
+            /// Represents ID of localized string
+            /// </summary>
+            internal string Category { get; set; } = category;
+
+            /// <summary>
+            /// Name of element that will be shown on UI.
+            /// Represents ID of localized string
+            /// </summary>
+            internal string DisplayName { get; set; } = displayName;
+
+            /// <summary>
+            /// Description of element that will be shown on UI.
+            /// Represents ID of localized string
+            /// </summary>
+            internal string Description { get; set; } = desc;
+
+            /// <summary>
+            /// Type of entry, indicates how this entry will be shown on UI
+            /// </summary>
+            internal Type EntryType { get; set; } = type;
+
+            /// <summary>
+            /// Additional properties of entry.
+            /// <para><see cref="Type.Slider"/> — [0] value type, [1] slider min value, [2] slider max value</para>
+            /// <para><see cref="Type.InputField"/> — [0] value type, [1] char limit</para>
+            /// </summary>
+            internal List<object> AdditionalConfig = additionalConfig;
+
+            /// <summary>
+            /// Used to set and get updated value of field that attached to this entry
+            /// </summary>
+            internal Func<object, object> Setter => setter;
+
+            /// <summary>
+            /// Initial field value of field. Null if field is not specefied
+            /// </summary>
+            internal object InitialValue = setter?.Invoke(null);
+
+            /// <summary>
+            /// Action that will invoked after Setter 
+            /// </summary>
+            internal Action Act = onSet;
+
+            /// <summary>
+            /// Indicates can be entry included in config save or no
+            /// </summary>
+            internal bool CanBeSaved => EntryType != Type.Button && !string.IsNullOrEmpty(ConfigID);
+
+            /// <summary>
+            /// Action that will be invoked after every change of any existing entry
+            /// </summary>
+            internal static Action<MenuEntry, object> OnChange;
+
+            internal object GetValue() => setter?.Invoke(null);
+
+            internal void Set(object val)
+            {
+                try
+                {
+                    Setter?.Invoke(val);
+                    Act?.Invoke();
+                    OnChange?.Invoke(this, val);
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Error($"Exception on Set on entry {ConfigID} ({EntryType})!\n{ex}");
+                }
+            }
+        }
+
+        internal class ConfigEntry
+        {
+            public string ConfigID { get; set; }
             public object Value { get; set; }
-            public Dictionary<string, object> Config { get; set; }
-            public Type ValueType { get; set; }
         }
 
-        public void LoadConfig(bool reset)
+        internal readonly List<MenuEntry> Entries;
+        readonly Queue<Action> RollInMenu;
+
+        internal ToolsMenu()
         {
-            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
+            Entries = [];
+            RollInMenu = [];
 
-            MelonLogger.Msg($"[{GetType()}] Loading config at path {path}. Reset = {reset}");
-            var definitions = new HashSet<string>
+            Entries.Add(new(MenuEntry.Type.Toggle, "show_debug_ui", Def_Cat, "cheat_entry_gui_title", "cheat_entry_gui_desc", (val) => { if (val is bool b) Core.ShowDebugUI = b; return Core.ShowDebugUI; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "show_watermark", Def_Cat, "cheat_entry_watermark_title", "cheat_entry_watermark_desc", (val) => { if (val is bool b) Core.ShowWatermark = b; return Core.ShowWatermark; }));
+
+            Entries.Add(new(MenuEntry.Type.Toggle, "track_log", Def_Cat, "cheat_entry_track_debug_title", "cheat_entry_track_debug_desc", (val) => { if (val is bool b) Instance.TrackGameLog = b; return Instance.TrackGameLog; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "fps_counter", Def_Cat, "cheat_entry_fps_counter_title", "cheat_entry_fps_counter_desc", (val) => { if (val is bool b) Instance.FPSCounter = b; return Instance.FPSCounter; }, Instance.ResolveFGDebug));
+            Entries.Add(new(MenuEntry.Type.Toggle, "fg_debug", Def_Cat, "cheat_entry_fg_debug_title", "cheat_entry_fg_debug_desc", (val) => { if (val is bool b) Instance.FGDebug = b; return Instance.FGDebug; }, Instance.ResolveFGDebug));
+            Entries.Add(new(MenuEntry.Type.Toggle, "unlock_fps", Def_Cat, "cheat_entry_unlock_fps_title", "cheat_entry_unlock_fps_desc", (val) => { if (val is bool b) Instance.UnlockFPS = b; return Instance.UnlockFPS; }));
+            Entries.Add(new(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, "cheat_entry_target_fps_title", "cheat_entry_target_fps_desc", (val) => { if (val is float i) Instance.TargetFPS = Convert.ToInt32(i); return Instance.TargetFPS; }, new(() => { Application.targetFrameRate = Instance.TargetFPS; }), [typeof(int), 10, 300]));
+            Entries.Add(new(MenuEntry.Type.Slider, "fg_debug_scale", Def_Cat, "cheat_entry_fg_debug_scale_title", "cheat_entry_fg_debug_scale_desc", (val) => { if (val is float f) Instance.FGDebugScale = f; return Instance.FGDebugScale; }, Instance.ResolveFGDebug, [typeof(float), 0.1f, 1f]));
+
+            Entries.Add(new(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, "cheat_entry_platforms_title", "cheat_entry_platforms_desc", (val) => { if (val is bool b) Instance.InGameManager.SeePlayerPlatforms = b; return Instance.InGameManager.SeePlayerPlatforms; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, "cheat_entry_capture_tools_title", "cheat_entry_capture_tools_desc", (val) => { if (val is bool b) Instance.InGameManager.UseCaptureTools = b; return Instance.InGameManager.UseCaptureTools; }));
+            Entries.Add(new(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, "cheat_entry_run_speed_title", "cheat_entry_run_speed_desc", (val) => { if (val is float f) Instance.InGameManager.RunSpeedModifier = f; return Instance.InGameManager.RunSpeedModifier; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, "cheat_entry_jump_y_title", "cheat_entry_jump_y_desc", (val) => { if (val is float f) Instance.InGameManager.JumpYModifier = f; return Instance.InGameManager.JumpYModifier; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, "cheat_entry_dive_sens_title", "cheat_entry_dive_sens_desc", (val) => { if (val is float f) Instance.InGameManager.DiveSens = f; return Instance.InGameManager.DiveSens; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, "cheat_entry_fgcc_check_title", "cheat_entry_fgcc_check_desc", (val) => { if (val is bool b) Instance.InGameManager.DisableFGCCCheck = b; return Instance.InGameManager.DisableFGCCCheck; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, "cheat_entry_afk_title", "cheat_entry_afk_desc", (val) => { if (val is bool b) Instance.InGameManager.DisableAFK = b; return Instance.InGameManager.DisableAFK; }));
+            Entries.Add(new(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, "cheat_entry_gravity_vel_title", "cheat_entry_gravity_vel_desc", (val) => { if (val is float f) Instance.InGameManager.GravityModifier = f; return Instance.InGameManager.GravityModifier; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, "cheat_entry_dive_force_title", "cheat_entry_dive_force_desc", (val) => { if (val is float f) Instance.InGameManager.DiveForce = f; return Instance.InGameManager.DiveForce; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, "cheat_entry_air_dive_force_title", "cheat_entry_air_dive_force_desc", (val) => { if (val is float f) Instance.InGameManager.DiveForceInAir = f; return Instance.InGameManager.DiveForceInAir; }, null, [typeof(float)]));
+            Entries.Add(new(MenuEntry.Type.Toggle, "spectator_join", Gameplay_Cat, "cheat_entry_spectator_title", "cheat_entry_spectator_desc", (val) => { if (val is bool b) GlobalDebug.DebugJoinAsSpectatorEnabled = b; return GlobalDebug.DebugJoinAsSpectatorEnabled; }));
+
+            Entries.Add(new(MenuEntry.Type.Button, null, Gameplay_Cat, "cheat_entry_to_finish_title", "cheat_entry_to_finish_desc", null, Instance.InGameManager.TeleportToFinish));
+            Entries.Add(new(MenuEntry.Type.Button, null, Gameplay_Cat, "cheat_entry_to_safe_title", "cheat_entry_to_safe_desc", null, Instance.InGameManager.TeleportToSafeZone));
+            Entries.Add(new(MenuEntry.Type.Button, null, Gameplay_Cat, "cheat_entry_to_random_player_title", "cheat_entry_to_random_player_desc", null, Instance.InGameManager.TeleportToRandomPlayer));
+            Entries.Add(new(MenuEntry.Type.Button, null, Gameplay_Cat, "cheat_entry_toggle_players_title", "cheat_entry_toggle_players_desc", null, Instance.InGameManager.TogglePlayers));
+            Entries.Add(new(MenuEntry.Type.Button, null, Gameplay_Cat, "cheat_entry_force_menu_title", "cheat_entry_force_menu_desc", null, Instance.ForceMainMenu));
+
+            CheckConfig();
+        }
+
+        void CheckConfig()
+        {
+            if (!File.Exists(Core.ConfigFile))
             {
-                GUI, TrackGameDebug, FPSCoutner, WholeFGDebug, UnlockFPS, TargetFPS, 
-                FGDebugScale, Watermark, SeePlayerPlatforms,
-#if CHEATS
-                JoinAsSpectator, UseCaptureTools,
-                RunSpeedModifier, JumpYModifier, DiveSens, 
-                DisableMonitorCheck, DisableAFK, GravityChange, DiveForce, DiveInAirForce,
-#endif
-
-            };
-
-            _entries.Clear();
-            _changedEntries.Clear();
-
-            if (!File.Exists(path) || reset)
-            {
-                MelonLogger.Msg($"[{GetType()}] Config not found, creating a new one...");
-                foreach (var entry in EditableMenu)
-                {
-                    RegisterEntry(entry.Key, entry.Value.Category, entry.Value.DisplayName, entry.Value.Description, entry.Value.Value, entry.Value.Config, entry.Value.ValueType);
-                }
+                SaveConfig();
+                return;
             }
-            else
+
+            MelonLogger.Msg("Attempt to load exising config...");
+
+            try
             {
-                var knownDefinitions = new Dictionary<string, MenuEntry>();
-
-                MelonLogger.Msg($"[{GetType()}] Found existing config, it will be loaded");
-
-                foreach (var entry in JsonConvert.DeserializeObject<List<MenuEntry>>(File.ReadAllText(path)))
+                var cfg = JsonSerializer.Deserialize<List<ConfigEntry>>(File.ReadAllText(Core.ConfigFile));
+                foreach (var entry in cfg)
                 {
-                    if (definitions.Contains(entry.InternalName))
+                    var target = Entries.Find(x => x.ConfigID == entry.ConfigID);
+                    if (target == null)
+                        continue;
+
+                    RollInMenu.Enqueue(new(() =>
                     {
-                        knownDefinitions[entry.InternalName] = entry;
-                    }
+                        target.Set(entry.Value);
+                    }));
                 }
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Config load failed!\n{e}");
+            }
+        }
 
-                MelonLogger.Msg($"[{GetType()}] Loading config...");
+        internal void SaveConfig()
+        {
+            var list = new List<ConfigEntry>();
 
-                foreach (var entry2 in definitions)
+            try
+            {
+                foreach (var entry in Entries)
                 {
+                    if (!entry.CanBeSaved)
+                        continue;
 
-                    EditableMenu.TryGetValue(entry2, out var defaultEntry);
-                    if (!knownDefinitions.ContainsKey(entry2))
-                        RegisterEntry(entry2, defaultEntry.Category, defaultEntry.DisplayName, defaultEntry.Description, defaultEntry.Value, defaultEntry.Config, defaultEntry.ValueType);
-                    else
+                    list.Add(new()
                     {
-                        var knownEntry = knownDefinitions[entry2];
-                        if (knownEntry.ValueType == MenuEntry.Type.Button)
-                            RegisterEntry(knownEntry.InternalName, defaultEntry.Category, defaultEntry.DisplayName, defaultEntry.Description, defaultEntry.Value, defaultEntry.Config, defaultEntry.ValueType);
-                        else
-                            RegisterEntry(knownEntry.InternalName, defaultEntry.Category, defaultEntry.DisplayName, defaultEntry.Description, knownEntry.Value, defaultEntry.Config, defaultEntry.ValueType);
-                    }
-                }
-            }
-
-            MelonLogger.Msg($"[{GetType()}] Config loaded!");
-
-            var json = JsonConvert.SerializeObject(_entries);
-            File.WriteAllText(path, json);
-
-            CreateStaticConfig();
-
-            MelonLogger.Msg($"[{GetType()}] All done!");
-        }
-
-        public void DeleteConfig()
-        {
-            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
-            if (File.Exists(path))
-                File.Delete(path);
-            Application.Quit();
-        }
-
-        public void CreateStaticConfig()
-        {
-            Dictionary<string, (string Category, string DisplayName, string Description, object Value, Dictionary<string, object> AdditionalData, MenuEntry.Type ValueType)> StaticConfig = new()
-            {
-#if CHEATS
-                { ToFinish, (Gameplay_Cat, "cheat_entry_to_finish_title", "cheat_entry_to_finish_desc", "TeleportToFinish", null, MenuEntry.Type.Button) },
-                { ToSafe, (Gameplay_Cat, "cheat_entry_to_safe_title", "cheat_entry_to_safe_desc", "TeleportToSafeZone", null, MenuEntry.Type.Button) },
-                { ToRandomPlayer, (Gameplay_Cat, "cheat_entry_to_random_player_title", "cheat_entry_to_random_player_desc", "TeleportToRandomPlayer", null, MenuEntry.Type.Button) },
-                { HidePlayers, (Gameplay_Cat, "cheat_entry_toggle_players_title", "cheat_entry_toggle_players_desc", "TogglePlayers", null, MenuEntry.Type.Button) },
-#endif
-                { ForceMenu, (Gameplay_Cat, "cheat_entry_force_menu_title", "cheat_entry_force_menu_desc", "ForceMainMenu", null, MenuEntry.Type.Button) },
-            };
-
-            MelonLogger.Msg($"[{GetType()}] Creating static section...");
-
-            foreach (var entry in StaticConfig)
-                RegisterEntry(entry.Key, entry.Value.Category, entry.Value.DisplayName, entry.Value.Description, entry.Value.Value, entry.Value.AdditionalData, entry.Value.ValueType);
-        }
-
-        private List<MenuEntry> _entries = [];
-        private List<MenuEntry> _changedEntries = [];
-
-        public void RollSave()
-        {
-            string path = Path.Combine(Launcher.AssetsDir, TargetCfgName);
-            var json = JsonConvert.SerializeObject(_entries);
-            File.WriteAllText(path, json);
-            MelonLogger.Msg($"[{GetType()}] Saved config...");
-        }
-
-        public void RegisterEntry(string internalName, string category, string displayName, string desc, object value, Dictionary<string, object> AdditionalData, MenuEntry.Type type)
-        {
-            MelonLogger.Msg($"[{GetType()}] Register for entry \"{internalName}\" with type \"{type}\"");
-
-            _entries.Add(new MenuEntry {
-                InternalName = internalName, 
-                Category = category, 
-                DisplayName = displayName, 
-                Description = desc,
-                Value = value, 
-                Config = AdditionalData,
-                ValueType = type 
-            });
-        }
-
-        public void UpdateValue(string name, object value)
-        {
-            var entry = _entries.FirstOrDefault(e => e.InternalName == name);
-            if (entry != null)
-            {
-                var changedEntry = _changedEntries.FirstOrDefault(e => e.InternalName == name);
-
-                FLZ_ToolsManager.Instance.GUIUtil.TriggerPendingChanges(true);
-
-                if (changedEntry == null)
-                {
-                    changedEntry = new MenuEntry
-                    {
-                        InternalName = entry.InternalName,
-                        Description = entry.Description,
-                        DisplayName= entry.DisplayName,
-                        Config = entry.Config,
-                        Category = entry.Category,
-                        ValueType = entry.ValueType,
-                        Value = value,
-                    };
-                    _changedEntries.Add(changedEntry);
-                    return;
+                        ConfigID = entry.ConfigID,
+                        Value = entry.InitialValue
+                    });
                 }
 
-                changedEntry.Value = value;
+                File.WriteAllText(Core.ConfigFile, JsonSerializer.Serialize(list));
             }
-        }
-
-        public void RollChanges()
-        {
-            foreach (var changedEntry in _changedEntries)
+            catch (Exception e)
             {
-                var entry = _entries.FirstOrDefault(e => e.InternalName == changedEntry.InternalName);
-
-                if (changedEntry.InternalName == WholeFGDebug && (bool)changedEntry.Value)
-                    _entries.Find(x => x.InternalName == FPSCoutner).Value = false;
-
-                if (changedEntry.InternalName == FPSCoutner && (bool)changedEntry.Value)
-                    _entries.Find(x => x.InternalName == WholeFGDebug).Value = false;
-
-                if (entry != null)
-                    entry.Value = changedEntry.Value;
+                MelonLogger.Error($"Config save failed!\n{e}");
             }
-
-            Instance.GUIUtil.UpdateActiveEntries(_changedEntries);
-            _changedEntries.Clear();
-            Instance.GUIUtil.TriggerPendingChanges(false);
         }
 
-        public T GetValue<T>(string name)
+        internal void ReleaseQueue()
         {
-            var entry = _entries.FirstOrDefault(e => e.InternalName == name);
-
-            if (entry == null || entry.Value == null)
-                return default;
-
-            if (entry.Value is T value)
-                return value;
-
-            throw new InvalidCastException($"Value {name} have type {entry.Value.GetType()} but we tried to get is as {typeof(T)}");
+            for (int i = 0; i < RollInMenu.Count; i++)
+            {
+                RollInMenu.Dequeue().Invoke();
+            }
         }
 
-        public void ResetSettings()
+        internal void DeleteConfig()
         {
-            LoadConfig(true);
-            Instance.GUIUtil.UpdateActiveEntries();
-            _changedEntries.Clear();
-            Instance.ApplyChanges();
-            Instance.GUIUtil.TriggerPendingChanges(false);
+            if (!File.Exists(Core.ConfigFile))
+                return;
+
+            File.Delete(Core.ConfigFile);
         }
 
-
-        public MenuEntry TryGetEntry(string internalName)
-        {
-            return _entries.FirstOrDefault(e => e.InternalName == internalName);
-        }
-
-        public List<MenuEntry> GetAllEntries() => _entries;
+        internal void ResetSettings() => throw new NotImplementedException();
     }
 }

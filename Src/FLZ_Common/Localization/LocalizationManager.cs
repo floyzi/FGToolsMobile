@@ -18,7 +18,7 @@ namespace NOTFGT.FLZ_Common.Localization
 
         public static void Setup()
         {
-            var path = Path.Combine(Application.persistentDataPath, Launcher.AssetsDir, "text.json");
+            var path = Path.Combine(Application.persistentDataPath, Core.AssetsDir, "text.json");
             LangEntries = JsonConvert.DeserializeObject<List<LangEntry>>(File.ReadAllText(path));
         }
 
