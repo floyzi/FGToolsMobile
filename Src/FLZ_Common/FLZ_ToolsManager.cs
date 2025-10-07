@@ -150,14 +150,7 @@ namespace NOTFGT.FLZ_Common
         {
             if (TrackGameLog)
             {
-                var c = new GUI_LogEntry()
-                {
-                    Msg = logString,
-                    Stacktrace = stackTrace,
-                    Type = type,
-                };
-
-                GUIUtil.ProcessNewLog(c);
+                _ = new GUI_LogEntry(logString, stackTrace, type);
 
                 var stacktaceLine = string.IsNullOrEmpty(stackTrace) ? null : $"\n{stackTrace}";
                 var entry = $"[{type}] {logString}{stacktaceLine}";
@@ -192,42 +185,6 @@ namespace NOTFGT.FLZ_Common
             }
         }
 
-        [Obsolete("")]
-        public void ApplyChanges()
-        {
-            try
-            {
-                if (TrackGameLog && OnLog == null)
-                {
-                    OnLog = new(OnLogHandle);
-                    Application.add_logMessageReceived(OnLog);
-                }
-                else if (OnLog != null && !TrackGameLog)
-                {
-                    Application.remove_logMessageReceived(OnLog);
-                }
-
-                if (UnlockFPS)
-                    Application.targetFrameRate = TargetFPS;
-                else
-                    Application.targetFrameRate = 60;
-
-#if CHEATS
-                foreach (var afk in Resources.FindObjectsOfTypeAll<AFKManager>())
-                    afk.enabled = InGameManager.DisableAFK;
-
-#endif
-
-                SettingsMenu.SaveConfig();
-
-                AudioManager.Instance.PlayOneShot(AudioManager.EventMasterData.SettingsAccept, null, default);
-            }
-            catch (Exception ex)
-            {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_settings_save_title"), LocalizationManager.LocalizedString("error_settings_save_desc", [ex.Message]), ModalType.MT_OK, OKButtonType.Disruptive);
-            }
-        }
-
         internal void ResolveFGDebug()
         {
             var fgdebug = Resources.FindObjectsOfTypeAll<GvrFPS>().FirstOrDefault();
@@ -240,6 +197,27 @@ namespace NOTFGT.FLZ_Common
 
             Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleMinimalisticFPSCounter());
             Broadcaster.Instance.Broadcast(new GlobalDebug.DebugToggleFPSCounter());
+        }
+
+        internal void ResolveLogTracking()
+        {
+            Instance.GUIUtil.LogDisabledScreen.SetActive(!Instance.TrackGameLog);
+
+            if (TrackGameLog && OnLog == null)
+            {
+                OnLog = new(OnLogHandle);
+                Application.add_logMessageReceived(OnLog);
+            }
+            else if (OnLog != null && !TrackGameLog)
+            {
+                Application.remove_logMessageReceived(OnLog);
+            }
+        }
+
+        internal void ResolveAFK()
+        {
+            foreach (var afk in Resources.FindObjectsOfTypeAll<AFKManager>())
+                afk.enabled = InGameManager.DisableAFK;
         }
 
         public void HandlePlayerState(PlayerState playerState)

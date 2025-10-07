@@ -1,6 +1,4 @@
-﻿using Il2CppFGClient;
-using Il2CppFGClient.UI.Core;
-using Il2CppInterop.Runtime.Injection;
+﻿using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using NOTFGT;
 using NOTFGT.FLZ_Common;
@@ -10,7 +8,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
-using static Il2CppFG.Common.GameStateMachine;
 using static MelonLoader.MelonLogger;
 
 //version from this attribute is not used, change version in project instead
@@ -26,7 +23,6 @@ namespace NOTFGT
             public readonly string Commit;
             public readonly DateTime BuildDate;
             public readonly string Version;
-            public readonly string DisplayName;
 
             public BuildDetails(string config, string file_version, string commit, string date)
             {
@@ -53,8 +49,9 @@ namespace NOTFGT
         internal static Color BuildInfoColor = new(0.3764f, 0.0156f, 0.0156f, 1f);
 
         #region PATHS
-        public static string MelonDir => Path.Combine("/sdcard", "MelonLoader", Application.identifier);
-        public static string MainDir => Path.Combine(MelonDir, "Mods", "NOT_FGTools");
+        public static string MelonDir => Path.Combine("/sdcard", "MelonLoader");
+        public static string MelonGameDir => Path.Combine(MelonDir, Application.identifier);
+        public static string MainDir => Path.Combine(MelonGameDir, "Mods", "NOT_FGTools");
         public static string LogDir => Path.Combine(MainDir, "Logs");
         public static string AssetsDir => Path.Combine(MainDir, "Assets");
         public static string MobileLoading => Path.Combine(AssetsDir, "loading_screen.png");

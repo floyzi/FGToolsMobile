@@ -1,11 +1,17 @@
-﻿using Il2CppFGDebug;
+﻿using Il2Cpp;
+using Il2CppFG.Common.CMS;
+using Il2CppFGClient;
+using Il2CppFGDebug;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Localization;
+using NOTFGT.FLZ_Common.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UnityEngine;
+using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 using File = System.IO.File;
 using Path = System.IO.Path;
@@ -123,11 +129,11 @@ namespace NOTFGT.FLZ_Common.GUI
             Entries.Add(new(MenuEntry.Type.Toggle, "show_debug_ui", Def_Cat, "cheat_entry_gui_title", "cheat_entry_gui_desc", (val) => { if (val is bool b) Core.ShowDebugUI = b; return Core.ShowDebugUI; }));
             Entries.Add(new(MenuEntry.Type.Toggle, "show_watermark", Def_Cat, "cheat_entry_watermark_title", "cheat_entry_watermark_desc", (val) => { if (val is bool b) Core.ShowWatermark = b; return Core.ShowWatermark; }));
 
-            Entries.Add(new(MenuEntry.Type.Toggle, "track_log", Def_Cat, "cheat_entry_track_debug_title", "cheat_entry_track_debug_desc", (val) => { if (val is bool b) Instance.TrackGameLog = b; return Instance.TrackGameLog; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "track_log", Def_Cat, "cheat_entry_track_debug_title", "cheat_entry_track_debug_desc", (val) => { if (val is bool b) Instance.TrackGameLog = b; return Instance.TrackGameLog; }, Instance.ResolveLogTracking));
             Entries.Add(new(MenuEntry.Type.Toggle, "fps_counter", Def_Cat, "cheat_entry_fps_counter_title", "cheat_entry_fps_counter_desc", (val) => { if (val is bool b) Instance.FPSCounter = b; return Instance.FPSCounter; }, Instance.ResolveFGDebug));
             Entries.Add(new(MenuEntry.Type.Toggle, "fg_debug", Def_Cat, "cheat_entry_fg_debug_title", "cheat_entry_fg_debug_desc", (val) => { if (val is bool b) Instance.FGDebug = b; return Instance.FGDebug; }, Instance.ResolveFGDebug));
             Entries.Add(new(MenuEntry.Type.Toggle, "unlock_fps", Def_Cat, "cheat_entry_unlock_fps_title", "cheat_entry_unlock_fps_desc", (val) => { if (val is bool b) Instance.UnlockFPS = b; return Instance.UnlockFPS; }));
-            Entries.Add(new(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, "cheat_entry_target_fps_title", "cheat_entry_target_fps_desc", (val) => { if (val is float i) Instance.TargetFPS = Convert.ToInt32(i); return Instance.TargetFPS; }, new(() => { Application.targetFrameRate = Instance.TargetFPS; }), [typeof(int), 10, 300]));
+            Entries.Add(new(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, "cheat_entry_target_fps_title", "cheat_entry_target_fps_desc", (val) => { if (val is float i) Instance.TargetFPS = Convert.ToInt32(i); return Instance.TargetFPS; }, new(() => { Application.targetFrameRate = Instance.UnlockFPS ? Instance.TargetFPS : 60; }), [typeof(int), 10, 300]));
             Entries.Add(new(MenuEntry.Type.Slider, "fg_debug_scale", Def_Cat, "cheat_entry_fg_debug_scale_title", "cheat_entry_fg_debug_scale_desc", (val) => { if (val is float f) Instance.FGDebugScale = f; return Instance.FGDebugScale; }, Instance.ResolveFGDebug, [typeof(float), 0.1f, 1f]));
 
             Entries.Add(new(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, "cheat_entry_platforms_title", "cheat_entry_platforms_desc", (val) => { if (val is bool b) Instance.InGameManager.SeePlayerPlatforms = b; return Instance.InGameManager.SeePlayerPlatforms; }));
@@ -136,7 +142,7 @@ namespace NOTFGT.FLZ_Common.GUI
             Entries.Add(new(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, "cheat_entry_jump_y_title", "cheat_entry_jump_y_desc", (val) => { if (val is float f) Instance.InGameManager.JumpYModifier = f; return Instance.InGameManager.JumpYModifier; }, null, [typeof(float)]));
             Entries.Add(new(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, "cheat_entry_dive_sens_title", "cheat_entry_dive_sens_desc", (val) => { if (val is float f) Instance.InGameManager.DiveSens = f; return Instance.InGameManager.DiveSens; }, null, [typeof(float)]));
             Entries.Add(new(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, "cheat_entry_fgcc_check_title", "cheat_entry_fgcc_check_desc", (val) => { if (val is bool b) Instance.InGameManager.DisableFGCCCheck = b; return Instance.InGameManager.DisableFGCCCheck; }));
-            Entries.Add(new(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, "cheat_entry_afk_title", "cheat_entry_afk_desc", (val) => { if (val is bool b) Instance.InGameManager.DisableAFK = b; return Instance.InGameManager.DisableAFK; }));
+            Entries.Add(new(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, "cheat_entry_afk_title", "cheat_entry_afk_desc", (val) => { if (val is bool b) Instance.InGameManager.DisableAFK = b; return Instance.InGameManager.DisableAFK; }, Instance.ResolveAFK));
             Entries.Add(new(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, "cheat_entry_gravity_vel_title", "cheat_entry_gravity_vel_desc", (val) => { if (val is float f) Instance.InGameManager.GravityModifier = f; return Instance.InGameManager.GravityModifier; }, null, [typeof(float)]));
             Entries.Add(new(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, "cheat_entry_dive_force_title", "cheat_entry_dive_force_desc", (val) => { if (val is float f) Instance.InGameManager.DiveForce = f; return Instance.InGameManager.DiveForce; }, null, [typeof(float)]));
             Entries.Add(new(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, "cheat_entry_air_dive_force_title", "cheat_entry_air_dive_force_desc", (val) => { if (val is float f) Instance.InGameManager.DiveForceInAir = f; return Instance.InGameManager.DiveForceInAir; }, null, [typeof(float)]));
@@ -205,6 +211,19 @@ namespace NOTFGT.FLZ_Common.GUI
             catch (Exception e)
             {
                 MelonLogger.Error($"Config save failed!\n{e}");
+            }
+        }
+
+        internal void DoUIConfigSave()
+        {
+            try
+            {
+                SaveConfig();
+                AudioManager.Instance.PlayOneShot(AudioManager.EventMasterData.SettingsAccept, null, default);
+            }
+            catch (Exception ex)
+            {
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_settings_save_title"), LocalizationManager.LocalizedString("error_settings_save_desc", [ex.Message]), ModalType.MT_OK, OKButtonType.Disruptive);
             }
         }
 

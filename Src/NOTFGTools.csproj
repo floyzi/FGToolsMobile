@@ -35,6 +35,7 @@
 	<ItemGroup>
 		<Compile Include="Definitions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
+		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
 		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />

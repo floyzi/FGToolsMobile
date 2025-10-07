@@ -1,9 +1,4 @@
-﻿using Il2Cpp;
-using Il2CppCoffee.UIParticleInternal;
-using Il2CppEvents;
-using Il2CppFG.Common;
-using Il2CppFG.Common.CMS;
-using Il2CppFGClient;
+﻿using Il2CppFG.Common.CMS;
 using Il2CppTMPro;
 using Il2CppUniRx;
 using MelonLoader;
@@ -11,8 +6,8 @@ using NOTFGT.FLZ_Common.Localization;
 using NOTFGT.FLZ_Common.Logic;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
@@ -51,14 +46,6 @@ namespace NOTFGT.FLZ_Common.GUI
         public string MaterialName { get; } = targetMaterial;
     }
 
-    public class GUI_LogEntry
-    {
-        public LogType Type { get; set; }
-        public string Msg { get; set; }
-        public string Stacktrace { get; set; }
-    }
-
-
     public class GUI_Util
     {
         internal enum UIState
@@ -72,9 +59,6 @@ namespace NOTFGT.FLZ_Common.GUI
         internal bool IsUIActive => CurrentUIState == UIState.Active;
 
         Color tabActiveCol = new(0.7028302f, 0.9941195f, 1f, 1f);
-        Color InfoColor = new(0.7019608f, 1f, 0.9569892f, 1f);
-        Color WarningColor = new(1f, 0.8809203f, 0.7019608f, 1f);
-        Color ErrorColor = new(1f, 0.7028302f, 0.7028302f, 1f);
 
         AssetBundle GUI_Bundle;
         AssetBundleRequest theGUI;
@@ -120,12 +104,19 @@ namespace NOTFGT.FLZ_Common.GUI
         [GUIReference("RoundsIDSDropDown")] readonly TMP_Dropdown IdsDropdown;
         [GUIReference("ClickToCopyNote")] readonly GameObject ClickToCopy;
 
-        [GUIReference("LogMessage")] readonly Button LogPrefab;
-        [GUIReference("LogInfo")] readonly TextMeshProUGUI LogInfo;
-        [GUIReference("LogDisplay")] readonly Transform LogContent;
-        [GUIReference("ClearLogsBtn")] readonly Button ClearLogsBtn;
-        [GUIReference("LogStats")] readonly TextMeshProUGUI LogStats;
-        [GUIReference("LogDisabled")] readonly GameObject LogDisabledScreen;
+        #region LOGS
+        [GUIReference("LogMessage")] internal readonly Button LogPrefab;
+        [GUIReference("LogInfo")] internal readonly TextMeshProUGUI LogInfo;
+        [GUIReference("LogDisplay")] internal readonly Transform LogContent;
+        [GUIReference("ClearLogsBtn")] internal readonly Button ClearLogsBtn;
+        [GUIReference("LogStats")] internal readonly TextMeshProUGUI LogStats;
+        [GUIReference("LogDisabled")] internal readonly GameObject LogDisabledScreen;
+
+        [GUIReference("LogBtn_All")] readonly Button AllLogsBtn;
+        [GUIReference("LogBtn_Info")] readonly Button InfoLogsBtn;
+        [GUIReference("LogBtn_Warn")] readonly Button WarnLogsBtn;
+        [GUIReference("LogBtn_Error")] readonly Button ErrorLogsBtn;
+        #endregion
 
         [GUIReference("GPActive")] readonly GameObject GameplayActive;
         [GUIReference("GPHidden")] readonly GameObject GameplayHidden;
@@ -142,6 +133,7 @@ namespace NOTFGT.FLZ_Common.GUI
         [GUIReference("HeaderSlogan")] readonly TextMeshProUGUI Slogan;
 
         [GUIReference("CheatsScrollView")] readonly ScrollRect CheatsScrollView;
+        [GUIReference("GroupLayout")] readonly Transform ToolsCategory;
 
         #region CREDITS
         [TMPReference(FontType.TitanOne, "PinkOutline")]
@@ -163,8 +155,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
         readonly List<GameObject> Tabs = [];
         readonly List<GameObject> TabsButtons = [];
-
-        readonly List<GUI_LogEntry> LogEntries = [];
 
         readonly List<Transform> GameplayActions = [];
 
@@ -214,39 +204,6 @@ namespace NOTFGT.FLZ_Common.GUI
             TryToLoadGUI();
         }
 
-        public void ProcessNewLog(GUI_LogEntry logEntry)
-        {
-            LogEntries.Add(logEntry);
-            if (LogPrefab != null)
-            {
-                var newLog = UnityEngine.Object.Instantiate(LogPrefab, LogContent);
-                newLog.name = "ActiveLog";
-                newLog.gameObject.SetActive(true);
-                newLog.transform.SetAsFirstSibling();
-                switch (logEntry.Type)
-                {
-                    case LogType.Log:
-                        newLog.image.color = InfoColor;
-                        break;
-                    case LogType.Warning:
-                        newLog.image.color = WarningColor;
-                        break;
-                    case LogType.Error:
-                        newLog.image.color = ErrorColor;
-                        break;
-                }
-                UpdateLogStatsText();
-                string result = logEntry.Msg.Length > 55 ? result = string.Concat(logEntry.Msg.AsSpan(0, 55), "...") : logEntry.Msg;
-                newLog.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = $" {result}";
-                newLog.onClick.AddListener(new Action(() => { ShowAdvancedLog(logEntry); }));
-            }
-        }
-
-        void ShowAdvancedLog(GUI_LogEntry logEntry)
-        {
-            LogInfo.text = LocalizationManager.LocalizedString("advanced_log", [logEntry.Type, logEntry.Msg, logEntry.Stacktrace]);
-        }
-
         void ToggleGUI(UIState toggle)
         {
             CurrentUIState = toggle;
@@ -291,7 +248,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 Instance.HandlePlayerState(PlayerState.Menu);
 
                 if (!WasInMenu)
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [Core.BuildInfo.DisplayName]), LocalizationManager.LocalizedString("welcome_desc", [Core.BuildInfo.DisplayName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
                 else
                     toggle(true);
 
@@ -299,23 +256,7 @@ namespace NOTFGT.FLZ_Common.GUI
             }
             catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [Core.BuildInfo.DisplayName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
-            }
-        }
-
-        void UpdateLogStatsText() => LogStats.text = LocalizationManager.LocalizedString("errors_display", [LogEntries.FindAll(x => x.Type == LogType.Error).Count, LogEntries.FindAll(x => x.Type == LogType.Warning).Count, LogEntries.FindAll(x => x.Type == LogType.Log).Count, LogEntries.Count]);
-
-        void SaveSettings()
-        {
-            try
-            {
-                LogDisabledScreen.SetActive(!Instance.TrackGameLog);
-                Instance.ApplyChanges();
-            }
-            catch (Exception ex)
-            {
-                FLZ_Extensions.CreateNotification("Whoops", $"Unable to save the settings, try resetting\n{ex.Message}", "", 5);
-                AudioManager.PlayOneShot("UI_Matchmaking_Failed");
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [DefaultName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
             }
         }
 
@@ -377,9 +318,24 @@ namespace NOTFGT.FLZ_Common.GUI
                 tmpText.font = FontAssets.Find(x => x.name == TMPFontFallback);
             }
 
+            tmpText.fontMaterial.hideFlags = HideFlags.HideAndDontSave;
+            tmpText.font.hideFlags = HideFlags.HideAndDontSave;
+
             tmpText.enableWordWrapping = true;
             tmpText.UpdateMaterial();
             tmpText.UpdateFontAsset();
+        }
+         
+        void SetupLogsScreen()
+        {
+            LogPrefab.gameObject.SetActive(false);
+
+            AllLogsBtn.onClick.AddListener(new Action(GUI_LogEntry.CreateAllInstances));
+            InfoLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Log)));
+            WarnLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Warning)));
+            ErrorLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Error)));
+
+            GUI_LogEntry.UpdateLogStats();
         }
 
         void CreateCreditsScreen()
@@ -439,10 +395,9 @@ namespace NOTFGT.FLZ_Common.GUI
                 {
                     CleanupScreen(LogContent, true);
                     CleanupScreen(LogContent, true);
-                    LogEntries.Clear();
-                    UpdateLogStatsText();
+                    GUI_LogEntry.UpdateLogStats();
                 }));
-                applyChanges.onClick.AddListener(new Action(SaveSettings));
+                applyChanges.onClick.AddListener(new Action(Instance.SettingsMenu.DoUIConfigSave));
 
                 HiddenStyle.gameObject.AddComponent<ToolsButton>().onClick = new Action(() => { ToggleGUI(UIState.Active); });
 
@@ -483,8 +438,8 @@ namespace NOTFGT.FLZ_Common.GUI
                 ConfigureTabs();
                 CreateConfigMenu(configMenu);
                 InitRoundsDropdown();
-                UpdateLogStatsText();
                 CreateCreditsScreen();
+                SetupLogsScreen();
                 GUIObject.gameObject.SetActive(true);
                 SuceedGUISetup = true;
             }
@@ -785,7 +740,11 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             HashSet<string> categories = [];
 
-            SetupFont(GUI_HeaderPrefab.GetComponentInChildren<TextMeshProUGUI>(), TMPFontTitanOne, "DropShadowAlpha_2_0");
+            GUI_TogglePrefab.SetActive(false);
+            GUI_TextFieldPrefab.SetActive(false);
+            GUI_SliderPrefab.SetActive(false);
+            GUI_HeaderPrefab.SetActive(false);
+            GUI_ButtonPrefab.SetActive(false);
 
             foreach (var entry in Instance.SettingsMenu.Entries.OrderBy(entry => entry.Category).ToList())
             {
@@ -799,6 +758,9 @@ namespace NOTFGT.FLZ_Common.GUI
                         haderInst.name = $"Header_{entry.Category}";
 
                         var headerText = haderInst.GetComponentInChildren<TextMeshProUGUI>();
+
+                        SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
+
                         if (headerText != null)
                         {
                             headerText.text = string.Format(headerText.text, LocalizationManager.LocalizedString(entry.Category));
@@ -822,7 +784,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             toggleTracker.Create(entry);
                             toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = (bool)entry.GetValue(); });
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
-                            var toggleDesc = toggleInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
+                            var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
 
                             if (!string.IsNullOrEmpty(localizedDesc))
                                 toggleDesc.text = $"*{localizedDesc}";
