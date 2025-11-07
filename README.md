@@ -30,11 +30,22 @@
 - Update the references in the `Lib` folder if needed (to do that use [this version of MelonLoader](https://github.com/LemonLoader/MelonLoader/releases/tag/0.6.5.1) on the desktop version of the game)
 - To build with cheats included set "Cheats" configuration in configuration manager
 
+> [!TIP]
+> You can setup ADB to automatically update mod files on device after build
+
+- Download [Platform Tools](https://developer.android.com/tools/releases/platform-tools)
+- Put `platform_tools` folder inside the solution folder
+- Enable USB debugging in developer settings on your device
+- Connect your device
+
+If configured correctly, everytime when you build the project it's files will be automatically updated on device
+
 ### UI Bundle
 - Download [Unity Hub](https://unity.com/unity-hub)
-- Install Unity `2021.3.16f1` with android build tools 
+- Install Unity `2021.3.16f1` with Android Build Tools 
 - Open the project and select `Build AssetBundles` in the default context menu (right click in the file inspector)
-- Your bundle will be in the AssetBundles folder inside the project
+![Tutorial](Assets/GitHubImages/BundlesBuilding.png)
+- Your bundle will be in the `AssetBundles/[SELECTED_PLATFORM]` folder inside the project
 
 # Installing
 ## Without modifying anything 
@@ -44,7 +55,7 @@
 
 ## With modifying 
 - Get Fall Guys APK that is patched via this version of [LemonLoader](https://github.com/LemonLoader/MelonLoader/releases/tag/0.6.5.1) 
-- Navigate to `Melonloader/GAME_PACKAGE_NAME/Mods`
+- Navigate to `Melonloader/[GAME_PACKAGE_NAME]/Mods`
 - Put the `NOT_FGTools` folder from the Assets folder and `NOT FGTools.dll` that you built there
 - Launch the game
 - Profit
