@@ -17,7 +17,7 @@ namespace NOTFGT.FLZ_Common.Logic
         public static void DoModal(string title, string msg, ModalType type, OKButtonType btnType, Il2CppSystem.Action<bool> act = null, bool doSfx = true, string btnOkStr = null, TextAlignmentOptions al = TextAlignmentOptions.Center, float closeDelay = 0f)
         {
             if (btnOkStr != null)
-                NewCmsStr("latest_btn_ok", btnOkStr);
+                CMSString("latest_btn_ok", btnOkStr);
 
             Il2CppSystem.IObservable<Unit> acceptWaitObs = ModalMessageBaseData.CreateTimerObservable(closeDelay);
             string okStr = btnOkStr == null ? null : $"latest_btn_ok";
@@ -73,11 +73,13 @@ namespace NOTFGT.FLZ_Common.Logic
             header.GetComponent<Image>().color = color;
         }
 
-        public static void NewCmsStr(string Key, string Value)
+        public static string CMSString(string key, string val)
         {
-            if (CMSLoader.Instance._localisedStrings.ContainsString(Key))
-                CMSLoader.Instance._localisedStrings._localisedStrings.Remove(Key);
-            CMSLoader.Instance._localisedStrings._localisedStrings.Add(Key, Value);
+            var strings = CMSLoader.Instance._localisedStrings;
+            if (strings == null) return null;
+            if (strings.ContainsString(key)) strings._localisedStrings.Remove(key);
+            strings._localisedStrings.Add(key, val);
+            return key;
         }
 
         public static Sprite SetSpriteFromFile(string path, int Width, int Height)

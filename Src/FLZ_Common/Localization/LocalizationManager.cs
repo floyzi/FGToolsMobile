@@ -44,7 +44,7 @@ namespace NOTFGT.FLZ_Common.Localization
 
             if (format != null)
             {
-                int waitingForFormat = Regex.Matches(result, @"\{\d+\}").Count;
+                int waitingForFormat = Regex.Matches(result, @"\{\d+\}").Cast<Match>().GroupBy(m => m.Value).Count();
                 if (format.Length == waitingForFormat)
                     result = string.Format(result, format);
                 else

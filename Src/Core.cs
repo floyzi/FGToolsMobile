@@ -34,15 +34,8 @@ namespace NOTFGT
                     BuildDate = DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).UtcDateTime;
             }
 
-            public override string ToString()
-            {
-                return $"Env: {Config} Commit: #{GetCommit()} Build Date: {BuildDate}";
-            }
-
-            internal string GetCommit()
-            {
-                return Commit.Length > 12 ? Commit[..12] : Commit;
-            }
+            public override string ToString() => $"Env: {Config} Commit: #{GetCommit()} Build Date: {BuildDate}";
+            internal string GetCommit() => Commit.Length > 12 ? Commit[..12] : Commit;
         }
 
         internal static BuildDetails BuildInfo;
@@ -51,6 +44,8 @@ namespace NOTFGT
         #region PATHS
         public static string MelonDir => Path.Combine("/sdcard", "MelonLoader");
         public static string MelonGameDir => Path.Combine(MelonDir, Application.identifier);
+        public static string MelonLogsDir => Path.Combine(MelonGameDir, "MelonLoader", "Logs");
+        public static string CurrentMelonLog => Path.Combine(MelonGameDir, "MelonLoader", "Latest.log");
         public static string MainDir => Path.Combine(MelonGameDir, "Mods", "NOT_FGTools");
         public static string LogDir => Path.Combine(MainDir, "Logs");
         public static string AssetsDir => Path.Combine(MainDir, "Assets");
@@ -67,6 +62,11 @@ namespace NOTFGT
 
         internal static bool ShowDebugUI;
         internal static bool ShowWatermark = true;
+#if MELON_LOGS
+        readonly HashSet<string> MelonLogs = [];
+        StreamReader LogsReader;
+        FileStream LogsStream;
+#endif
 
         public override void OnInitializeMelon()
         {
@@ -90,13 +90,20 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
                 ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();
 
+                HarmonyInstance.PatchAll(typeof(FLZ_LoginPatches));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.Default));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.CaptureTools));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.GUITweaks));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.RoundLoader));
 
                 StartupDate = DateTime.UtcNow;
+
+#if MELON_LOGS
+                LogsStream = new FileStream(CurrentMelonLog, FileMode.Open, FileAccess.Read, FileShare.Read);
+                LogsReader = new StreamReader(LogsStream);
+#endif
             }
+
             catch (Exception ex)
             {
                 Error($"Boot failed!\n{ex}");
@@ -124,7 +131,17 @@ namespace NOTFGT
             }
         }
 
-        public override void OnUpdate() => OnUpdateСommon?.Invoke();
+        public override void OnUpdate()
+        {
+            OnUpdateСommon?.Invoke();
+#if MELON_LOGS
+            string line;
+            while ((line = LogsReader.ReadLine()) != null)
+            {
+                MelonLogs.Add(line);
+            }
+#endif
+        }
 
         void WatermarkGUI()
         {
@@ -151,10 +168,24 @@ namespace NOTFGT
             GUI.Label(new Rect(labelX, labelY - 2f, labelWidth, labelHeight), watermark, upper);
         }
 
+#if MELON_LOGS
+        void ShowLog()
+        {
+            GUIStyle logs = new(GUI.skin.label)
+            {
+                fontSize = (int)(0.018f * Screen.height),
+            };
+
+            GUI.Label(new(5, 5, Screen.width - 1300, Screen.height), string.Join("\n", MelonLogs.TakeLast(25)), logs);
+        }
+#endif
 
         double _peakMemUsage;
         public override void OnGUI()
         {
+#if MELON_LOGS
+            ShowLog();
+#endif
             if (ShowWatermark)
                 WatermarkGUI();
 

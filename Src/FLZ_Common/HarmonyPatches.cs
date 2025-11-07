@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
+using Il2CppCatapult.Network.Gateway;
+using Il2CppCatapult.Services.Gateway.Protocol.Client;
 using Il2CppFG.Common;
 using Il2CppFG.Common.Messages;
 using Il2CppFGClient;
@@ -12,6 +14,7 @@ using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
 using NOTFGT.FLZ_Common.Logic;
+using System.Collections;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -35,6 +38,7 @@ namespace NOTFGT.FLZ_Common
 
         public class Default
         {
+
             [HarmonyPatch(typeof(PlayerInfoHUDBase), nameof(PlayerInfoHUDBase.OnIntroCamsComplete)), HarmonyPostfix]
             static void OnIntroCamsComplete(PlayerInfoHUDBase __instance, GameStateEvents.IntroCameraSequenceEndedEvent evt)
             {
@@ -96,7 +100,19 @@ namespace NOTFGT.FLZ_Common
                         spawn.Init(new()
                         {
                             NetID = GlobalGameStateClient.Instance.NetObjectManager.GetNextNetID(),
-                            _additionalSpawnData = new PlayerSpawnData(GlobalGameStateClient.Instance.GetLocalClientNetworkID(), 1, GlobalGameStateClient.Instance.GetLocalClientAccountID(), "android_ega", GlobalGameStateClient.Instance.GetLocalPlayerName(), "", 0, -1, "", 0, false, GlobalGameStateClient.Instance.PlayerProfile.CustomisationSelections),
+                            _additionalSpawnData = new PlayerSpawnData(
+                                GlobalGameStateClient.Instance.GetLocalClientNetworkID(), 
+                                1, 
+                                GlobalGameStateClient.Instance.GetLocalClientAccountID(), 
+                                "android_ega", 
+                                GlobalGameStateClient.Instance.GetLocalPlayerName(), 
+                                "", 
+                                0, 
+                                -1, 
+                                "", 
+                                0, 
+                                false, 
+                                GlobalGameStateClient.Instance.PlayerProfile.CustomisationSelections),
                             _creationMode = NetObjectCreationMode.Spawn,
                             _lodControllerBehaviour = LodControllerBehaviour.Default,
                             _prefabHash = -491682846,

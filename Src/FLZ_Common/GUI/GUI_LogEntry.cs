@@ -59,7 +59,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
             EntryInstance = UnityEngine.Object.Instantiate(Instance.GUIUtil.LogPrefab, Instance.GUIUtil.LogContent);
             EntryInstance.name = "Log";
-            MelonLogger.Msg(EntryInstance.name);
             EntryInstance.gameObject.SetActive(true);
             EntryInstance.transform.SetAsFirstSibling();
 
@@ -86,7 +85,7 @@ namespace NOTFGT.FLZ_Common.GUI
         }
 
         public static bool CanCreateInstances() => Instance.GUIUtil.LogPrefab != null;
-        public static void UpdateLogStats() => Instance.GUIUtil.LogStats.text = LocalizationManager.LocalizedString("errors_display", [AllEntries.Count(e => e.IsError), AllEntries.Count(e => e.IsWarning), AllEntries.Count(e => e.IsInfo), AllEntries.Count]);
+        public static void UpdateLogStats() => Instance.GUIUtil.LogStats?.text = LocalizationManager.LocalizedString("errors_display", [AllEntries.Count(e => e.IsError), AllEntries.Count(e => e.IsWarning), AllEntries.Count(e => e.IsInfo), AllEntries.Count]);
 
         public void DestroyInstance()
         {

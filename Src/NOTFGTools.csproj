@@ -30,11 +30,13 @@
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Cheats|AnyCPU'">
 	  <OutputPath>Output\</OutputPath>
+	  <DefineConstants>TRACE;MELON_LOGS</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<Compile Include="Definitions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
+		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
@@ -908,4 +910,9 @@
 	    <Private>False</Private>
 	  </Reference>
 	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="robocopy ..\Assets\NOT_FGTools ..\Src\Output\$(TargetFramework)\NOT_FGTools /E /XO /NFL /NDL /R:0 /W:0" ContinueOnError="true" />
+	  <Exec Command="call ..\push.bat $(SolutionDir)\Src\Output\$(TargetFramework)\" WorkingDirectory="$(SolutionDir)\platform-tools" Condition="Exists('..\push.bat') AND Exists('$(SolutionDir)\platform-tools')" />
+	</Target>
 </Project>

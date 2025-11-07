@@ -370,3 +370,5 @@ FodyWeavers.xsd
 Lib/FallGuys/*
 !Lib/FallGuys/filler
 TextMesh Pro
+platform-tools
+TheModsNobodyInvited

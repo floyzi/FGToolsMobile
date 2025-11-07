@@ -736,7 +736,7 @@ namespace NOTFGT.FLZ_Common.GUI
             GameplayActions.Clear();
         }
 
-        void CreateConfigMenu(Transform ConfigTransform)
+        void CreateConfigMenu(Transform cfgTrans)
         {
             HashSet<string> categories = [];
 
@@ -754,7 +754,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                     if (!string.IsNullOrEmpty(entry.Category) && !categories.Contains(entry.Category))
                     {
-                        GameObject haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, ConfigTransform);
+                        GameObject haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, cfgTrans);
                         haderInst.name = $"Header_{entry.Category}";
 
                         var headerText = haderInst.GetComponentInChildren<TextMeshProUGUI>();
@@ -774,7 +774,7 @@ namespace NOTFGT.FLZ_Common.GUI
                     switch (entry.EntryType)
                     {
                         case MenuEntry.Type.Toggle:
-                            GameObject toggleInst = UnityEngine.Object.Instantiate(GUI_TogglePrefab, ConfigTransform);
+                            GameObject toggleInst = UnityEngine.Object.Instantiate(GUI_TogglePrefab, cfgTrans);
                             toggleInst.SetActive(true);
                             toggleInst.name = entry.ConfigID;
 
@@ -801,7 +801,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             break;
 
                         case MenuEntry.Type.InputField:
-                            GameObject fieldInst = UnityEngine.Object.Instantiate(GUI_TextFieldPrefab, ConfigTransform);
+                            GameObject fieldInst = UnityEngine.Object.Instantiate(GUI_TextFieldPrefab, cfgTrans);
                             fieldInst.SetActive(true);
                             fieldInst.name = entry.ConfigID;
 
@@ -872,7 +872,7 @@ namespace NOTFGT.FLZ_Common.GUI
                                 return;
                             }
 
-                            GameObject sliderInst = UnityEngine.Object.Instantiate(GUI_SliderPrefab, ConfigTransform);
+                            GameObject sliderInst = UnityEngine.Object.Instantiate(GUI_SliderPrefab, cfgTrans);
                             sliderInst.SetActive(true);
                             sliderInst.name = entry.ConfigID;
 
@@ -929,7 +929,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             EntryInstances.Add(sliderInst);
                             break;
                         case MenuEntry.Type.Button:
-                            GameObject buttonInst = UnityEngine.Object.Instantiate(GUI_ButtonPrefab, ConfigTransform);
+                            GameObject buttonInst = UnityEngine.Object.Instantiate(GUI_ButtonPrefab, cfgTrans);
                             buttonInst.SetActive(true);
                             buttonInst.name = entry.ConfigID;
 

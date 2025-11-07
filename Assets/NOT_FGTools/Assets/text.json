@@ -91,5 +91,7 @@
     { "Key": "cheat_entry_platforms_title", "Value": "Advanced Names" },
     { "Key": "cheat_entry_platforms_desc", "Value": "" },
     { "Key": "cheat_entry_big_names_title", "Value": "Hide Big Names" },
-    { "Key": "cheat_entry_big_names_title", "Value": "" }
+    { "Key": "client_update_error_title", "Value": "UPDATE REQUIRED" },
+    { "Key": "client_update_error_desc", "Value": "Fall Guys version used by {0} is outdated and can't be used for login anymore. Check for updates in GitHub releases and install any if there avaiable, if there none you must wait until the {0} gets updated or update it by yourself" },
+    { "Key": "client_update_error_ok", "Value": "GitHub Releases" }
 ]
