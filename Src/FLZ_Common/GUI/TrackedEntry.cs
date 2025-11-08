@@ -19,15 +19,15 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             AttachedEntry = entry;
             LastKnownEntryValue = AttachedEntry.InitialValue;
+            entry.OnChange += SetEntry;
         }
 
-        void Update()
+        void SetEntry(MenuEntry entry, object newVal) 
         {
-            var v = AttachedEntry.GetValue();
-            if (v != LastKnownEntryValue)
+            if (!Equals(newVal, LastKnownEntryValue))
             {
-                LastKnownEntryValue = v;
-                OnEntryUpdated(v);
+                LastKnownEntryValue = newVal;
+                OnEntryUpdated(newVal);
             }
         }
     }

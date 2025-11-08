@@ -93,7 +93,7 @@ namespace NOTFGT.FLZ_Common.GUI
             /// <summary>
             /// Action that will be invoked after every change of any existing entry
             /// </summary>
-            internal static Action<MenuEntry, object> OnChange;
+            internal Action<MenuEntry, object> OnChange;
 
             internal object GetValue() => setter?.Invoke(null);
 
@@ -161,7 +161,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             if (!File.Exists(Core.ConfigFile))
             {
-                SaveConfig();
+                SaveConfig(true);
                 return;
             }
 
@@ -188,7 +188,7 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        internal void SaveConfig()
+        internal void SaveConfig(bool cleanup)
         {
             var list = new List<ConfigEntry>();
 
@@ -202,7 +202,7 @@ namespace NOTFGT.FLZ_Common.GUI
                     list.Add(new()
                     {
                         ConfigID = entry.ConfigID,
-                        Value = entry.InitialValue
+                        Value = cleanup ? entry.InitialValue : entry.GetValue()
                     });
                 }
 
@@ -218,7 +218,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             try
             {
-                SaveConfig();
+                SaveConfig(false);
                 AudioManager.Instance.PlayOneShot(AudioManager.EventMasterData.SettingsAccept, null, default);
             }
             catch (Exception ex)
@@ -243,6 +243,12 @@ namespace NOTFGT.FLZ_Common.GUI
             File.Delete(Core.ConfigFile);
         }
 
-        internal void ResetSettings() => throw new NotImplementedException();
+        internal void ResetSettings()
+        {
+            foreach (var entry in Entries.Where(x => x.CanBeSaved))
+                entry.Set(entry.InitialValue);
+
+            SaveConfig(true);
+        }
     }
 }

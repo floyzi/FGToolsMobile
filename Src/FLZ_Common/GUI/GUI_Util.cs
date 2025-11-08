@@ -782,7 +782,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             toggle.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             var toggleTracker = toggle.gameObject.AddComponent<TrackedEntry>();
                             toggleTracker.Create(entry);
-                            toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = (bool)entry.GetValue(); });
+                            toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = bool.Parse(newVal.ToString()); });
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
 
@@ -791,8 +791,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             else
                                 toggleDesc.gameObject.SetActive(false);
 
-                            if (toggleTitle != null)
-                                toggleTitle.text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            toggleTitle?.text = LocalizationManager.LocalizedString(entry.DisplayName);
 
                             toggle.isOn = (bool)entry.GetValue();
                             toggle.onValueChanged.AddListener(new Action<bool>(val => { entry.Set(val); }));
@@ -896,6 +895,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                             var sliderTracker = slider.gameObject.AddComponent<TrackedEntry>();
                             sliderTracker.Create(entry);
+     
                             sliderTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
                                 if (float.TryParse(newVal.ToString(), out var res))
