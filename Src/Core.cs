@@ -4,6 +4,7 @@ using NOTFGT;
 using NOTFGT.FLZ_Common;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
+using NOTFGT.FLZ_Common.Logic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -176,7 +177,7 @@ namespace NOTFGT
                 fontSize = (int)(0.018f * Screen.height),
             };
 
-            GUI.Label(new(5, 5, Screen.width - 1300, Screen.height), string.Join("\n", MelonLogs.TakeLast(25)), logs);
+            GUI.Label(new(5, 5, Screen.width - 1300, Screen.height), string.Join("\n", MelonLogs.TakeLast(10)), logs);
         }
 #endif
 

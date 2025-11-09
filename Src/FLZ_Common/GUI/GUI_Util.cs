@@ -6,7 +6,6 @@ using NOTFGT.FLZ_Common.Localization;
 using NOTFGT.FLZ_Common.Logic;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
@@ -736,6 +735,12 @@ namespace NOTFGT.FLZ_Common.GUI
             GameplayActions.Clear();
         }
 
+        internal void RefreshEntries()
+        {
+            if (!IsUIActive) return;
+            foreach (var e in TrackedEntry.TrackedEntries) e.Refresh();
+        }
+
         void CreateConfigMenu(Transform cfgTrans)
         {
             HashSet<string> categories = [];
@@ -750,7 +755,7 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 try
                 {
-                    MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ConfigID}\" with type \"{entry.EntryType}\"");
+                    MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
 
                     if (!string.IsNullOrEmpty(entry.Category) && !categories.Contains(entry.Category))
                     {
@@ -776,12 +781,12 @@ namespace NOTFGT.FLZ_Common.GUI
                         case MenuEntry.Type.Toggle:
                             GameObject toggleInst = UnityEngine.Object.Instantiate(GUI_TogglePrefab, cfgTrans);
                             toggleInst.SetActive(true);
-                            toggleInst.name = entry.ConfigID;
+                            toggleInst.name = entry.ID;
 
                             var toggle = toggleInst.transform.Find("Toggle").GetComponent<Toggle>();
                             toggle.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             var toggleTracker = toggle.gameObject.AddComponent<TrackedEntry>();
-                            toggleTracker.Create(entry);
+                            toggleTracker.Create(entry, toggle);
                             toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = bool.Parse(newVal.ToString()); });
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
@@ -800,15 +805,21 @@ namespace NOTFGT.FLZ_Common.GUI
                             break;
 
                         case MenuEntry.Type.InputField:
+                            if (entry.AdditionalConfig is not FieldConfig fieldConf)
+                            {
+                                MelonLogger.Error($"Can't create entry {entry.ID}. Configuration required");
+                                continue;
+                            }
+
                             GameObject fieldInst = UnityEngine.Object.Instantiate(GUI_TextFieldPrefab, cfgTrans);
                             fieldInst.SetActive(true);
-                            fieldInst.name = entry.ConfigID;
+                            fieldInst.name = entry.ID;
 
                             var inputField = fieldInst.transform.Find("InputField (TMP)").GetComponent<TMP_InputField>();
                             inputField.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             inputField.gameObject.name = "SLOP"; //yeah...
                             var fieldTracker = inputField.gameObject.AddComponent<TrackedEntry>();
-                            fieldTracker.Create(entry);
+                            fieldTracker.Create(entry, inputField);
                             fieldTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
                                 inputField.text = newVal.ToString();
@@ -827,11 +838,10 @@ namespace NOTFGT.FLZ_Common.GUI
 
                             inputField.text = entry.GetValue().ToString();
 
-                            if (entry.AdditionalConfig.Count > 1 && entry.AdditionalConfig[1] != null)
-                                inputField.characterLimit = Convert.ToInt32(entry.AdditionalConfig[1]);
+                            if (fieldConf.CharacterLimit > 0)
+                                inputField.characterLimit = fieldConf.CharacterLimit;
 
-                            var t = entry.AdditionalConfig[0] as Type;
-                            if (t == typeof(string))
+                            if (fieldConf.ValueType == typeof(string))
                             {
                                 inputField.contentType = TMP_InputField.ContentType.Standard;
                                 inputField.onValueChanged.AddListener(new Action<string>(val =>
@@ -839,7 +849,7 @@ namespace NOTFGT.FLZ_Common.GUI
                                     entry.Set(val);
                                 }));
                             }
-                            else if (t == typeof(int))
+                            else if (fieldConf.ValueType == typeof(int))
                             {
                                 inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
                                 inputField.onValueChanged.AddListener(new Action<string>(val =>
@@ -865,17 +875,15 @@ namespace NOTFGT.FLZ_Common.GUI
                             EntryInstances.Add(fieldInst);
                             break;
                         case MenuEntry.Type.Slider:
-                            if (entry.AdditionalConfig == null || entry.AdditionalConfig.Count != 3)
+                            if (entry.AdditionalConfig is not SliderConfig sliderConf)
                             {
-                                MelonLogger.Error($"Can't create slider {entry.ConfigID}. Inavlid data");
-                                return;
+                                MelonLogger.Error($"Can't create entry {entry.ID}. Configuration required");
+                                continue;
                             }
 
                             GameObject sliderInst = UnityEngine.Object.Instantiate(GUI_SliderPrefab, cfgTrans);
                             sliderInst.SetActive(true);
-                            sliderInst.name = entry.ConfigID;
-
-                            var st = entry.AdditionalConfig[0] as Type;
+                            sliderInst.name = entry.ID;
 
                             var slider = sliderInst.transform.Find("Slider").GetComponent<Slider>();
                             slider.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
@@ -888,30 +896,32 @@ namespace NOTFGT.FLZ_Common.GUI
                             else
                                 sliderDesc.gameObject.SetActive(false);
 
-                            if (sliderTitle != null)
-                                sliderTitle.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            sliderTitle?.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
 
                             var sliderValue = slider.transform.Find("SliderValue").GetComponent<TextMeshProUGUI>();
 
                             var sliderTracker = slider.gameObject.AddComponent<TrackedEntry>();
-                            sliderTracker.Create(entry);
-     
+                            sliderTracker.Create(entry, slider);
+                            
                             sliderTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
                                 if (float.TryParse(newVal.ToString(), out var res))
                                     slider.value = res;
 
-                                if (st == typeof(float))
+                                if (sliderConf.ValueType == typeof(float))
                                     sliderValue.text = $"{slider.value:F1} / {slider.maxValue:F1}";
                                 else
                                     sliderValue.text = $"{Convert.ToInt32(slider.value)} / {Convert.ToInt32(slider.maxValue)}";
                             });
 
-                            slider.minValue = float.Parse(entry.AdditionalConfig[1].ToString());
-                            slider.maxValue = float.Parse(entry.AdditionalConfig[2].ToString());
+                            if (sliderConf.MinValue > 0)
+                                slider.minValue = sliderConf.MinValue;
+                            if (sliderConf.MaxValue > 0)
+                                slider.maxValue = sliderConf.MaxValue;
+
                             slider.value = float.Parse(entry.InitialValue.ToString());
 
-                            if (st == typeof(float))
+                            if (sliderConf.ValueType == typeof(float))
                                 sliderValue.text = $"{slider.value:F1} / {slider.maxValue:F1}";
                             else
                                 sliderValue.text = $"{Convert.ToInt32(slider.value)} / {Convert.ToInt32(slider.maxValue)}";
@@ -920,7 +930,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             {
                                 entry.Set(val);
 
-                                if (st == typeof(float))
+                                if (sliderConf.ValueType == typeof(float))
                                     sliderValue.text = $"{val:F1} / {slider.maxValue:F1}";
                                 else
                                     sliderValue.text = $"{Convert.ToInt32(val)} / {Convert.ToInt32(slider.maxValue)}";
@@ -931,7 +941,7 @@ namespace NOTFGT.FLZ_Common.GUI
                         case MenuEntry.Type.Button:
                             GameObject buttonInst = UnityEngine.Object.Instantiate(GUI_ButtonPrefab, cfgTrans);
                             buttonInst.SetActive(true);
-                            buttonInst.name = entry.ConfigID;
+                            buttonInst.name = entry.ID;
 
                             var button = buttonInst.transform.Find("Button").GetComponent<Button>();
                             button.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
@@ -942,6 +952,9 @@ namespace NOTFGT.FLZ_Common.GUI
                             else
                                 buttonDesc.gameObject.SetActive(false);
 
+                            var buttonTracker = button.gameObject.AddComponent<TrackedEntry>();
+                            buttonTracker.Create(entry, button);
+
                             button.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
 
                             button.onClick.AddListener(new Action(() =>
@@ -951,13 +964,13 @@ namespace NOTFGT.FLZ_Common.GUI
                             EntryInstances.Add(buttonInst);
                             break;
                         default:
-                            Debug.LogWarning($"Fallback on: {entry.ConfigID}");
+                            MelonLogger.Warning($"Fallback on: {entry.ID}");
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    MelonLogger.Error($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ConfigID}\" with type \"{entry.EntryType}\" failed! {ex}");
+                    MelonLogger.Error($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\" failed! {ex}");
                 }
             }
         }

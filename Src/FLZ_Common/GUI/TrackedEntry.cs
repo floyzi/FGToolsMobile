@@ -1,34 +1,55 @@
-﻿using Il2CppFGClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
 
 namespace NOTFGT.FLZ_Common.GUI
 {
     internal class TrackedEntry : MonoBehaviour
     {
+        internal static List<TrackedEntry> TrackedEntries = [];
+
         internal Action<object> OnEntryUpdated;
         MenuEntry AttachedEntry;
-        object LastKnownEntryValue;
+        object LastKnownValue;
+        Selectable UIElement;
+        bool IsInteractableTracked;
+        InteractableConfig InteractableConfig;
 
-        internal void Create(MenuEntry entry)
+        internal void Create(MenuEntry entry, Selectable uiElement)
         {
             AttachedEntry = entry;
-            LastKnownEntryValue = AttachedEntry.InitialValue;
-            entry.OnChange += SetEntry;
+            UIElement = uiElement;  
+
+            LastKnownValue = AttachedEntry.InitialValue;
+            AttachedEntry.OnEntryChanged += SetEntry;
+
+            InteractableConfig = AttachedEntry?.AdditionalConfig as InteractableConfig;
+            IsInteractableTracked = InteractableConfig != null;
+
+            if (AttachedEntry != null && AttachedEntry.EntryType != MenuEntry.Type.Button) 
+                TrackedEntries.Add(this);
         }
 
-        void SetEntry(MenuEntry entry, object newVal) 
+        void SetEntry(object newVal) 
         {
-            if (!Equals(newVal, LastKnownEntryValue))
+            if (!Equals(newVal, LastKnownValue))
             {
-                LastKnownEntryValue = newVal;
+                LastKnownValue = newVal;
                 OnEntryUpdated(newVal);
             }
+        }
+
+        internal void Refresh()
+        {
+            if (IsInteractableTracked)
+                UIElement.interactable = InteractableConfig.InteractableCondition == null ? true : InteractableConfig.InteractableCondition();
+            SetEntry(AttachedEntry.GetValue());
+        }
+
+        void OnDestroy()
+        {
+            AttachedEntry.OnEntryChanged -= SetEntry;
+            TrackedEntries.Remove(this);
         }
     }
 }

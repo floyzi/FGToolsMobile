@@ -138,6 +138,7 @@ namespace NOTFGT.FLZ_Common
             Broadcaster.Instance.Register<OnLocalPlayersFinished>(new Action<OnLocalPlayersFinished>(OnFinish));
         }
 
+        void FixedUpdate() => GUIUtil.RefreshEntries();
         void OnEnterMenu(OnMainMenuDisplayed evt) => OnMenuEnter();
         void OnSpectator(OnSpectatingPlayer evt) => OnSpectatorEvent();
         void OnFinish(OnLocalPlayersFinished evt) => OnFinished();
@@ -220,6 +221,25 @@ namespace NOTFGT.FLZ_Common
                 afk.enabled = InGameManager.DisableAFK;
         }
 
+        internal void ResolveFPS()
+        {
+            if (!UnlockFPS)
+            {
+                switch (GlobalGameStateClient.Instance.PlayerProfile.GraphicsSettings.FPSPreset)
+                {
+                    case GraphicsSettings.FPSPresets.Low:
+                        TargetFPS = 20;
+                        break;
+                    case GraphicsSettings.FPSPresets.Medium:
+                        TargetFPS = 30;
+                        break;
+                    case GraphicsSettings.FPSPresets.High:
+                        TargetFPS = 60;
+                        break;
+                }
+            }
+        }
+
         public void HandlePlayerState(PlayerState playerState)
         {
             PreviousPlayerState = ActivePlayerState;
@@ -228,9 +248,14 @@ namespace NOTFGT.FLZ_Common
 
         public void ForceMainMenu()
         {
-            UIManager.Instance.RemoveAllScreens();
-            GlobalGameStateClient.Instance.ResetGame();
-            GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
+            FLZ_Extensions.DoModal("", "", ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((bool wasok) =>
+            {
+                if (!wasok) return;
+                UIManager.Instance.RemoveAllScreens();
+                GlobalGameStateClient.Instance.ResetGame();
+                GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
+            }));
+          
         }
     }
 }
