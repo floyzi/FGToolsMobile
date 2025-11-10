@@ -248,7 +248,7 @@ namespace NOTFGT.FLZ_Common
 
         public void ForceMainMenu()
         {
-            FLZ_Extensions.DoModal("", "", ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((bool wasok) =>
+            FLZ_Extensions.DoModal("ForceMainMenu?", "ForceMainMenu", ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((bool wasok) =>
             {
                 if (!wasok) return;
                 UIManager.Instance.RemoveAllScreens();

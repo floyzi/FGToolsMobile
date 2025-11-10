@@ -11,6 +11,8 @@ using NOTFGT.FLZ_Common.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -51,11 +53,20 @@ namespace NOTFGT.FLZ_Common
             public readonly bool LocalPlayer => FGCC != null && FGCC.IsLocalPlayer;
         }
 
+        struct ControllerElement(string propName, object defaultValue, Action<CharacterControllerData, object> task)
+        {
+            public string PropName = propName;
+            public object DefaultValue = defaultValue;
+            public Action<CharacterControllerData, object> Set = task;
+        }
+
         const string AdvancedNamePattern = "[{0}] | {1} | [{2}]";
         readonly List<PlayerMeta> PlayerMetas = [];
         readonly Dictionary<string, string> NamesMap = [];
+
         CharacterControllerData ActiveFGCCData;
-        object[] DefaultFGCCData = null;
+        List<ControllerElement> ControllerData;
+        FallGuysCharacterController LocalFallGuy;
 
         bool playersHidden = false;
 
@@ -108,13 +119,14 @@ namespace NOTFGT.FLZ_Common
         {
             foreach (var fgcc in Resources.FindObjectsOfTypeAll<FallGuysCharacterController>())
                 fgcc.MotorAgent._motorFunctionsConfig = MotorAgent.MotorAgentConfiguration.Default;
+
+            SetupControllerData();
         }
 
         void OnGameplayBegin()
         {
             playersHidden = false;
 #if CHEATS
-            SetupFGCCData();
             RollFGCCSettings();
 #endif
             Instance.GUIUtil.UpdateGPUI(true, false);
@@ -138,8 +150,8 @@ namespace NOTFGT.FLZ_Common
 
         void OnIntroStart()
         {
+            LocalFallGuy = Resources.FindObjectsOfTypeAll<FallGuysCharacterController>().ToList().Find(x => x.IsLocalPlayer);
 #if CHEATS
-            ResetFGCCData();
             GlobalGameStateClient.Instance.GameStateView.GetCharacterDataMonitor()._timeToRunNextCharacterControllerDataCheck = float.MaxValue;
 #endif
         }
@@ -184,59 +196,35 @@ namespace NOTFGT.FLZ_Common
         }
 
 #if CHEATS
-        public void SetupFGCCData()
-        {
-
-            ActiveFGCCData = Resources.FindObjectsOfTypeAll<CharacterControllerData>().FirstOrDefault();
-
-            if (ActiveFGCCData != null && DefaultFGCCData == null)
-            {
-                DefaultFGCCData = new object[255];
-                DefaultFGCCData[0] = ActiveFGCCData.normalMaxSpeed;
-                DefaultFGCCData[1] = ActiveFGCCData.jumpForceUltimateParty;
-                DefaultFGCCData[2] = ActiveFGCCData.divePlayerSensitivity;
-                DefaultFGCCData[3] = ActiveFGCCData.maxGravityVelocity;
-                DefaultFGCCData[4] = ActiveFGCCData.diveForce;
-                DefaultFGCCData[5] = ActiveFGCCData.airDiveForce;
-            }
-    }
 
         void ResetFGCCData()
         {
-            if (ActiveFGCCData != null && DefaultFGCCData != null)
+            foreach (var setter in ControllerData)
             {
-                ActiveFGCCData.normalMaxSpeed = (float)DefaultFGCCData[0];
-                ActiveFGCCData.jumpForceUltimateParty = (Vector3)DefaultFGCCData[1];
-                ActiveFGCCData.divePlayerSensitivity = (float)DefaultFGCCData[2];
-                ActiveFGCCData.maxGravityVelocity = (float)DefaultFGCCData[3];
-                ActiveFGCCData.diveForce = (float)DefaultFGCCData[4];
-                ActiveFGCCData.airDiveForce = (float)DefaultFGCCData[5];
+                var name = setter.PropName.ToLower();
+
+                if (setter.DefaultValue is float defaultValue)
+                    setter.Set(ActiveFGCCData, defaultValue);
             }
-    }
+            
+            LocalFallGuy?.MotorAgent.GetMotorFunction<MotorFunctionJump>()._jumpForce = ActiveFGCCData.jumpForceUltimateParty;
+        }
         public void RollFGCCSettings()
         {
-            //REWRITE
+            if (!LocalFallGuy)
+                return;
 
-            //var player = Resources.FindObjectsOfTypeAll<FallGuysCharacterController>().ToList().Find(a => a.IsLocalPlayer == true);
-            //if (player != null)
-            //{
-            //    var motorAgent = player.MotorAgent;
+            var motorAgent = LocalFallGuy.MotorAgent;
 
-            //    if (Instance.SettingsMenu.GetValue<bool>(ToolsMenu.DisableMonitorCheck))
-            //    {
-            //        Vector3 defJump = (Vector3)DefaultFGCCData[1];
-            //        ActiveFGCCData.normalMaxSpeed = (float)DefaultFGCCData[0] + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.RunSpeedModifier).ToString());
-            //        ActiveFGCCData.jumpForceUltimateParty = new Vector3(defJump.x, defJump.y + float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.JumpYModifier).ToString()), defJump.z); ;
-            //        ActiveFGCCData.divePlayerSensitivity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveSens).ToString());
-            //        ActiveFGCCData.maxGravityVelocity = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.GravityChange).ToString());
-            //        ActiveFGCCData.diveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveForce).ToString());
-            //        ActiveFGCCData.airDiveForce = float.Parse(Instance.SettingsMenu.GetValue<object>(ToolsMenu.DiveInAirForce).ToString());
-            //    }
-            //    else
-            //        ResetFGCCData();
+            Vector3 defJump = GetControllerElement<Vector3>("jumpForceUltimateParty");
+            ActiveFGCCData.normalMaxSpeed = GetControllerElement<float>("normalMaxSpeed") + RunSpeedModifier;
+            ActiveFGCCData.jumpForceUltimateParty = new Vector3(defJump.x, defJump.y + JumpYModifier, defJump.z);
+            ActiveFGCCData.divePlayerSensitivity = GetControllerElement<float>("divePlayerSensitivity") + DiveSens;
+            ActiveFGCCData.maxGravityVelocity = GetControllerElement<float>("maxGravityVelocity") + GravityModifier;
+            ActiveFGCCData.diveForce = GetControllerElement<float>("diveForce") + DiveForce;
+            ActiveFGCCData.airDiveForce = GetControllerElement<float>("airDiveForce") + DiveForce;
 
-            //    motorAgent.GetMotorFunction<MotorFunctionJump>()._jumpForce = ActiveFGCCData.jumpForceUltimateParty;
-            //}
+            motorAgent.GetMotorFunction<MotorFunctionJump>()._jumpForce = ActiveFGCCData.jumpForceUltimateParty;
         }
 
 
@@ -317,6 +305,49 @@ namespace NOTFGT.FLZ_Common
             foreach (var player in players)
                 player.gameObject.SetActive(!playersHidden);
         }
+
+        internal void ResolveFGCC()
+        {
+            if (!DisableFGCCCheck) ResetFGCCData();
+        }
 #endif
+
+        internal void SetupControllerData()
+        {
+            if (ActiveFGCCData != null)
+                return;
+
+            ActiveFGCCData = Resources.FindObjectsOfTypeAll<CharacterControllerData>().FirstOrDefault();
+            var props = ActiveFGCCData.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            ControllerData = new(props.Length);
+            foreach (var prop in props)
+            {
+                if (!prop.CanWrite)
+                    continue;
+
+                if (prop.PropertyType == typeof(float))
+                    AddControllerDataOfType<float>(ActiveFGCCData, prop);
+
+                if (prop.PropertyType == typeof(int))
+                    AddControllerDataOfType<int>(ActiveFGCCData, prop);
+
+                if (prop.PropertyType == typeof(Vector3))
+                    AddControllerDataOfType<Vector3>(ActiveFGCCData, prop);
+            }
+        }
+
+        internal void AddControllerDataOfType<T>(CharacterControllerData charData, PropertyInfo prop)
+        {
+            var instance = Expression.Parameter(typeof(CharacterControllerData), "instance");
+            var val = Expression.Parameter(typeof(object), "value");
+
+            ControllerData.Add(new ControllerElement(prop.Name, prop.GetValue(charData), Expression.Lambda<Action<CharacterControllerData, object>>(Expression.Assign(Expression.Property(instance, prop), Expression.Convert(val, typeof(T))), instance, val).Compile()));
+        }
+
+        T GetControllerElement<T>(string name)
+        {
+            var element = ControllerData.Find(x => x.PropName == name);
+            return element.DefaultValue is T value ? value : default!;
+        }
     }
 }

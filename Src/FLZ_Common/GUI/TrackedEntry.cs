@@ -1,5 +1,10 @@
-﻿using UnityEngine;
+﻿using Il2Cpp;
+using Il2CppTMPro;
+using MelonLoader;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static Il2CppRewired.Demos.GamepadTemplateUI.GamepadTemplateUI;
 using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
 
 namespace NOTFGT.FLZ_Common.GUI
@@ -42,7 +47,12 @@ namespace NOTFGT.FLZ_Common.GUI
         internal void Refresh()
         {
             if (IsInteractableTracked)
-                UIElement.interactable = InteractableConfig.InteractableCondition == null ? true : InteractableConfig.InteractableCondition();
+            {
+                //var cState = UIElement.interactable;
+                var nState = InteractableConfig.InteractableCondition == null || InteractableConfig.InteractableCondition();
+                UIElement.interactable = nState;
+            }
+
             SetEntry(AttachedEntry.GetValue());
         }
 

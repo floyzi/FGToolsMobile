@@ -1,22 +1,13 @@
 ﻿using Il2Cpp;
-using Il2CppFG.Common.CMS;
-using Il2CppFGClient;
 using Il2CppFGDebug;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Localization;
 using NOTFGT.FLZ_Common.Logic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using UnityEngine;
-using UnityEngine.UIElements;
 using static Il2CppFGClient.UI.UIModalMessage;
-using static Il2CppSystem.Linq.Expressions.Interpreter.NullableMethodCallInstruction;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 using File = System.IO.File;
-using Path = System.IO.Path;
 
 namespace NOTFGT.FLZ_Common.GUI
 {
@@ -171,14 +162,14 @@ namespace NOTFGT.FLZ_Common.GUI
 
             CreateEntry(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v);
             CreateEntry(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
-            CreateEntry(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, null, new FieldConfig(typeof(float)));
-            CreateEntry(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, null, new FieldConfig(typeof(float)));
-            CreateEntry(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, null, new FieldConfig(typeof(float)));
-            CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v);
             CreateEntry(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
-            CreateEntry(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, null, new FieldConfig(typeof(float)));
-            CreateEntry(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, null, new FieldConfig(typeof(float)));
-            CreateEntry(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, null, new FieldConfig(typeof(float)));
+            CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
+            CreateEntry(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
             CreateEntry(MenuEntry.Type.Toggle, "spectator_join", Gameplay_Cat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
 
             CreateEntry(MenuEntry.Type.Button, "to_finish", Gameplay_Cat, Instance.InGameManager.TeleportToFinish);
@@ -201,7 +192,7 @@ namespace NOTFGT.FLZ_Common.GUI
             Entries.Add(new(type, id, category, $"{id}_title", $"{id}_desc", val => { if (val is T v) setter(v); return getter(); }, onSet, additionalConfig));
         }
 
-        void CreateEntry(MenuEntry.Type type, string id, string category, Action onSet = null)
+        void CreateEntry(MenuEntry.Type type, string id, string category, Action onSet = null, IEntryConfig additionalConfig = null)
         {
             if (Entries.Any(x => x.ID == id))
             {
@@ -209,7 +200,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 return;
             }
 
-            Entries.Add(new(type, id, category, $"{id}_title", $"{id}_desc", null, onSet, null));
+            Entries.Add(new(type, id, category, $"{id}_title", $"{id}_desc", null, onSet, additionalConfig));
         }
 
 
