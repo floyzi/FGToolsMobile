@@ -2,9 +2,9 @@
 using MelonLoader;
 using NOTFGT;
 using NOTFGT.FLZ_Common;
+using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
-using NOTFGT.FLZ_Common.Logic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -86,6 +86,8 @@ namespace NOTFGT
 
                 BuildInfo = new BuildDetails(cfg, productVersion[0], productVersion.Length > 1 ? productVersion[1] : "LOCAL BUILD", buildDate);
 
+                Msg(BuildInfo.ToString());
+
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
                 ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
@@ -109,11 +111,15 @@ namespace NOTFGT
             {
                 Error($"Boot failed!\n{ex}");
                 SucceedLaunch = false;
+
+                FLZ_AndroidExtensions.ShowToast($"Unable to init {DefaultName}. See logs for details");
             }
         }
 
         public override void OnLateInitializeMelon()
         {
+            if (!SucceedLaunch) return;
+
             Msg("Startup...");
 
             try

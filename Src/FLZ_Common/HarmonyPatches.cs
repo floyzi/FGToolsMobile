@@ -10,14 +10,15 @@ using Il2CppFGDebug;
 using Il2CppInterop.Runtime;
 using Il2CppRewired.Utils.Classes.Data;
 using Il2CppTMPro;
+using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
-using NOTFGT.FLZ_Common.Logic;
 using System.Collections;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using static Il2CppFG.Common.LODs.LodController;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
@@ -213,17 +214,24 @@ namespace NOTFGT.FLZ_Common
                 }
                 return false;
             }
-            [HarmonyPatch(typeof(LoadingScreenViewModel), nameof(LoadingScreenViewModel.Awake)), HarmonyPrefix]
-            static bool ShowScreen(LoadingScreenViewModel __instance)
+            [HarmonyPatch(typeof(LoadingScreenViewModel), nameof(LoadingScreenViewModel.Awake)), HarmonyPostfix]
+            static void ShowScreen(LoadingScreenViewModel __instance)
             {
-                __instance._canvasFader = __instance.GetComponent<CanvasGroupFader>();
                 if (File.Exists(Core.MobileLoading))
                 {
-                    var spr = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading, 1920, 1080);
-                    __instance.gameObject.transform.FindChild("SplashScreen_Image").gameObject.GetComponent<UnityEngine.UI.Image>().sprite = spr;
+                    var spr = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading);
+                    __instance.gameObject.transform.FindChild("SplashScreen_Image").gameObject.GetComponent<Image>().sprite = spr;
                     __instance.SplashLoadingScreenSprite = spr;
                 }
-                return false;
+            }
+
+            [HarmonyPatch(typeof(PreInitLoadingScreenViewModel), nameof(PreInitLoadingScreenViewModel.Awake)), HarmonyPostfix]
+            static void Show(PreInitLoadingScreenViewModel __instance)
+            {
+                var targ = __instance.GetComponentsInChildren<Image>().ToList().Find(x => x.name == "SplashScreen_Image");
+
+                if (!File.Exists(Core.MobileLoading) || targ == null) return;
+                targ.sprite = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading);
             }
         }
     }

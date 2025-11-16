@@ -7,10 +7,10 @@ using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Core;
 using Il2CppFGDebug;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
-using NOTFGT.FLZ_Common.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,9 +116,9 @@ namespace NOTFGT.FLZ_Common
             InGameManager = new();
             SettingsMenu = new();
 
-            GUIUtil.Register();
-
             LocalizationManager.Setup();
+
+            GUIUtil.Register();
 
             HandlePlayerState(PlayerState.Loading);
 

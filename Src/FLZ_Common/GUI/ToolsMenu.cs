@@ -1,8 +1,8 @@
 ﻿using Il2Cpp;
 using Il2CppFGDebug;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.Localization;
-using NOTFGT.FLZ_Common.Logic;
 using System.Text.Json;
 using UnityEngine;
 using static Il2CppFGClient.UI.UIModalMessage;

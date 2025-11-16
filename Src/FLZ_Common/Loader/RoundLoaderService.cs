@@ -7,7 +7,6 @@ using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Core;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Localization;
-using NOTFGT.FLZ_Common.Logic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
@@ -16,6 +15,7 @@ using static Il2CppFG.Common.GameStateMachine;
 using static Il2CppFGClient.UI.UIModalMessage;
 using Random = UnityEngine.Random;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
+using NOTFGT.FLZ_Common.Extensions;
 
 namespace NOTFGT.FLZ_Common.Loader
 {

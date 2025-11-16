@@ -2,7 +2,10 @@
 using Il2CppFG.Common.AI;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppSerilog.Events;
+using MelonLoader;
+using NOTFGT.FLZ_Common.Extensions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +22,11 @@ namespace NOTFGT.FLZ_Common.GUI
         Canvas Canv;
         RectTransform CanvRt;
         EventTrigger Trigger;
+        object DelayCor;
         internal Action onClick;
         
         bool Dragging;
+        bool PointerDown;
 
         void Awake()
         {
@@ -34,14 +39,15 @@ namespace NOTFGT.FLZ_Common.GUI
 
             Trigger = gameObject.AddComponent<EventTrigger>();
 
-            RegEvent(EventTriggerType.BeginDrag, new Action<BaseEventData>((data) =>
+            RegEvent(EventTriggerType.PointerDown, new Action<BaseEventData>((data) =>
             {
-                gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                Dragging = true;
+                PointerDown = true;
+                DelayCor = MelonCoroutines.Start(DragDelay(0.35f));
             }));
 
             RegEvent(EventTriggerType.Drag, new Action<BaseEventData>((data) =>
             {
+                if (!Dragging) return;
                 if (Canv == null) return;
 
                 var mb = data.Cast<PointerEventData>();
@@ -64,6 +70,8 @@ namespace NOTFGT.FLZ_Common.GUI
 
             RegEvent(EventTriggerType.PointerUp, new Action<BaseEventData>((data) =>
             {
+                PointerDown = false;
+                MelonCoroutines.Stop(DelayCor);
                 if (Dragging) return;
                 onClick?.Invoke();
             }));
@@ -78,5 +86,22 @@ namespace NOTFGT.FLZ_Common.GUI
             a.callback.AddListener(act);
             Trigger.triggers.Add(a);
         }
+
+        IEnumerator DragDelay(float d)
+        {
+            var t = 0f;
+
+            while (t < d)
+            {
+                if (!PointerDown) yield break;
+                t += Time.deltaTime;
+                yield return null;
+            }
+
+            FLZ_AndroidExtensions.Vibrate(20);
+            Dragging = true;
+            gameObject.transform.GetChild(0).gameObject.SetActive(false);
+        }
+
     }
 }

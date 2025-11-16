@@ -35,6 +35,7 @@
 
 	<ItemGroup>
 		<Compile Include="Definitions.cs" />
+		<Compile Include="FLZ_Common\Extensions\FLZ_AndroidExtensions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
@@ -47,7 +48,7 @@
 		<Compile Include="FLZ_Common\Loader\FallGuyBehaviour.cs" />
 		<Compile Include="FLZ_Common\Loader\RoundLoaderService.cs" />
 		<Compile Include="FLZ_Common\Localization\LocalizationManager.cs" />
-		<Compile Include="FLZ_Common\FLZ_Extensions.cs" />
+		<Compile Include="FLZ_Common\Extensions\FLZ_Extensions.cs" />
 		<Compile Include="Core.cs" />
 		<Compile Include="FLZ_Common\FLZ_ToolsManager.cs" />
 	</ItemGroup>

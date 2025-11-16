@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 
-namespace NOTFGT.FLZ_Common.Logic
+namespace NOTFGT.FLZ_Common.Extensions
 {
     public static class FLZ_Extensions
     {
@@ -82,10 +82,10 @@ namespace NOTFGT.FLZ_Common.Logic
             return key;
         }
 
-        public static Sprite SetSpriteFromFile(string path, int Width, int Height)
+        public static Sprite SetSpriteFromFile(string path)
         {
             byte[] ImageAsByte = File.ReadAllBytes(path);
-            Texture2D Texture = new(Width, Height, TextureFormat.RGBA32, false);
+            Texture2D Texture = new(Screen.width, Screen.height, TextureFormat.RGBA32, false);
             if (Texture.LoadImage(ImageAsByte))
             {
                 Texture.filterMode = FilterMode.Point;

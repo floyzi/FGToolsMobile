@@ -2,8 +2,10 @@
 using Il2CppTMPro;
 using Il2CppUniRx;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.Localization;
-using NOTFGT.FLZ_Common.Logic;
+using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
@@ -60,8 +62,6 @@ namespace NOTFGT.FLZ_Common.GUI
         Color tabActiveCol = new(0.7028302f, 0.9941195f, 1f, 1f);
 
         AssetBundle GUI_Bundle;
-        AssetBundleRequest theGUI;
-
         GameObject GUIObject;
 
         //todo: organize ts
@@ -169,8 +169,6 @@ namespace NOTFGT.FLZ_Common.GUI
         bool OnRepairScreen { get { return RepairStyle.gameObject != null && RepairStyle.gameObject.activeSelf; } }
         bool AllowGUIActions { get { return GUI_Bundle != null && GUIObject != null; } }
 
-        Action LastFailModal;
-
 
         public void ShowRepairGUI(Exception EX)
         {
@@ -193,14 +191,15 @@ namespace NOTFGT.FLZ_Common.GUI
         public void Register()
         {
             BundlePath = Path.Combine(Core.AssetsDir, BundleName);
-            MelonLogger.Msg($"EXPECTED BUNDLE PATH IS: \"{BundlePath}\"");
 
-            GUI_Bundle = AssetBundle.LoadFromFile(BundlePath);
-            OnMenuEnter += MenuEvent;
+            MelonCoroutines.Start(TryToLoadGUI((took) =>
+            {
+                OnMenuEnter += MenuEvent;
 
-            MelonLogger.Msg($"[{GetType()}] Successful GUI_Util register. Is bundle loaded: {GUI_Bundle != null}");
+                MelonLogger.Msg($"[{GetType()}] Bundle loaded, loading took: {took:F2}s");
 
-            TryToLoadGUI();
+                FLZ_AndroidExtensions.ShowToast($"{DefaultName} initialized successfully");
+            }));
         }
 
         void ToggleGUI(UIState toggle)
@@ -225,8 +224,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void MenuEvent()
         {
-            LastFailModal?.Invoke();
-
             if (OnRepairScreen || HasGUIKilled)
                 return;
 
@@ -265,8 +262,8 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<TMPReferenceAttribute>() != null).ToList();
 
-            Materials = Resources.FindObjectsOfTypeAll<Material>().ToList();
-            FontAssets = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().ToList();
+            Materials = [.. Resources.FindObjectsOfTypeAll<Material>()];
+            FontAssets = [.. Resources.FindObjectsOfTypeAll<TMP_FontAsset>()];
 
             Materials.ForEach(x => GameObject.DontDestroyOnLoad(x));
             FontAssets.ForEach(x => GameObject.DontDestroyOnLoad(x));
@@ -308,6 +305,12 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void SetupFont(TextMeshProUGUI tmpText, string fontName, string materialName)
         {
+            if (tmpText == null || string.IsNullOrEmpty(fontName) || string.IsNullOrEmpty(materialName))
+            {
+                MelonLogger.Warning($"Skipping setup of potential font \"{fontName}\" as it's not valid");
+                return;
+            }
+
             tmpText.fontMaterial = Materials.Find(x => x.name.Contains(materialName) && !x.name.Contains("Instance"));
             tmpText.font = FontAssets.Find(x => x.name.StartsWith(fontName));
 
@@ -381,7 +384,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             if (!CanStartUISetup)
             {
-                FLZ_Extensions.DoModal("ERROR", "Can't start UI setup as missing UI references been found, check logs to find what references are missing and resolve them", ModalType.MT_OK, OKButtonType.Default);
+                FLZ_Extensions.DoModal("ERROR", "Can't start UI setup as missing UI references has been found, check logs to find what references are missing and resolve them", ModalType.MT_OK, OKButtonType.Default);
                 return;
             }
 
@@ -392,7 +395,6 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 ClearLogsBtn.onClick.AddListener(new Action(() =>
                 {
-                    CleanupScreen(LogContent, true);
                     CleanupScreen(LogContent, true);
                     GUI_LogEntry.UpdateLogStats();
                 }));
@@ -450,25 +452,44 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        void TryToLoadGUI()
+        IEnumerator TryToLoadGUI(Action<double> onSucceed)
         {
             if (HasGUIKilled || GUIObject != null)
-                return;
+                yield break;
+
+            MelonLogger.Msg($"Trying to load bundle from: \"{BundlePath}\"");
+
+            if (!File.Exists(BundlePath))
+            {
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [BundlePath, DefaultName]));
+                yield break;
+            }
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            var bReq = AssetBundle.LoadFromFileAsync(BundlePath);
+
+            while (!bReq.isDone) yield return null;
+
+            GUI_Bundle = bReq.assetBundle;
 
             var assetName = "NOT_FGToolsGUI";
 
             if (GUI_Bundle == null)
             {
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, BundlePath]));
-                return;
+                yield break;
             }
 
-            theGUI = GUI_Bundle.LoadAssetAsync<GameObject>(assetName);
+            var theGUI = GUI_Bundle.LoadAssetAsync<GameObject>(assetName);
+
+            while (!theGUI.isDone) yield return null;
 
             if (theGUI.asset == null)
             {
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [assetName]));
-                return;
+                yield break;
             }
 
             GUIObject = UnityEngine.Object.Instantiate(theGUI.asset).Cast<GameObject>();
@@ -479,9 +500,13 @@ namespace NOTFGT.FLZ_Common.GUI
                 ConfigureObjects();
                 GUIObject.gameObject.SetActive(false);
                 RepairStyle.gameObject.SetActive(false);
+
+                onSucceed?.Invoke(sw.Elapsed.TotalSeconds);
             }
             else
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_object", [$"{assetName}(Clone)"]));
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_object", [theGUI.asset.name]));
+
+            sw.Stop();
         }
 
 
@@ -596,9 +621,9 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        void TryTriggerFailedToLoadUIModal(string addotionalMsg)
+        static void TryTriggerFailedToLoadUIModal(string addotionalMsg)
         {
-            LastFailModal = new Action(() => { FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]), ModalType.MT_OK, OKButtonType.Disruptive); });
+           FLZ_AndroidExtensions.ShowModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]));
         }
 
         void ConfigureObjects()
