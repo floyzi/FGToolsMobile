@@ -98,7 +98,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 yield return null;
             }
 
-            FLZ_AndroidExtensions.Vibrate(20);
+            FLZ_AndroidExtensions.Vibrate(10);
             Dragging = true;
             gameObject.transform.GetChild(0).gameObject.SetActive(false);
         }

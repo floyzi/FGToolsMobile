@@ -7,38 +7,32 @@ namespace NOTFGT.FLZ_Common.Localization
 {
     public static class LocalizationManager
     {
-        public class LangEntry
-        {
-            public string Key { get; set; }
-            public string Value { get; set; }
-        }
-
-        static List<LangEntry> LangEntries =[];
+        static Dictionary<string, string> LangEntries =[];
         const string linkDef = @"\{ref:(.*?)\}";
 
         public static void Setup()
         {
             var path = Path.Combine(Application.persistentDataPath, Core.AssetsDir, "text.json");
             if (!File.Exists(path)) return;
-            LangEntries = JsonConvert.DeserializeObject<List<LangEntry>>(File.ReadAllText(path));
+            LangEntries = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path));
         }
 
         public static string LocalizedString(string key, object[] format = null)
         {
-            var value = LangEntries.Find(x => x.Key == key);
+            var value = LangEntries[key];
 
             if (value == null)
                 return $"MISSING: {key}";
 
-            string result = value.Value;
+            string result = value;
 
             foreach (Match match in Regex.Matches(result, linkDef))
             {
                 var refKey = match.Groups[1].Value;
-                var value_2 = LangEntries.Find(x => x.Key == refKey);
+                var value_2 = LangEntries[refKey];
 
-                if (value_2 != null)
-                    result = result.Replace(match.Value, value_2.Value);
+                if (!string.IsNullOrEmpty(value_2))
+                    result = result.Replace(match.Value, value_2);
                 else
                     result = result.Replace(match.Value, $"MISSING: {refKey}");
             }

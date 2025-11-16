@@ -187,7 +187,6 @@ namespace NOTFGT
         }
 #endif
 
-        double _peakMemUsage;
         public override void OnGUI()
         {
 #if MELON_LOGS
@@ -205,9 +204,6 @@ namespace NOTFGT
             };
 
             var sb = new StringBuilder();
-            //var memUsage = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0;
-            //if (memUsage > _peakMemUsage)
-            //    _peakMemUsage = memUsage;
 
             sb.AppendLine("<b>DEBUG</b>");
 
@@ -215,17 +211,16 @@ namespace NOTFGT
             sb.AppendLine($"Prev state: {FLZ_ToolsManager.Instance.PreviousPlayerState}");
             sb.AppendLine($"Version: {BuildInfo.Version}");
             sb.AppendLine($"Game Version: {Application.version}");
-            //sb.AppendLine($"MEM: {memUsage:F2} MB");
-            //sb.AppendLine($"MEM PEAK: {_peakMemUsage:F2} MB");
             sb.AppendLine($"Session Length: {DateTime.UtcNow - StartupDate:hh\\:mm\\:ss}");
 
             var s = sb.ToString();
             var size = debugL.CalcSize(new(s));
             var offset = 25f;
 
-            GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
-            GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
-            GUI.Box(new Rect(-1, -1, size.x + offset + 10, size.y + 10f), "");
+            var r = new Rect(-1, -1, size.x + offset + 10, size.y + 10f);
+            GUI.Box(r, "");
+            GUI.Box(r, "");
+            GUI.Box(r, "");
 
             GUI.Label(new Rect(offset, 15, size.x + 10f, size.y + 10f), s, debugL);
         }

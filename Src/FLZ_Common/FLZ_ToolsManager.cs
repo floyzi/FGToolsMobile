@@ -248,9 +248,10 @@ namespace NOTFGT.FLZ_Common
 
         public void ForceMainMenu()
         {
-            FLZ_Extensions.DoModal("ForceMainMenu?", "ForceMainMenu", ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((bool wasok) =>
+            FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("force_menu_modal_title"), LocalizationManager.LocalizedString("force_menu_modal_desc"), ModalType.MT_OK_CANCEL, OKButtonType.Disruptive, new Action<bool>((bool wasok) =>
             {
                 if (!wasok) return;
+
                 UIManager.Instance.RemoveAllScreens();
                 GlobalGameStateClient.Instance.ResetGame();
                 GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
