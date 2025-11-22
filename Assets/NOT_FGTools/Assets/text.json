@@ -89,12 +89,14 @@
    "reset_config_alert_title": "RESET TO DEFAULTS?",
    "reset_config_alert_desc": "All changes that was made will be lost.",
    "advanced_names_title": "Advanced Names",
-   "advanced_names_desc": "",
+   "advanced_names_desc": "Adds object id and platform name to each player nametag",
    "big_names_title": "Hide Big Names",
    "client_update_error_title": "UPDATE REQUIRED",
    "client_update_error_desc": "Fall Guys version used by {0} is outdated and can't be used for login anymore. Check for updates in GitHub releases and install any if there avaiable, if there none you must wait until the {0} gets updated or update it by yourself",
    "client_update_error_ok": "GitHub Releases",
    "init_fail_bundle_missing": "Unable to find UI bundle at path {0}. Make sure {1} is installed correctly and try again",
    "force_menu_modal_title": "ARE YOU SURE?",
-   "force_menu_modal_desc": "Do you really want to load Main Menu?"
+   "force_menu_modal_desc": "Do you really want to load Main Menu?",
+   "names_toggle_title": "Show player names",
+   "names_toggle_desc": ""
 }

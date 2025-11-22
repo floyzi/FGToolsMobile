@@ -4,6 +4,7 @@ using Il2CppFG.Common.Character;
 using Il2CppFG.Common.Character.MotorSystem;
 using Il2CppFGClient;
 using Il2CppFGClient.UI;
+using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
@@ -85,16 +86,19 @@ namespace NOTFGT.FLZ_Common
         public FLZ_Game()
         {
             OnMenuEnter += MenuEvent;
-            OnRoundStarts += OnGameplayBegin;
+            OnRoundStarts += OnGameplayBegins;
             OnIntroStarts += OnIntroStart;
             OnIntroEnds += OnIntroEnd;
             OnGUIInit += OnInitOverlay;
             OnSpectatorEvent += OnSpectate;
         }
 
-        internal void RegisterTag(PlayerInfoDisplay tag)
+        internal void RegisterTag(PlayerInfoDisplay tag, SpawnPlayerTagEvent evt)
         {
+            var theName = evt.playerKey.Replace($"{evt.platformId}_", string.Empty);
+            var nametagMeta = new PlayerMeta(tag, theName, evt.playerObject, evt.platformId);
 
+            PlayerMetas.Add(nametagMeta);
         }
 
         internal void SetNames()
@@ -123,7 +127,7 @@ namespace NOTFGT.FLZ_Common
             SetupControllerData();
         }
 
-        void OnGameplayBegin()
+        void OnGameplayBegins()
         {
             playersHidden = false;
 #if CHEATS

@@ -40,14 +40,12 @@ namespace NOTFGT.FLZ_Common
         public class Default
         {
 
-            [HarmonyPatch(typeof(PlayerInfoHUDBase), nameof(PlayerInfoHUDBase.OnIntroCamsComplete)), HarmonyPostfix]
-            static void OnIntroCamsComplete(PlayerInfoHUDBase __instance, GameStateEvents.IntroCameraSequenceEndedEvent evt)
+            [HarmonyPatch(typeof(PlayerInfoHUDBase), nameof(PlayerInfoHUDBase.SpawnPlayerTag)), HarmonyPostfix]
+            static void SpawnPlayerTag(PlayerInfoHUDBase __instance, SpawnPlayerTagEvent spawnEvent)
             {
-                foreach (var tag in __instance._spawnedInfoObjects)
-                {
-                    Instance.InGameManager.RegisterTag(tag.playerInfo);
-                }
+                FLZ_ToolsManager.Instance.InGameManager.RegisterTag(__instance._spawnedInfoObjects[^1].playerInfo, spawnEvent);
             }
+
 
             [HarmonyPatch(typeof(TMP_InputField), nameof(TMP_InputField.OnSelect)), HarmonyPrefix]
             static bool OnSelect(TMP_InputField __instance, PointerEventData eventData)

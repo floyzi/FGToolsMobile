@@ -63,6 +63,7 @@ namespace NOTFGT
 
         internal static bool ShowDebugUI;
         internal static bool ShowWatermark = true;
+        string ByMarker;
 #if MELON_LOGS
         readonly HashSet<string> MelonLogs = [];
         StreamReader LogsReader;
@@ -101,6 +102,8 @@ namespace NOTFGT
 
                 StartupDate = DateTime.UtcNow;
 
+                ByMarker = Description[Description.IndexOf("by")..];
+
 #if MELON_LOGS
                 LogsStream = new FileStream(CurrentMelonLog, FileMode.Open, FileAccess.Read, FileShare.Read);
                 LogsReader = new StreamReader(LogsStream);
@@ -134,7 +137,6 @@ namespace NOTFGT
             {
                 Error($"Startup failed!\n{e}");
                 SucceedLaunch = false;
-                FLZ_ToolsManager.Instance.GUIUtil.ShowRepairGUI(e);
             }
         }
 
@@ -152,7 +154,7 @@ namespace NOTFGT
 
         void WatermarkGUI()
         {
-            string watermark = $"<b>{DefaultName} V{BuildInfo.Version} {Description[Description.IndexOf("by")..]}</b>";
+            string watermark = $"<b>{DefaultName} V{BuildInfo.Version} {ByMarker}</b>";
 
             GUIStyle upper = new(GUI.skin.label)
             {

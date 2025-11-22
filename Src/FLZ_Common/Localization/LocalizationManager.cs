@@ -19,9 +19,7 @@ namespace NOTFGT.FLZ_Common.Localization
 
         public static string LocalizedString(string key, object[] format = null)
         {
-            var value = LangEntries[key];
-
-            if (value == null)
+            if (!LangEntries.TryGetValue(key, out var value))
                 return $"MISSING: {key}";
 
             string result = value;

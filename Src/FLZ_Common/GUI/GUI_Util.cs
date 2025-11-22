@@ -159,40 +159,18 @@ namespace NOTFGT.FLZ_Common.GUI
 
         readonly List<GameObject> EntryInstances = [];
 
-        string BundlePath;
         string ReadyRound;
 
         bool HasGUIKilled = false;
         bool SuceedGUISetup = false;
         bool WasInMenu = false;
         bool CanStartUISetup = true;
-        bool OnRepairScreen { get { return RepairStyle.gameObject != null && RepairStyle.gameObject.activeSelf; } }
-        bool AllowGUIActions { get { return GUI_Bundle != null && GUIObject != null; } }
-
-
-        public void ShowRepairGUI(Exception EX)
-        {
-            if (!AllowGUIActions)
-            {
-                MelonLogger.Msg("Can't show repair screen, bundle not loaded?");
-                return;
-            }
-
-            ErrorDisplay.text = $"{EX.Message}";
-            RepairStyle.gameObject.SetActive(true);
-            DeleteConfig.onClick.AddListener(new Action(Instance.SettingsMenu.DeleteConfig));
-            IgnoreThis.onClick.AddListener(new Action(() => { 
-                RepairStyle.gameObject.SetActive(false);
-                UnityEngine.Object.Destroy(GUIObject);
-                HasGUIKilled = true;
-            }));
-        }
+        bool AllowGUIActions => GUI_Bundle != null && GUIObject != null;
 
         public void Register()
         {
-            BundlePath = Path.Combine(Core.AssetsDir, BundleName);
 
-            MelonCoroutines.Start(TryToLoadGUI((took) =>
+            MelonCoroutines.Start(TryToLoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
             {
                 OnMenuEnter += MenuEvent;
 
@@ -224,7 +202,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void MenuEvent()
         {
-            if (OnRepairScreen || HasGUIKilled)
+            if (HasGUIKilled)
                 return;
 
             try
@@ -245,8 +223,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 if (!WasInMenu)
                     FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
-                else
-                    toggle(true);
 
                 WasInMenu = true;
             }
@@ -452,23 +428,23 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        IEnumerator TryToLoadGUI(Action<double> onSucceed)
+        IEnumerator TryToLoadGUI(string bPath, Action<double> onSucceed)
         {
             if (HasGUIKilled || GUIObject != null)
                 yield break;
 
-            MelonLogger.Msg($"Trying to load bundle from: \"{BundlePath}\"");
+            MelonLogger.Msg($"Trying to load bundle from: \"{bPath}\"");
 
-            if (!File.Exists(BundlePath))
+            if (!File.Exists(bPath))
             {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [BundlePath, DefaultName]));
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [bPath, DefaultName]));
                 yield break;
             }
 
             var sw = new Stopwatch();
             sw.Start();
 
-            var bReq = AssetBundle.LoadFromFileAsync(BundlePath);
+            var bReq = AssetBundle.LoadFromFileAsync(bPath);
 
             while (!bReq.isDone) yield return null;
 
@@ -478,7 +454,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (GUI_Bundle == null)
             {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, BundlePath]));
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, bPath]));
                 yield break;
             }
 
@@ -605,7 +581,7 @@ namespace NOTFGT.FLZ_Common.GUI
                     btnPrefab.name = action.Value;
 
                     btnPrefab.GetComponentInChildren<Button>().onClick.AddListener(action.Key);
-                    btnPrefab.GetComponentInChildren<Text>().text = action.Value;
+                    btnPrefab.GetComponentInChildren<TextMeshProUGUI>().text = action.Value;
 
                     GameplayActions.Add(btnPrefab.transform);
                 }
@@ -641,7 +617,11 @@ namespace NOTFGT.FLZ_Common.GUI
                     {
                         object component = null;
 
-                        if (field.FieldType == typeof(Button))
+                        if (field.FieldType == typeof(GameObject))
+                            component = t.gameObject;
+                        else if (field.FieldType == typeof(Transform))
+                            component = t;
+                        else if (field.FieldType == typeof(Button))
                             component = t.GetComponent<Button>();
                         else if (field.FieldType == typeof(Text))
                             component = t.GetComponent<Text>();
@@ -649,10 +629,6 @@ namespace NOTFGT.FLZ_Common.GUI
                             component = t.GetComponent<InputField>();
                         else if (field.FieldType == typeof(Dropdown))
                             component = t.GetComponent<Dropdown>();
-                        else if (field.FieldType == typeof(GameObject))
-                            component = t.gameObject;
-                        else if (field.FieldType == typeof(Transform))
-                            component = t;
                         else if (field.FieldType == typeof(TextMeshProUGUI))
                             component = t.GetComponent<TextMeshProUGUI>();
                         else if (field.FieldType == typeof(TMP_InputField))

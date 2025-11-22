@@ -1,8 +1,10 @@
 ﻿using Il2Cpp;
+using Il2CppFGClient;
 using Il2CppFGDebug;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.Localization;
+using System.Collections;
 using System.Text.Json;
 using UnityEngine;
 using static Il2CppFGClient.UI.UIModalMessage;
@@ -150,35 +152,46 @@ namespace NOTFGT.FLZ_Common.GUI
             Entries = [];
             RollInMenu = [];
 
-            CreateEntry(MenuEntry.Type.Toggle, "show_debug_ui", Def_Cat, () => Core.ShowDebugUI, v => Core.ShowDebugUI = v);
-            CreateEntry(MenuEntry.Type.Toggle, "show_watermark", Def_Cat, () => Core.ShowWatermark, v => Core.ShowWatermark = v);
+            MelonCoroutines.Start(WaitForFallGuys(new(() => { 
+                CreateEntry(MenuEntry.Type.Toggle, "show_debug_ui", Def_Cat, () => Core.ShowDebugUI, v => Core.ShowDebugUI = v);
+                CreateEntry(MenuEntry.Type.Toggle, "show_watermark", Def_Cat, () => Core.ShowWatermark, v => Core.ShowWatermark = v);
 
-            CreateEntry(MenuEntry.Type.Toggle, "track_log", Def_Cat, () => Instance.TrackGameLog, v => Instance.TrackGameLog = v, Instance.ResolveLogTracking);
-            CreateEntry(MenuEntry.Type.Toggle, "fps_counter", Def_Cat, () => Instance.FPSCounter, v => Instance.FPSCounter = v, Instance.ResolveFGDebug);
-            CreateEntry(MenuEntry.Type.Toggle, "fg_debug", Def_Cat, () => Instance.FGDebug, v => Instance.FGDebug = v, Instance.ResolveFGDebug);
-            CreateEntry(MenuEntry.Type.Toggle, "unlock_fps", Def_Cat, () => Instance.UnlockFPS, v => Instance.UnlockFPS = v, Instance.ResolveFPS);
-            CreateEntry<float>(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, () => Instance.TargetFPS, v => Instance.TargetFPS = Convert.ToInt32(v), new(() => { Application.targetFrameRate = Instance.UnlockFPS ? Instance.TargetFPS : 60; }), new SliderConfig(typeof(int), 10, 300, (() => Instance.UnlockFPS)));
-            CreateEntry(MenuEntry.Type.Slider, "fg_debug_scale", Def_Cat, () => Instance.FGDebugScale, v => Instance.FGDebugScale = v, Instance.ResolveFGDebug, new SliderConfig(typeof(float), 0.1f, 1f));
+                CreateEntry(MenuEntry.Type.Toggle, "track_log", Def_Cat, () => Instance.TrackGameLog, v => Instance.TrackGameLog = v, Instance.ResolveLogTracking);
+                CreateEntry(MenuEntry.Type.Toggle, "fps_counter", Def_Cat, () => Instance.FPSCounter, v => Instance.FPSCounter = v, Instance.ResolveFGDebug);
+                CreateEntry(MenuEntry.Type.Toggle, "fg_debug", Def_Cat, () => Instance.FGDebug, v => Instance.FGDebug = v, Instance.ResolveFGDebug);
+                CreateEntry(MenuEntry.Type.Toggle, "unlock_fps", Def_Cat, () => Instance.UnlockFPS, v => Instance.UnlockFPS = v, Instance.ResolveFPS);
+                CreateEntry<float>(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, () => Instance.TargetFPS, v => Instance.TargetFPS = Convert.ToInt32(v), new(() => { Application.targetFrameRate = Instance.UnlockFPS ? Instance.TargetFPS : 60; }), new SliderConfig(typeof(int), 10, 300, (() => Instance.UnlockFPS)));
+                CreateEntry(MenuEntry.Type.Slider, "fg_debug_scale", Def_Cat, () => Instance.FGDebugScale, v => Instance.FGDebugScale = v, Instance.ResolveFGDebug, new SliderConfig(typeof(float), 0.1f, 1f));
 
-            CreateEntry(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v);
-            CreateEntry(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
-            CreateEntry(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
-            CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
-            CreateEntry(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.Toggle, "spectator_join", Gameplay_Cat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
+                CreateEntry(MenuEntry.Type.Toggle, "names_toggle", Gameplay_Cat, () => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames, v => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames = v);
+                CreateEntry(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v, Instance.InGameManager.SetNames);
+                CreateEntry(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
+                CreateEntry(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
+                CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
+                CreateEntry(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+                CreateEntry(MenuEntry.Type.Toggle, "spectator_join", Gameplay_Cat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
 
-            CreateEntry(MenuEntry.Type.Button, "to_finish", Gameplay_Cat, Instance.InGameManager.TeleportToFinish);
-            CreateEntry(MenuEntry.Type.Button, "to_safe", Gameplay_Cat, Instance.InGameManager.TeleportToSafeZone);
-            CreateEntry(MenuEntry.Type.Button, "to_random_player", Gameplay_Cat, Instance.InGameManager.TeleportToRandomPlayer);
-            CreateEntry(MenuEntry.Type.Button, "toggle_players", Gameplay_Cat, Instance.InGameManager.TogglePlayers);
-            CreateEntry(MenuEntry.Type.Button, "force_menu", Gameplay_Cat, Instance.ForceMainMenu);
+                CreateEntry(MenuEntry.Type.Button, "to_finish", Gameplay_Cat, Instance.InGameManager.TeleportToFinish);
+                CreateEntry(MenuEntry.Type.Button, "to_safe", Gameplay_Cat, Instance.InGameManager.TeleportToSafeZone);
+                CreateEntry(MenuEntry.Type.Button, "to_random_player", Gameplay_Cat, Instance.InGameManager.TeleportToRandomPlayer);
+                CreateEntry(MenuEntry.Type.Button, "toggle_players", Gameplay_Cat, Instance.InGameManager.TogglePlayers);
+                CreateEntry(MenuEntry.Type.Button, "force_menu", Gameplay_Cat, Instance.ForceMainMenu);
 
-            CheckConfig();
+                CheckConfig();
+            })));
+        }
+
+        IEnumerator WaitForFallGuys(Action onceDone)
+        {
+            while (GlobalGameStateClient.Instance.PlayerProfile == null)
+                yield return null;
+
+            onceDone();
         }
 
         void CreateEntry<T>(MenuEntry.Type type, string id, string category, Func<T> getter = null, Action<T> setter = null, Action onSet = null, IEntryConfig additionalConfig = null)
