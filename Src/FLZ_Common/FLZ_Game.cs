@@ -82,7 +82,6 @@ namespace NOTFGT.FLZ_Common
         internal float DiveForce;
         internal float DiveForceInAir;
 
-
         public FLZ_Game()
         {
             OnMenuEnter += MenuEvent;

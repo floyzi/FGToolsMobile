@@ -212,12 +212,13 @@ namespace NOTFGT.FLZ_Common
                 }
                 return false;
             }
+
             [HarmonyPatch(typeof(LoadingScreenViewModel), nameof(LoadingScreenViewModel.Awake)), HarmonyPostfix]
             static void ShowScreen(LoadingScreenViewModel __instance)
             {
                 if (File.Exists(Core.MobileLoading))
                 {
-                    var spr = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading);
+                    var spr = FLZ_Extensions.SetSprite(Core.MobileLoading);
                     __instance.gameObject.transform.FindChild("SplashScreen_Image").gameObject.GetComponent<Image>().sprite = spr;
                     __instance.SplashLoadingScreenSprite = spr;
                 }
@@ -229,7 +230,7 @@ namespace NOTFGT.FLZ_Common
                 var targ = __instance.GetComponentsInChildren<Image>().ToList().Find(x => x.name == "SplashScreen_Image");
 
                 if (!File.Exists(Core.MobileLoading) || targ == null) return;
-                targ.sprite = FLZ_Extensions.SetSpriteFromFile(Core.MobileLoading);
+                targ.sprite = FLZ_Extensions.SetSprite(Core.MobileLoading);
             }
         }
     }

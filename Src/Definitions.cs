@@ -9,6 +9,7 @@ static class Definitions
     internal const string GitHubURL = "https://github.com/floyzi/FGToolsMobile/";
     internal const string DiscordURL = "https://discord.gg/PEysxvSE3x/";
     internal const string TwitterURL = "https://twitter.com/@floyzi102/";
+    internal const string ImagesAPI = "https://cdn.floyzi.ru/api/randomImage";
 
     #region FONTS
     internal const string TMPFontTitanOne = "TitanOne-Expanded";

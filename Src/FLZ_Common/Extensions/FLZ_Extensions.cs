@@ -82,16 +82,22 @@ namespace NOTFGT.FLZ_Common.Extensions
             return key;
         }
 
-        public static Sprite SetSpriteFromFile(string path)
+        public static Sprite SetSprite(string path, Sprite fallback = null)
         {
-            byte[] ImageAsByte = File.ReadAllBytes(path);
-            Texture2D Texture = new(Screen.width, Screen.height, TextureFormat.RGBA32, false);
-            if (Texture.LoadImage(ImageAsByte))
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return fallback;
+            return SetSprite(File.ReadAllBytes(path));
+        }
+
+        public static Sprite SetSprite(byte[] bytes, Sprite fallback = null)
+        {
+            if (bytes == null || bytes.Length == 0) return fallback;
+            var tex = new Texture2D(Screen.width, Screen.height, TextureFormat.RGBA32, false);
+            if (tex.LoadImage(bytes))
             {
-                Texture.filterMode = FilterMode.Point;
-                return Sprite.Create(Texture, new Rect(0.0f, 0.0f, Texture.width, Texture.height), new Vector2(0.5f, 0.5f));
+                tex.filterMode = FilterMode.Point;
+                return Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
             }
-            return null;
+            return fallback;
         }
 
         public static string FormatException(Exception ex)

@@ -1,4 +1,6 @@
-﻿using Il2CppFG.Common.CMS;
+﻿using Il2CppDG.Tweening;
+using Il2CppFG.Common.CMS;
+using Il2CppSystem.Security.Cryptography;
 using Il2CppTMPro;
 using Il2CppUniRx;
 using MelonLoader;
@@ -9,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
@@ -17,6 +20,7 @@ using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
 using Action = System.Action;
 using Application = UnityEngine.Application;
 using Text = UnityEngine.UI.Text;
+
 
 namespace NOTFGT.FLZ_Common.GUI
 {
@@ -135,6 +139,8 @@ namespace NOTFGT.FLZ_Common.GUI
         [GUIReference("GroupLayout")] readonly Transform ToolsCategory;
 
         #region CREDITS
+        [GUIReference("CreditsContent")] readonly Transform CreditsContent;
+
         [TMPReference(FontType.TitanOne, "PinkOutline")]
         [GUIReference("CreditAboutHeader")] readonly TextMeshProUGUI CreditsAboutHeader;
 
@@ -146,11 +152,13 @@ namespace NOTFGT.FLZ_Common.GUI
         [TMPReference(FontType.AsapBold, "2.0_Shadow")]
         [GUIReference("CreditText")] readonly TextMeshProUGUI CreditTextPrefab;
 
-        [GUIReference("CreditsButtonsContent")] readonly Transform CreditsSocialContent;
-
         [GUIReference("CreditBTN")] readonly Button CreditButtonPrefab;
         #endregion
 
+        #region CREDITS IMAGE
+        [GUIReference("FatefulImage")] readonly Button FatefulImage;
+        [GUIReference("FatefulImageLoad")] readonly Transform FatefulImageLoading;
+        #endregion
 
         readonly List<GameObject> Tabs = [];
         readonly List<GameObject> TabsButtons = [];
@@ -162,7 +170,7 @@ namespace NOTFGT.FLZ_Common.GUI
         string ReadyRound;
 
         bool HasGUIKilled = false;
-        bool SuceedGUISetup = false;
+        bool SucceedGUISetup = false;
         bool WasInMenu = false;
         bool CanStartUISetup = true;
         bool AllowGUIActions => GUI_Bundle != null && GUIObject != null;
@@ -334,26 +342,78 @@ namespace NOTFGT.FLZ_Common.GUI
                 { "Discord", DiscordURL },
             };
 
+            var indx = CreditTextPrefab.transform.GetSiblingIndex();
+
             foreach (var line in aboutSb.ToString().Split(Environment.NewLine.ToCharArray()))
             {
                 if (string.IsNullOrEmpty(line)) continue;
 
-                var res = UnityEngine.Object.Instantiate(CreditTextPrefab, CreditsAboutContent);
+                var res = UnityEngine.Object.Instantiate(CreditTextPrefab, CreditsContent);
                 res.SetText(line);
                 res.gameObject.SetActive(true);
+                res.transform.SetSiblingIndex(indx++);
             }
+
+            indx = CreditButtonPrefab.transform.GetSiblingIndex();
 
             foreach (var btn in socialBtns)
             {
-                var res = UnityEngine.Object.Instantiate(CreditButtonPrefab, CreditsSocialContent);
+                var res = UnityEngine.Object.Instantiate(CreditButtonPrefab, CreditsContent);
                 res.GetComponentInChildren<TextMeshProUGUI>().text = btn.Key;
                 res.onClick.AddListener(new Action(() =>
                 {
                     Application.OpenURL(btn.Value);
                 }));
                 res.gameObject.SetActive(true);
+                res.transform.SetSiblingIndex(indx++);
             }
 
+        }
+
+        int EGG_Counter;
+        Sprite CachedCreditsSpr;
+        void EasterEgg()
+        {
+            EGG_Counter++;
+
+            if (EGG_Counter < 2)
+                return;
+
+            FatefulImage.transform.GetParent().DOShakePosition(0.25f, 15, 80, 400);
+
+            if (EGG_Counter < 15)
+                return;
+            else if (EGG_Counter == 15)
+            {
+                FLZ_AndroidExtensions.Vibrate(700);
+                FLZ_AndroidExtensions.ShowToast("Woowie, you found something useless!");
+            }
+
+            if (CachedCreditsSpr == null)
+                CachedCreditsSpr = FatefulImage.GetComponent<Image>().sprite;
+
+            MelonCoroutines.Start(RequestImage());
+        }
+
+        IEnumerator RequestImage()
+        {
+            if (!FatefulImage.interactable) yield break;
+
+            FatefulImage.interactable = false;
+            FatefulImageLoading.gameObject.SetActive(true);
+
+            var req = new UnityWebRequest(ImagesAPI)
+            {
+                timeout = 5,
+                downloadHandler = new DownloadHandlerBuffer()
+            };
+
+            yield return req.SendWebRequest();
+
+            FatefulImage.interactable = true;
+            FatefulImageLoading.gameObject.SetActive(false);
+
+            FatefulImage.GetComponent<Image>().sprite = FLZ_Extensions.SetSprite(req.downloadHandler.data, CachedCreditsSpr);
         }
 
         void SetupGUI()
@@ -364,11 +424,15 @@ namespace NOTFGT.FLZ_Common.GUI
                 return;
             }
 
-            if (SuceedGUISetup)
+            if (SucceedGUISetup)
                 return;
 
             try
             {
+                FatefulImage.onClick.AddListener(new Action(() =>
+                {
+                    EasterEgg();
+                }));
                 ClearLogsBtn.onClick.AddListener(new Action(() =>
                 {
                     CleanupScreen(LogContent, true);
@@ -418,7 +482,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 CreateCreditsScreen();
                 SetupLogsScreen();
                 GUIObject.gameObject.SetActive(true);
-                SuceedGUISetup = true;
+                SucceedGUISetup = true;
             }
             catch (Exception e)
             {

@@ -1,5 +1,6 @@
 ﻿using Il2Cpp;
 using Il2CppFGClient;
+using Il2CppFGClient.UI;
 using Il2CppFGDebug;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
@@ -165,6 +166,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 CreateEntry(MenuEntry.Type.Toggle, "names_toggle", Gameplay_Cat, () => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames, v => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames = v);
                 CreateEntry(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v, Instance.InGameManager.SetNames);
+#if CHEATS
                 CreateEntry(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
                 CreateEntry(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
                 CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
@@ -180,8 +182,9 @@ namespace NOTFGT.FLZ_Common.GUI
                 CreateEntry(MenuEntry.Type.Button, "to_safe", Gameplay_Cat, Instance.InGameManager.TeleportToSafeZone);
                 CreateEntry(MenuEntry.Type.Button, "to_random_player", Gameplay_Cat, Instance.InGameManager.TeleportToRandomPlayer);
                 CreateEntry(MenuEntry.Type.Button, "toggle_players", Gameplay_Cat, Instance.InGameManager.TogglePlayers);
+#endif
                 CreateEntry(MenuEntry.Type.Button, "force_menu", Gameplay_Cat, Instance.ForceMainMenu);
-
+             
                 CheckConfig();
             })));
         }

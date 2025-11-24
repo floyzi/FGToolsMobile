@@ -202,7 +202,7 @@ namespace NOTFGT.FLZ_Common
 
         internal void ResolveLogTracking()
         {
-            Instance.GUIUtil.LogDisabledScreen.SetActive(!Instance.TrackGameLog);
+            GUIUtil.LogDisabledScreen.SetActive(!TrackGameLog);
 
             if (TrackGameLog && OnLog == null)
             {
