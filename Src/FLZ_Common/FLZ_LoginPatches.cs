@@ -26,9 +26,9 @@ namespace NOTFGT.FLZ_Common
     {
         internal class Version
         {
-            [JsonPropertyName("client_version")]
+            [JsonPropertyName("clientVersion")]
             public string ClientVersion { get; set; }
-            [JsonPropertyName("signature")]
+            [JsonPropertyName("clientVersionSignature")]
             public string Signature { get; set; }
         }
 
@@ -124,7 +124,7 @@ namespace NOTFGT.FLZ_Common
 
         static IEnumerator GetConfig()
         {
-            var req = new UnityWebRequest($"{URLBase}/config.json")
+            var req = new UnityWebRequest($"{URLBase}/FGTools/mobile/config.json")
             {
                 timeout = 5,
                 downloadHandler = new DownloadHandlerBuffer()
@@ -143,7 +143,7 @@ namespace NOTFGT.FLZ_Common
 
         static IEnumerator GetLatestVersion()
         {
-            var req = new UnityWebRequest($"{URLBase}/version.json")
+            var req = new UnityWebRequest($"{URLBase}/fallguys/version.json")
             {
                 timeout = 5,
                 downloadHandler = new DownloadHandlerBuffer()

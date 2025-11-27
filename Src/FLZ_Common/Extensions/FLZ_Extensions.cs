@@ -4,6 +4,7 @@ using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Notifications;
 using Il2CppTMPro;
 using Il2CppUniRx;
+using MelonLoader;
 using NOTFGT.FLZ_Common.Localization;
 using System.Text.RegularExpressions;
 using UnityEngine;
