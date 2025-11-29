@@ -98,5 +98,8 @@
    "force_menu_modal_title": "ARE YOU SURE?",
    "force_menu_modal_desc": "Do you really want to load Main Menu?",
    "names_toggle_title": "Show player names",
-   "names_toggle_desc": ""
+   "names_toggle_desc": "",
+   "menu_bonus_section": "Super Secret Settings",
+   "owoify_title": "Improve Fall Guys experience",
+   "owoify_desc": ""
 }

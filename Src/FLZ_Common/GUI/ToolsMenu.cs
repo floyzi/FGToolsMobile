@@ -20,37 +20,49 @@ namespace NOTFGT.FLZ_Common.GUI
         const string FPS_Cat = "menu_fps_section";
         const string Def_Cat = "menu_section";
         const string Gameplay_Cat = "menu_gp_section";
-       
+        const string Secret_Cat = "menu_bonus_section";
+
         internal interface IEntryConfig {}
-        internal abstract class InteractableConfig : IEntryConfig
+        internal abstract class BaseEntryConfig : IEntryConfig
         {
             public Func<bool> InteractableCondition;
+            public Func<bool> DisplayCondition;
         }
 
-        internal class SliderConfig : InteractableConfig
+        internal class SliderConfig : BaseEntryConfig
         {
             public Type ValueType;
             public float MinValue;
             public float MaxValue;
 
-            public SliderConfig(Type t, float min = -1, float max = -1, Func<bool> condition = null)
+            public SliderConfig(Type t, float min = -1, float max = -1, Func<bool> intCondition = null, Func<bool> dispCondition = null)
             {
                 ValueType = t;
                 MinValue = min;
                 MaxValue = max;
-                InteractableCondition = condition;
+                InteractableCondition = intCondition;
+                DisplayCondition = dispCondition;
             }
         }
-        internal class FieldConfig : InteractableConfig
+        internal class FieldConfig : BaseEntryConfig
         {
             public Type ValueType;
             public int CharacterLimit;
 
-            public FieldConfig(Type t, int charLimit = -1, Func<bool> condition = null)
+            public FieldConfig(Type t, int charLimit = -1, Func<bool> condition = null, Func<bool> dispCondition = null)
             {
                 ValueType = t;
                 CharacterLimit = charLimit;
                 InteractableCondition = condition;
+                DisplayCondition = dispCondition;
+            }
+        }
+        internal class ToggleConfig : BaseEntryConfig
+        {
+            public ToggleConfig(Func<bool> condition = null, Func<bool> dispCondition = null)
+            {
+                InteractableCondition = condition;
+                DisplayCondition = dispCondition;
             }
         }
 
@@ -184,17 +196,19 @@ namespace NOTFGT.FLZ_Common.GUI
                 CreateEntry(MenuEntry.Type.Button, "toggle_players", Gameplay_Cat, Instance.InGameManager.TogglePlayers);
 #endif
                 CreateEntry(MenuEntry.Type.Button, "force_menu", Gameplay_Cat, Instance.ForceMainMenu);
+
+                CreateEntry(MenuEntry.Type.Toggle, "owoify", Secret_Cat, () => Instance.IsOwoifyEnabled, v => Instance.IsOwoifyEnabled = v, Instance.ResolveOwoify, new ToggleConfig(dispCondition: () => Instance.GUIUtil.EnabledSecret));
              
                 CheckConfig();
             })));
         }
 
-        IEnumerator WaitForFallGuys(Action onceDone)
+        IEnumerator WaitForFallGuys(Action onceReady)
         {
             while (GlobalGameStateClient.Instance.PlayerProfile == null)
                 yield return null;
 
-            onceDone();
+            onceReady();
         }
 
         void CreateEntry<T>(MenuEntry.Type type, string id, string category, Func<T> getter = null, Action<T> setter = null, Action onSet = null, IEntryConfig additionalConfig = null)

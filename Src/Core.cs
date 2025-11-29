@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using static MelonLoader.MelonLogger;
+using static NOTFGT.FLZ_Common.HarmonyPatches;
 
 //version from this attribute is not used, change version in project instead
 [assembly: MelonInfo(typeof(Core), DefaultName, "0.0.0", "Floyzi", null)]
@@ -92,6 +93,7 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
                 ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
+                ClassInjector.RegisterTypeInIl2Cpp<MenuCategory>();
                 ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();
 
                 HarmonyInstance.PatchAll(typeof(FLZ_LoginPatches));
@@ -99,6 +101,7 @@ namespace NOTFGT
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.CaptureTools));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.GUITweaks));
                 HarmonyInstance.PatchAll(typeof(HarmonyPatches.RoundLoader));
+
 
                 StartupDate = DateTime.UtcNow;
 

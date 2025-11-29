@@ -18,18 +18,27 @@ namespace NOTFGT.FLZ_Common.GUI
         object LastKnownValue;
         Selectable UIElement;
         bool IsInteractableTracked;
-        InteractableConfig InteractableConfig;
+        BaseEntryConfig EntryConfig;
+        bool IsActiveTracked;
+        MenuCategory Owner;
 
-        internal void Create(MenuEntry entry, Selectable uiElement)
+        internal void Create(MenuEntry entry, Selectable uiElement, MenuCategory owner)
         {
             AttachedEntry = entry;
             UIElement = uiElement;  
+            Owner = owner;
 
             LastKnownValue = AttachedEntry.InitialValue;
             AttachedEntry.OnEntryChanged += SetEntry;
 
-            InteractableConfig = AttachedEntry?.AdditionalConfig as InteractableConfig;
-            IsInteractableTracked = InteractableConfig != null;
+            EntryConfig = AttachedEntry?.AdditionalConfig as BaseEntryConfig;
+            if (EntryConfig != null)
+            {
+                IsInteractableTracked = EntryConfig.InteractableCondition != null;
+                IsActiveTracked = EntryConfig.DisplayCondition != null;
+            }
+
+            Owner?.AddEntry(gameObject);
 
             if (AttachedEntry != null && AttachedEntry.EntryType != MenuEntry.Type.Button) 
                 TrackedEntries.Add(this);
@@ -48,10 +57,18 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             if (IsInteractableTracked)
             {
-                //var cState = UIElement.interactable;
-                var nState = InteractableConfig.InteractableCondition == null || InteractableConfig.InteractableCondition();
+                var nState = EntryConfig.InteractableCondition == null || EntryConfig.InteractableCondition();
                 UIElement.interactable = nState;
             }
+
+            if (IsActiveTracked)
+            {
+                var nState = EntryConfig.DisplayCondition == null || EntryConfig.DisplayCondition();
+                UIElement.gameObject.SetActive(nState);
+            }
+
+            if (Owner.AtLeastOneEntryVisible)
+                Owner.gameObject.SetActive(true);
 
             SetEntry(AttachedEntry.GetValue());
         }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<langversion>latest</langversion>
@@ -39,6 +39,7 @@
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
+		<Compile Include="FLZ_Common\GUI\MenuCategory.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
 		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />
@@ -51,6 +52,7 @@
 		<Compile Include="FLZ_Common\Extensions\FLZ_Extensions.cs" />
 		<Compile Include="Core.cs" />
 		<Compile Include="FLZ_Common\FLZ_ToolsManager.cs" />
+		<Compile Include="FLZ_Common\Owoify.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -913,7 +915,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="powershell -NoLogo -NoProfile -Command ^ Copy-Item -LiteralPath '..\Assets\UIProject\NOTFGToolsUI\Assets\AssetBundles\Android\not_fgtoolsgui' ^ -Destination '..\Assets\NOT_FGTools\Assets\not_fgtoolsGUI' ^ -Force" ContinueOnError="true"/>
+		<Exec Command="powershell -NoLogo -NoProfile -Command ^ Copy-Item -LiteralPath '..\Assets\UIProject\NOTFGToolsUI\Assets\AssetBundles\Android\not_fgtoolsgui' ^ -Destination '..\Assets\NOT_FGTools\Assets\not_fgtoolsGUI' ^ -Force" ContinueOnError="true" />
 		<Exec Command="robocopy ..\Assets\NOT_FGTools ..\Src\Output\$(TargetFramework)\NOT_FGTools /E /XO /NFL /NDL /R:0 /W:0" ContinueOnError="true" />
 		<Exec Command="call ..\push.bat $(SolutionDir)\Src\Output\$(TargetFramework)\" WorkingDirectory="$(SolutionDir)\platform-tools" Condition="Exists('..\push.bat') AND Exists('$(SolutionDir)\platform-tools')" />
 	</Target>

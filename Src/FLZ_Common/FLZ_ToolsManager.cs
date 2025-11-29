@@ -2,10 +2,13 @@
 using Il2CppEvents;
 using Il2CppFG.Common;
 using Il2CppFG.Common.Character;
+using Il2CppFG.Common.CMS;
 using Il2CppFGClient;
 using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Core;
 using Il2CppFGDebug;
+using Il2CppMediatonic.Tools.MVVM;
+using Il2CppTMPro;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
@@ -51,6 +54,7 @@ namespace NOTFGT.FLZ_Common
 
         internal bool TrackGameLog = true;
         bool _FPSCounter;
+        internal bool IsOwoifyEnabled;
         internal bool FPSCounter
         {
             get => _FPSCounter;
@@ -256,7 +260,27 @@ namespace NOTFGT.FLZ_Common
                 GlobalGameStateClient.Instance.ResetGame();
                 GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(new StateMainMenu(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), false, false).Cast<IGameState>());
             }));
-          
+        }
+
+        internal void ResolveOwoify()
+        {
+            if (!Instance.IsOwoifyEnabled)
+                Owoify.DeOwoify();
+            else
+            {
+                foreach (var tmp in Resources.FindObjectsOfTypeAll<TextMeshProUGUI>())
+                    tmp.text = tmp.text; //calling setter on text so patch can do it's job
+
+                //foreach (var a in Resources.FindObjectsOfTypeAll<TextBinding>())
+                //{
+                //    var tmp = a.gameObject.GetComponent<TextMeshProUGUI>();
+                //    if (tmp == null) continue;
+
+                //    a.SendValue(Owoify.CreateString(tmp));
+                //}
+            }
+
+            Broadcaster.Instance.Broadcast(new LocalisedStrings.StringsChangedEvent());
         }
     }
 }

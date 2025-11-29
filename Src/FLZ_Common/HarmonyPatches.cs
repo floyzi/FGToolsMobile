@@ -3,13 +3,17 @@ using Il2Cpp;
 using Il2CppCatapult.Network.Gateway;
 using Il2CppCatapult.Services.Gateway.Protocol.Client;
 using Il2CppFG.Common;
+using Il2CppFG.Common.CMS;
 using Il2CppFG.Common.Messages;
 using Il2CppFGClient;
 using Il2CppFGClient.UI.Notifications;
 using Il2CppFGDebug;
 using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.Runtime;
+using Il2CppMediatonic.Tools.MVVM;
 using Il2CppRewired.Utils.Classes.Data;
 using Il2CppTMPro;
+using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
@@ -144,9 +148,20 @@ namespace NOTFGT.FLZ_Common
                 }
             }
         }
-
+       
         public class GUITweaks
         {
+            [HarmonyPatch(typeof(TMP_Text), "text", MethodType.Setter)]
+            [HarmonyPrefix]
+            static void TextSetterPatch(TMP_Text __instance, ref string value)
+            {
+                if (Instance.IsOwoifyEnabled)
+                {
+                    var upd = Owoify.CreateString(__instance, value);
+                    value = upd;
+                }
+            }
+
             [HarmonyPatch(typeof(GvrFPS), nameof(GvrFPS.ToggleMinimalisticFPSCounter)), HarmonyPrefix]
             static bool ToggleMinimalisticFPSCounter(GvrFPS __instance, GlobalDebug.DebugToggleMinimalisticFPSCounter toggleEvent)
             {

@@ -174,10 +174,9 @@ namespace NOTFGT.FLZ_Common.GUI
         bool WasInMenu = false;
         bool CanStartUISetup = true;
         bool AllowGUIActions => GUI_Bundle != null && GUIObject != null;
-
+        internal bool EnabledSecret => EGG_Counter >= 15;
         public void Register()
         {
-
             MelonCoroutines.Start(TryToLoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
             {
                 OnMenuEnter += MenuEvent;
@@ -808,7 +807,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void CreateConfigMenu(Transform cfgTrans)
         {
-            HashSet<string> categories = [];
+            HashSet<MenuCategory> categories = [];
 
             GUI_TogglePrefab.SetActive(false);
             GUI_TextFieldPrefab.SetActive(false);
@@ -816,27 +815,31 @@ namespace NOTFGT.FLZ_Common.GUI
             GUI_HeaderPrefab.SetActive(false);
             GUI_ButtonPrefab.SetActive(false);
 
+            MenuCategory currentCateg = null;
+            string currentCategStr = "";
+
             foreach (var entry in Instance.SettingsMenu.Entries.OrderBy(entry => entry.Category).ToList())
             {
                 try
                 {
                     MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
 
-                    if (!string.IsNullOrEmpty(entry.Category) && !categories.Contains(entry.Category))
+                    if (!string.IsNullOrEmpty(entry.Category) && currentCategStr != entry.Category)
                     {
-                        GameObject haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, cfgTrans);
+                        currentCategStr = entry.Category;
+
+                        var haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, cfgTrans);
                         haderInst.name = $"Header_{entry.Category}";
 
                         var headerText = haderInst.GetComponentInChildren<TextMeshProUGUI>();
 
                         SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
 
-                        if (headerText != null)
-                        {
-                            headerText.text = string.Format(headerText.text, LocalizationManager.LocalizedString(entry.Category));
-                        }
-                        categories.Add(entry.Category);
-                        haderInst.SetActive(true);
+                        headerText?.text = string.Format(headerText.text, LocalizationManager.LocalizedString(entry.Category));
+                        currentCateg = haderInst.AddComponent<MenuCategory>();
+                        currentCateg.Create(headerText.text);
+
+                        categories.Add(currentCateg);
                     }
 
                     var localizedDesc = LocalizationManager.LocalizedString(entry.Description);
@@ -851,7 +854,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             var toggle = toggleInst.transform.Find("Toggle").GetComponent<Toggle>();
                             toggle.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             var toggleTracker = toggle.gameObject.AddComponent<TrackedEntry>();
-                            toggleTracker.Create(entry, toggle);
+                            toggleTracker.Create(entry, toggle, currentCateg);
+
                             toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = bool.Parse(newVal.ToString()); });
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
@@ -884,7 +888,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             inputField.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             inputField.gameObject.name = "SLOP"; //yeah...
                             var fieldTracker = inputField.gameObject.AddComponent<TrackedEntry>();
-                            fieldTracker.Create(entry, inputField);
+                            fieldTracker.Create(entry, inputField, currentCateg);
+
                             fieldTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
                                 inputField.text = newVal.ToString();
@@ -966,8 +971,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             var sliderValue = slider.transform.Find("SliderValue").GetComponent<TextMeshProUGUI>();
 
                             var sliderTracker = slider.gameObject.AddComponent<TrackedEntry>();
-                            sliderTracker.Create(entry, slider);
-                            
+                            sliderTracker.Create(entry, slider, currentCateg);
+
                             sliderTracker.OnEntryUpdated += new Action<object>(newVal =>
                             {
                                 if (float.TryParse(newVal.ToString(), out var res))
@@ -1018,7 +1023,7 @@ namespace NOTFGT.FLZ_Common.GUI
                                 buttonDesc.gameObject.SetActive(false);
 
                             var buttonTracker = button.gameObject.AddComponent<TrackedEntry>();
-                            buttonTracker.Create(entry, button);
+                            buttonTracker.Create(entry, button, currentCateg);
 
                             button.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
 

@@ -42,7 +42,7 @@ namespace NOTFGT.FLZ_Common.GUI
             RegEvent(EventTriggerType.PointerDown, new Action<BaseEventData>((data) =>
             {
                 PointerDown = true;
-                DelayCor = MelonCoroutines.Start(DragDelay(0.35f));
+                DelayCor = MelonCoroutines.Start(DragDelay(0.15f));
             }));
 
             RegEvent(EventTriggerType.Drag, new Action<BaseEventData>((data) =>
