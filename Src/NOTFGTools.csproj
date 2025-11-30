@@ -38,6 +38,7 @@
 		<Compile Include="FLZ_Common\Extensions\FLZ_AndroidExtensions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
+		<Compile Include="FLZ_Common\Extensions\FLZ_GUIExtensions.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\MenuCategory.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />

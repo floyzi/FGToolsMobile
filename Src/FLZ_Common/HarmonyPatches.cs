@@ -247,6 +247,12 @@ namespace NOTFGT.FLZ_Common
                 if (!File.Exists(Core.MobileLoading) || targ == null) return;
                 targ.sprite = FLZ_Extensions.SetSprite(Core.MobileLoading);
             }
+
+            [HarmonyPatch(typeof(BootSplashScreenViewModel), nameof(BootSplashScreenViewModel.Awake)), HarmonyPostfix]
+            static void Awake(BootSplashScreenViewModel __instance)
+            {
+                __instance._slides.Add(FLZ_Extensions.SetSprite(Core.MobileSplash));
+            }
         }
     }
 }

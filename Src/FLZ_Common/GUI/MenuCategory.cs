@@ -1,24 +1,39 @@
-﻿using Il2CppInterop.Runtime.InteropTypes.Fields;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Il2CppTMPro;
+using NOTFGT.FLZ_Common.Extensions;
+using NOTFGT.FLZ_Common.Localization;
 using UnityEngine;
-using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
+using UnityEngine.UI;
 
 namespace NOTFGT.FLZ_Common.GUI
 {
     internal class MenuCategory : MonoBehaviour
     {
-        internal string Name;
+        internal string Category;
         List<GameObject> Entries;
-        internal bool AtLeastOneEntryVisible => Entries != null && Entries.Any(x => x.gameObject.activeInHierarchy);
+        internal bool KeepEntriesHidden;
+        internal bool AtLeastOneEntryVisible => Entries != null && Entries.Any(x => x.activeInHierarchy);
 
-        internal void Create(string name)
+        internal void Create(string category)
         {
-            Name = name;
+            Category = category;
             Entries = [];
+
+            var headerText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
+            var expBtn = gameObject.GetComponentInChildren<Button>();
+
+            FLZ_GUIExtensions.SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
+
+            headerText?.text = string.Format(headerText.text, LocalizationManager.LocalizedString(category));
+
+            expBtn.onClick.AddListener(new Action(() =>
+            {
+                KeepEntriesHidden = !KeepEntriesHidden;
+
+                expBtn.DoSpriteSwap(KeepEntriesHidden ? FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandMore : FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandLess);
+
+                foreach (var e in Entries)
+                    e.SetActive(!KeepEntriesHidden);
+            }));
 
             gameObject.SetActive(false);
         }

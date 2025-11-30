@@ -84,7 +84,7 @@ namespace NOTFGT.FLZ_Common.GUI
             EntryInstance.onClick.AddListener(new Action(() => { Instance.GUIUtil.LogInfo.text = LocalizationManager.LocalizedString("advanced_log", [Type, Msg, Stacktrace]); }));
         }
 
-        public static bool CanCreateInstances() => Instance.GUIUtil.LogPrefab != null;
+        public static bool CanCreateInstances() => Instance.GUIUtil.LogPrefab != null && Instance.GUIUtil.LogContent != null && Instance.GUIUtil.LogStats != null;
         public static void UpdateLogStats() => Instance.GUIUtil.LogStats?.text = LocalizationManager.LocalizedString("errors_display", [AllEntries.Count(e => e.IsError), AllEntries.Count(e => e.IsWarning), AllEntries.Count(e => e.IsInfo), AllEntries.Count]);
 
         public void DestroyInstance()

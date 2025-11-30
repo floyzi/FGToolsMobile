@@ -90,6 +90,10 @@ namespace NOTFGT
 
                 Msg(BuildInfo.ToString());
 
+                StartupDate = DateTime.UtcNow;
+
+                ByMarker = Description[Description.IndexOf("by")..];
+
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
                 ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
@@ -97,15 +101,10 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();
 
                 HarmonyInstance.PatchAll(typeof(FLZ_LoginPatches));
-                HarmonyInstance.PatchAll(typeof(HarmonyPatches.Default));
-                HarmonyInstance.PatchAll(typeof(HarmonyPatches.CaptureTools));
-                HarmonyInstance.PatchAll(typeof(HarmonyPatches.GUITweaks));
-                HarmonyInstance.PatchAll(typeof(HarmonyPatches.RoundLoader));
-
-
-                StartupDate = DateTime.UtcNow;
-
-                ByMarker = Description[Description.IndexOf("by")..];
+                HarmonyInstance.PatchAll(typeof(Default));
+                HarmonyInstance.PatchAll(typeof(CaptureTools));
+                HarmonyInstance.PatchAll(typeof(GUITweaks));
+                HarmonyInstance.PatchAll(typeof(RoundLoader));
 
 #if MELON_LOGS
                 LogsStream = new FileStream(CurrentMelonLog, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -116,9 +115,7 @@ namespace NOTFGT
             catch (Exception ex)
             {
                 Error($"Boot failed!\n{ex}");
-                SucceedLaunch = false;
-
-                FLZ_AndroidExtensions.ShowToast($"Unable to init {DefaultName}. See logs for details");
+                InitFail();
             }
         }
 
@@ -139,8 +136,15 @@ namespace NOTFGT
             catch (Exception e)
             {
                 Error($"Startup failed!\n{e}");
-                SucceedLaunch = false;
+                InitFail();
             }
+        }
+
+        void InitFail()
+        {
+            SucceedLaunch = false;
+
+            FLZ_AndroidExtensions.ShowToast($"Unable to init {DefaultName}. See logs for details");
         }
 
         public override void OnUpdate()

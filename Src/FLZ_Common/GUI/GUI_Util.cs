@@ -1,5 +1,6 @@
 ﻿using Il2CppDG.Tweening;
 using Il2CppFG.Common.CMS;
+using Il2CppInterop.Runtime;
 using Il2CppSystem.Security.Cryptography;
 using Il2CppTMPro;
 using Il2CppUniRx;
@@ -73,10 +74,15 @@ namespace NOTFGT.FLZ_Common.GUI
 
         AssetBundle GUI_Bundle;
 
+        #region BUNDLE REFERENCES
         #region PREFABS
         [PrefabReference("NOT_FGToolsGUI")] readonly GameObject GUIObjectPrefab;
         [PrefabReference("DialogWindow")] readonly GameObject DialogObjectPrefab;
         [PrefabReference("FlashElement")] readonly GameObject FlashObjectPrefab;
+        #endregion
+
+        [PrefabReference("ExpandMore")] internal readonly Sprite SpriteExpandMore;
+        [PrefabReference("ExpandLess")] internal readonly Sprite SpriteExpandLess;
         #endregion
 
         GameObject GUIInstance;
@@ -196,10 +202,80 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 OnMenuEnter += MenuEvent;
 
-                MelonLogger.Msg($"[{GetType()}] UI configured, loading took: {took:F2}s");
+                MelonLogger.Msg($"[{GetType()}] UI configured, took: {took:F2}s");
 
                 FLZ_AndroidExtensions.ShowToast($"{DefaultName} initialized successfully");
             }));
+        }
+
+        IEnumerator LoadGUI(string bPath, Action<double> onSucceed)
+        {
+            if (HasGUIKilled || GUIInstance != null)
+                yield break;
+
+            MelonLogger.Msg($"Trying to load bundle from: \"{bPath}\"");
+
+            if (!File.Exists(bPath))
+            {
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [bPath, DefaultName]));
+                yield break;
+            }
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            var bReq = AssetBundle.LoadFromFileAsync(bPath);
+
+            while (!bReq.isDone) yield return null;
+
+            GUI_Bundle = bReq.assetBundle;
+
+            if (GUI_Bundle == null)
+            {
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, bPath]));
+                yield break;
+            }
+
+            foreach (var pField in GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<PrefabReferenceAttribute>() != null).ToList())
+            {
+                var pName = pField.GetCustomAttribute<PrefabReferenceAttribute>().Name;
+
+                MelonLogger.Msg($"Loading prefab \"{pName}\"...");
+
+                var obj = GUI_Bundle.LoadAssetAsync(pName, Il2CppType.From(pField.FieldType));
+
+                while (!obj.isDone) yield return null;
+
+                if (obj.asset == null)
+                {
+                    TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [pName]));
+                    yield break;
+                }
+
+                obj.asset.hideFlags = HideFlags.HideAndDontSave;
+
+                //sucks
+                if (pField.FieldType == typeof(GameObject))
+                    pField.SetValue(this, obj.asset.Cast<GameObject>());
+                else if (pField.FieldType == typeof(Sprite))
+                    pField.SetValue(this, obj.asset.Cast<Sprite>());
+                else
+                    MelonLogger.Error($"TYPE {pField.FieldType.FullName} IS NOT IMPLEMENTED!!!");
+
+                if (pName == "NOT_FGToolsGUI") //also sucks
+                {
+                    GUIInstance = GameObject.Instantiate(pField.GetValue(this) as GameObject);
+                    GameObject.DontDestroyOnLoad(GUIInstance);
+                    GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
+                    ConfigureObjects();
+                    GUIInstance.gameObject.SetActive(false);
+                    RepairStyle.gameObject.SetActive(false);
+                }
+            }
+
+            onSucceed?.Invoke(sw.Elapsed.TotalSeconds);
+
+            sw.Stop();
         }
 
         void ToggleGUI(UIState toggle)
@@ -229,24 +305,27 @@ namespace NOTFGT.FLZ_Common.GUI
 
             try
             {
-                SetupText();
-                SetupGUI();
-                ToggleGUI(UIState.Disabled);
-                ResetGPUI();
-
-                void toggle(bool wasok)
+                if (!SucceedGUISetup)
                 {
-                    ToggleGUI(UIState.Active);
-                    ToggleTab(Tabs[0], TabsButtons[0].GetComponent<Button>());
-                    Instance.SettingsMenu.ReleaseQueue();
+                    SetupText();
+                    SetupGUI();
+                    ToggleGUI(UIState.Disabled);
                 }
+
+                ResetGPUI();
 
                 Instance.HandlePlayerState(PlayerState.Menu);
 
                 if (!WasInMenu)
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>(toggle));
-
-                WasInMenu = true;
+                {
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>((wasok) =>
+                    {
+                        WasInMenu = true;
+                        ToggleGUI(UIState.Active);
+                        ToggleTab(Tabs[0], TabsButtons[0].GetComponent<Button>());
+                        Instance.SettingsMenu.ReleaseQueue();
+                    }));
+                }
             }
             catch (Exception e)
             {
@@ -254,20 +333,15 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        List<Material> Materials;
-        List<TMP_FontAsset> FontAssets;
+  
         void SetupText()
         {
             var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<TMPReferenceAttribute>() != null).ToList();
 
-            Materials = [.. Resources.FindObjectsOfTypeAll<Material>()];
-            FontAssets = [.. Resources.FindObjectsOfTypeAll<TMP_FontAsset>()];
-
-            Materials.ForEach(x => GameObject.DontDestroyOnLoad(x));
-            FontAssets.ForEach(x => GameObject.DontDestroyOnLoad(x));
+            FLZ_GUIExtensions.ConfigureFonts();
 
             foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
-                SetupFont(tmp, TMPFontFallback, "2.0_Shadow");
+                FLZ_GUIExtensions.SetupFont(tmp, TMPFontFallback, "2.0_Shadow");
 
             foreach (var field in fields)
             {
@@ -297,35 +371,10 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 var tmpText = field.GetValue(this) as TextMeshProUGUI;
 
-                SetupFont(tmpText, tmpAttr.FontName, tmpAttr.MaterialName);
+                FLZ_GUIExtensions.SetupFont(tmpText, tmpAttr.FontName, tmpAttr.MaterialName);
             }
         }
 
-        void SetupFont(TextMeshProUGUI tmpText, string fontName, string materialName)
-        {
-            if (tmpText == null || string.IsNullOrEmpty(fontName) || string.IsNullOrEmpty(materialName))
-            {
-                MelonLogger.Warning($"Skipping setup of potential font \"{fontName}\" as it's not valid");
-                return;
-            }
-
-            tmpText.fontMaterial = Materials.Find(x => x.name.Contains(materialName) && !x.name.Contains("Instance"));
-            tmpText.font = FontAssets.Find(x => x.name.StartsWith(fontName));
-
-            if (tmpText.fontMaterial == null || tmpText.font == null)
-            {
-                tmpText.fontMaterial = Materials.Find(x => x.name == TMPFontMaterialFallback);
-                tmpText.font = FontAssets.Find(x => x.name == TMPFontFallback);
-            }
-
-            tmpText.fontMaterial.hideFlags = HideFlags.HideAndDontSave;
-            tmpText.font.hideFlags = HideFlags.HideAndDontSave;
-
-            tmpText.enableWordWrapping = true;
-            tmpText.UpdateMaterial();
-            tmpText.UpdateFontAsset();
-        }
-         
         void SetupLogsScreen()
         {
             LogPrefab.gameObject.SetActive(false);
@@ -510,71 +559,6 @@ namespace NOTFGT.FLZ_Common.GUI
                 MelonLogger.Msg($"GUI Setup failed. {exstr}");
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_setup_exception", [exstr]));
             }
-        }
-
-        IEnumerator LoadGUI(string bPath, Action<double> onSucceed)
-        {
-            if (HasGUIKilled || GUIInstance != null)
-                yield break;
-
-            MelonLogger.Msg($"Trying to load bundle from: \"{bPath}\"");
-
-            if (!File.Exists(bPath))
-            {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [bPath, DefaultName]));
-                yield break;
-            }
-
-            var sw = new Stopwatch();
-            sw.Start();
-
-            var bReq = AssetBundle.LoadFromFileAsync(bPath);
-
-            while (!bReq.isDone) yield return null;
-
-            GUI_Bundle = bReq.assetBundle;
-
-            if (GUI_Bundle == null)
-            {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, bPath]));
-                yield break;
-            }
-
-            foreach (var pField in GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<PrefabReferenceAttribute>() != null).ToList())
-            {
-                var pName = pField.GetCustomAttribute<PrefabReferenceAttribute>().Name;
-
-                MelonLogger.Msg($"Loading prefab \"{pName}\"...");
-
-                var obj = GUI_Bundle.LoadAssetAsync<GameObject>(pName);
-
-                while (!obj.isDone) yield return null;
-
-                if (obj.asset == null)
-                {
-                    TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [pName]));
-                    yield break;
-                }
-
-                var resObj = obj.asset.Cast<GameObject>();
-                resObj.hideFlags = HideFlags.HideAndDontSave;
-
-                pField.SetValue(this, resObj);
-
-                if (pName == "NOT_FGToolsGUI") //kinda sucks
-                {
-                    GUIInstance = GameObject.Instantiate(pField.GetValue(this) as GameObject);
-                    GameObject.DontDestroyOnLoad(GUIInstance);
-                    GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
-                    ConfigureObjects();
-                    GUIInstance.gameObject.SetActive(false);
-                    RepairStyle.gameObject.SetActive(false);
-                }
-            }
-
-            onSucceed?.Invoke(sw.Elapsed.TotalSeconds);
-
-            sw.Stop();
         }
 
         internal void FlashImage(float length)
@@ -865,13 +849,8 @@ namespace NOTFGT.FLZ_Common.GUI
                         var haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, cfgTrans);
                         haderInst.name = $"Header_{entry.Category}";
 
-                        var headerText = haderInst.GetComponentInChildren<TextMeshProUGUI>();
-
-                        SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
-
-                        headerText?.text = string.Format(headerText.text, LocalizationManager.LocalizedString(entry.Category));
                         currentCateg = haderInst.AddComponent<MenuCategory>();
-                        currentCateg.Create(headerText.text);
+                        currentCateg.Create(entry.Category);
                     }
 
                     var localizedDesc = LocalizationManager.LocalizedString(entry.Description);
@@ -885,7 +864,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                             var toggle = toggleInst.transform.Find("Toggle").GetComponent<Toggle>();
                             toggle.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
-                            var toggleTracker = toggle.gameObject.AddComponent<TrackedEntry>();
+                            var toggleTracker = toggle.transform.parent.gameObject.AddComponent<TrackedEntry>();
                             toggleTracker.Create(entry, toggle, currentCateg);
 
                             toggleTracker.OnEntryUpdated += new Action<object>(newVal => { toggle.isOn = bool.Parse(newVal.ToString()); });
@@ -919,7 +898,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             var inputField = fieldInst.transform.Find("InputField (TMP)").GetComponent<TMP_InputField>();
                             inputField.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             inputField.gameObject.name = "SLOP"; //yeah...
-                            var fieldTracker = inputField.gameObject.AddComponent<TrackedEntry>();
+                            var fieldTracker = inputField.transform.parent.gameObject.AddComponent<TrackedEntry>();
                             fieldTracker.Create(entry, inputField, currentCateg);
 
                             fieldTracker.OnEntryUpdated += new Action<object>(newVal =>
@@ -1002,7 +981,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                             var sliderValue = slider.transform.Find("SliderValue").GetComponent<TextMeshProUGUI>();
 
-                            var sliderTracker = slider.gameObject.AddComponent<TrackedEntry>();
+                            var sliderTracker = slider.transform.parent.gameObject.AddComponent<TrackedEntry>();
                             sliderTracker.Create(entry, slider, currentCateg);
 
                             sliderTracker.OnEntryUpdated += new Action<object>(newVal =>
@@ -1054,7 +1033,7 @@ namespace NOTFGT.FLZ_Common.GUI
                             else
                                 buttonDesc.gameObject.SetActive(false);
 
-                            var buttonTracker = button.gameObject.AddComponent<TrackedEntry>();
+                            var buttonTracker = button.transform.parent.gameObject.AddComponent<TrackedEntry>();
                             buttonTracker.Create(entry, button, currentCateg);
 
                             button.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
