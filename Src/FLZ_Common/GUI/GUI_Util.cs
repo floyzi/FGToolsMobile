@@ -201,13 +201,15 @@ namespace NOTFGT.FLZ_Common.GUI
         bool CanStartUISetup = true;
         bool AllowGUIActions => GUI_Bundle != null && GUIInstance != null;
         internal bool EnabledSecret => EGG_Counter >= 15;
-        public void Register()
+        public GUI_Util(Action onInit)
         {
             MelonCoroutines.Start(LoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
             {
                 OnMenuEnter += MenuEvent;
 
                 MelonLogger.Msg($"[{GetType()}] UI configured, took: {took:F2}s");
+
+                onInit?.Invoke();
 
                 FLZ_AndroidExtensions.ShowToast($"{DefaultName} initialized successfully");
             }));
@@ -501,7 +503,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             if (!CanStartUISetup)
             {
-                FLZ_Extensions.DoModal("ERROR", "Can't start UI setup as missing UI references has been found, check logs to find what references are missing and resolve them", ModalType.MT_OK, OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("generic_error_title"), LocalizationManager.LocalizedString("setup_references_err_desc"), ModalType.MT_OK, OKButtonType.Default);
                 return;
             }
 
@@ -668,7 +670,7 @@ namespace NOTFGT.FLZ_Common.GUI
         }
 
 
-        public void UpdateGPActions(Dictionary<Action, string> actions = null)
+        public void UpdateGPActions(Dictionary<string, Action> actions = null)
         {
             if (actions != null)
             {
@@ -676,10 +678,10 @@ namespace NOTFGT.FLZ_Common.GUI
                 {
                     GameObject btnPrefab = UnityEngine.Object.Instantiate(GPBtn.gameObject, GPActionsView);
                     btnPrefab.SetActive(true);
-                    btnPrefab.name = action.Value;
+                    btnPrefab.name = action.Key;
 
-                    btnPrefab.GetComponentInChildren<Button>().onClick.AddListener(action.Key);
-                    btnPrefab.GetComponentInChildren<TextMeshProUGUI>().text = action.Value;
+                    btnPrefab.GetComponentInChildren<Button>().onClick.AddListener(action.Value);
+                    btnPrefab.GetComponentInChildren<TextMeshProUGUI>().gameObject.AddComponent<LocalizedStr>().Setup(action.Key);
 
                     GameplayActions.Add(btnPrefab.transform);
                 }

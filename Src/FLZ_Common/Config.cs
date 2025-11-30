@@ -32,13 +32,14 @@ namespace NOTFGT.FLZ_Common
 
         internal ConfigModel SavedConfig;
 
-        internal Config()
+        internal Config(Action onInit)
         {
             MelonCoroutines.Start(WaitForFallGuys(new(() =>
             {
                 FLZ_ToolsManager.Instance.SettingsMenu.Create();
                 CheckConfig();
                 LocalizationManager.Setup();
+                onInit.Invoke();
             })));
         }
 

@@ -53,9 +53,9 @@ namespace NOTFGT.FLZ_Common.Loader
         {
             Instance.GUIUtil.UpdateGPActions(new()
             {
-                { RespawnPlayer, "Respawn" },
-                { Checkpoint, "Checkpoint" },
-                { ResetCheckpointPos, "Reset Checkpoint" },
+                { "quick_respawn", RespawnPlayer },
+                { "quick_checkp", Checkpoint },
+                { "quick_reset_checkp", ResetCheckpointPos },
             });
         }
 

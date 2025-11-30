@@ -116,22 +116,23 @@ namespace NOTFGT.FLZ_Common
         {
             Instance = this;
 
-            SettingsMenu = new();
-            Config = new();
-            GUIUtil = new();
-            RoundLoader = new();
-            InGameManager = new();
-
-            GUIUtil.Register();
-
             HandlePlayerState(PlayerState.Loading);
 
-            if (TrackGameLog)
+            SettingsMenu = new();
+            InGameManager = new();
+            RoundLoader = new();
+            Config = new(() =>
             {
-                OnLog = new(OnLogHandle);
-                Application.add_logMessageReceived(OnLog);
-            }
-
+                GUIUtil = new(() =>
+                {
+                    if (TrackGameLog)
+                    {
+                        OnLog = new(OnLogHandle);
+                        Application.add_logMessageReceived(OnLog);
+                    }
+                });
+            });
+           
             Broadcaster.Instance.Register<IntroCountdownEndedEvent>(new Action<IntroCountdownEndedEvent>(OnRoundStart));
             Broadcaster.Instance.Register<IntroCameraSequenceStartedEvent>(new Action<IntroCameraSequenceStartedEvent>(OnIntroStart));
             Broadcaster.Instance.Register<IntroCameraSequenceEndedEvent>(new Action<IntroCameraSequenceEndedEvent>(OnIntroEnd));
@@ -142,7 +143,7 @@ namespace NOTFGT.FLZ_Common
             Broadcaster.Instance.Register<OnLocalPlayersFinished>(new Action<OnLocalPlayersFinished>(OnFinish));
         }
 
-        void FixedUpdate() => GUIUtil.RefreshEntries();
+        void FixedUpdate() => GUIUtil?.RefreshEntries();
         void OnEnterMenu(OnMainMenuDisplayed evt) => OnMenuEnter();
         void OnSpectator(OnSpectatingPlayer evt) => OnSpectatorEvent();
         void OnFinish(OnLocalPlayersFinished evt) => OnFinished();
