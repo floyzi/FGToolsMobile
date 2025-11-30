@@ -307,6 +307,7 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 if (!SucceedGUISetup)
                 {
+                    LocalizedStr.LocalizeStrings?.Invoke();
                     SetupText();
                     SetupGUI();
                     ToggleGUI(UIState.Disabled);
@@ -341,7 +342,10 @@ namespace NOTFGT.FLZ_Common.GUI
             FLZ_GUIExtensions.ConfigureFonts();
 
             foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
                 FLZ_GUIExtensions.SetupFont(tmp, TMPFontFallback, "2.0_Shadow");
+                tmp.gameObject.AddComponent<LocalizedStr>().Setup();
+            }
 
             foreach (var field in fields)
             {
@@ -507,7 +511,7 @@ namespace NOTFGT.FLZ_Common.GUI
                     CleanupScreen(LogContent, true);
                     GUI_LogEntry.UpdateLogStats();
                 }));
-                applyChanges.onClick.AddListener(new Action(Instance.SettingsMenu.DoUIConfigSave));
+                applyChanges.onClick.AddListener(new Action(Instance.Config.DoUIConfigSave));
 
                 HiddenStyle.gameObject.AddComponent<ToolsButton>().onClick = new Action(() => { ToggleGUI(UIState.Active); });
 
@@ -853,8 +857,6 @@ namespace NOTFGT.FLZ_Common.GUI
                         currentCateg.Create(entry.Category);
                     }
 
-                    var localizedDesc = LocalizationManager.LocalizedString(entry.Description);
-
                     switch (entry.EntryType)
                     {
                         case MenuEntry.Type.Toggle:
@@ -871,12 +873,13 @@ namespace NOTFGT.FLZ_Common.GUI
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
 
-                            if (!string.IsNullOrEmpty(localizedDesc))
-                                toggleDesc.text = $"*{localizedDesc}";
+                            var toggleDescRes = toggleDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
+                            if (toggleDescRes)
+                                toggleDesc.text = $"*{toggleDesc.text}";
                             else
                                 toggleDesc.gameObject.SetActive(false);
 
-                            toggleTitle?.text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            toggleTitle.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
 
                             toggle.isOn = (bool)entry.GetValue();
                             toggle.onValueChanged.AddListener(new Action<bool>(val => { entry.Set(val); }));
@@ -909,13 +912,13 @@ namespace NOTFGT.FLZ_Common.GUI
                             var fieldTitle = fieldInst.transform.Find("FieldTitle").GetComponent<TextMeshProUGUI>();
                             var fieldDesc = fieldInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            if (!string.IsNullOrEmpty(localizedDesc))
-                                fieldDesc.text = $"*{localizedDesc}";
+                            var fieldDescRes = fieldDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
+                            if (fieldDescRes)
+                                fieldDesc.text = $"*{fieldDesc.text}";
                             else
                                 fieldDesc.gameObject.SetActive(false);
 
-                            if (fieldTitle != null)
-                                fieldTitle.text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            fieldTitle.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
 
                             inputField.text = entry.GetValue().ToString();
 
@@ -972,12 +975,13 @@ namespace NOTFGT.FLZ_Common.GUI
                             var sliderTitle = sliderInst.transform.Find("SliderTitle").GetComponent<TextMeshProUGUI>();
                             var sliderDesc = sliderInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            if (!string.IsNullOrEmpty(localizedDesc))
-                                sliderDesc.text = $"*{localizedDesc}";
+                            var sliderDescRes = sliderDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
+                            if (sliderDescRes)
+                                sliderDesc.text = $"*{sliderDesc.text}";
                             else
                                 sliderDesc.gameObject.SetActive(false);
 
-                            sliderTitle?.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            sliderTitle?.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
 
                             var sliderValue = slider.transform.Find("SliderValue").GetComponent<TextMeshProUGUI>();
 
@@ -1028,15 +1032,16 @@ namespace NOTFGT.FLZ_Common.GUI
                             button.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             var buttonDesc = buttonInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            if (!string.IsNullOrEmpty(localizedDesc))
-                                buttonDesc.text = $"*{localizedDesc}";
+                            var btnDescRes = buttonDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
+                            if (btnDescRes)
+                                buttonDesc.text = $"*{buttonDesc.text}";
                             else
                                 buttonDesc.gameObject.SetActive(false);
 
                             var buttonTracker = button.transform.parent.gameObject.AddComponent<TrackedEntry>();
                             buttonTracker.Create(entry, button, currentCateg);
 
-                            button.GetComponentInChildren<TextMeshProUGUI>().text = LocalizationManager.LocalizedString(entry.DisplayName);
+                            button.GetComponentInChildren<TextMeshProUGUI>().GetComponent<LocalizedStr>().Setup(entry.DisplayName);
 
                             button.onClick.AddListener(new Action(() =>
                             {

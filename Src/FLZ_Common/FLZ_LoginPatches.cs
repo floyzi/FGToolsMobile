@@ -32,7 +32,7 @@ namespace NOTFGT.FLZ_Common
             public string Signature { get; set; }
         }
 
-        internal class Config
+        internal class WebConfig
         {
             [JsonPropertyName("latest_ver")]
             public string LatestVersion { get; set; }
@@ -40,7 +40,7 @@ namespace NOTFGT.FLZ_Common
             public bool IsSpoofEnabled { get; set; }
         }
 
-        internal static Config ModConfig;
+        internal static WebConfig ModConfig;
         internal static Version VersionData;
         static int Attempt;
         const int MaxAttempts = 5;
@@ -113,7 +113,7 @@ namespace NOTFGT.FLZ_Common
                 ScreenStack = ScreenStackType.LoadingScreen,
             });
 
-            yield return GetConfig();
+            yield return GetWebConfig();
             yield return GetLatestVersion();
 
             UIManager.Instance.HideScreen<LoadingSpinnerScreenViewModel>(ScreenStackType.LoadingScreen);
@@ -122,7 +122,7 @@ namespace NOTFGT.FLZ_Common
             CatapultGatewayConnection.Instance.PerformLoginFlow(null);
         }
 
-        static IEnumerator GetConfig()
+        static IEnumerator GetWebConfig()
         {
             var req = new UnityWebRequest($"{URLBase}/FGTools/mobile/config.json")
             {
@@ -132,7 +132,7 @@ namespace NOTFGT.FLZ_Common
             yield return req.SendWebRequest();
             try
             {
-                ModConfig = JsonSerializer.Deserialize<Config>(req.downloadHandler.text);
+                ModConfig = JsonSerializer.Deserialize<WebConfig>(req.downloadHandler.text);
             }
             catch (Exception ex)
             {

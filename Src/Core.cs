@@ -5,6 +5,7 @@ using NOTFGT.FLZ_Common;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
+using NOTFGT.FLZ_Common.Localization;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -53,7 +54,8 @@ namespace NOTFGT
         public static string AssetsDir => Path.Combine(MainDir, "Assets");
         public static string MobileLoading => Path.Combine(AssetsDir, "loading_screen.png");
         public static string MobileSplash => Path.Combine(AssetsDir, "splash.png");
-        public static string ConfigFile => Path.Combine(AssetsDir, "ConfigV3.json");
+        public static string ConfigFile => Path.Combine(AssetsDir, "ConfigV4.json");
+        public static string LocalizationDir => Path.Combine(AssetsDir, "Localization");
         #endregion
 
         internal static DateTime StartupDate;
@@ -94,6 +96,7 @@ namespace NOTFGT
 
                 ByMarker = Description[Description.IndexOf("by")..];
 
+                ClassInjector.RegisterTypeInIl2Cpp<LocalizedStr>();
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
                 ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();

@@ -106,21 +106,21 @@ namespace NOTFGT.FLZ_Common
         readonly string NextLogDate = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         StringBuilder AllLogs = new();
 
-        public GUI_Util GUIUtil;
-        public ToolsMenu SettingsMenu;
-        public RoundLoaderService RoundLoader;
-        public FLZ_Game InGameManager;
+        public Config Config { get; private set; }
+        public GUI_Util GUIUtil { get; private set; }
+        public ToolsMenu SettingsMenu { get; private set; }
+        public RoundLoaderService RoundLoader { get; private set; }
+        public FLZ_Game InGameManager { get; private set; }
 
         internal void Awake()
         {
             Instance = this;
 
+            SettingsMenu = new();
+            Config = new();
             GUIUtil = new();
             RoundLoader = new();
             InGameManager = new();
-            SettingsMenu = new();
-
-            LocalizationManager.Setup();
 
             GUIUtil.Register();
 
