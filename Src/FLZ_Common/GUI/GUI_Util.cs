@@ -173,6 +173,11 @@ namespace NOTFGT.FLZ_Common.GUI
 
         [GUIReference("CreditBTN")] readonly Button CreditButtonPrefab;
 
+        [TMPReference(FontType.TitanOne, "PinkOutline")]
+        [GUIReference("CreditLocaleHeader")] readonly TextMeshProUGUI CreditsLocaleHeader;
+
+        [GUIReference("LocaleDropdown")] readonly TMP_Dropdown LocaleSelectDropdown;
+
         #region CREDITS IMAGE
         [GUIReference("FatefulImage")] readonly Button FatefulImage;
         [GUIReference("FatefulImageLoad")] readonly Transform FatefulImageLoading;
@@ -393,37 +398,40 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void CreateCreditsScreen()
         {
-            CreditTextPrefab.text = string.Empty;
+            CreditTextPrefab.gameObject.SetActive(false);
             CreditButtonPrefab.gameObject.SetActive(false);
 
-            var aboutSb = new StringBuilder();
-            aboutSb.AppendLine($"{DefaultName} by @floyzi102 on Twitter");
-            aboutSb.AppendLine($"Compiled on: {Core.BuildInfo.BuildDate} (UTC)");
-            aboutSb.AppendLine($"Commit: #{Core.BuildInfo.GetCommit()}");
+            var aboutStrings = new Dictionary<string, object[]>()
+            {
+                { "about_by", [DefaultName] },
+                { "about_build_date", [Core.BuildInfo.BuildDate] },
+                { "about_commit", [Core.BuildInfo.GetCommit()] },
+            };
 
             var socialBtns = new Dictionary<string, string>()
             {
-                { "Source Code On GitHub", GitHubURL },
-                { "Commit Details", $"{GitHubURL}/commit/{Core.BuildInfo.Commit}" },
-                { "Twitter", TwitterURL },
-                { "Discord", DiscordURL },
+                { "about_sources", GitHubURL },
+                { "about_check_commit", $"{GitHubURL}/commit/{Core.BuildInfo.Commit}" },
+                { "twitter", TwitterURL },
+                { "discord", DiscordURL },
             };
 
             var indx = CreditTextPrefab.transform.GetSiblingIndex();
 
-            foreach (var line in aboutSb.ToString().Split(Environment.NewLine.ToCharArray()))
+            foreach (var line in aboutStrings)
             {
-                if (string.IsNullOrEmpty(line)) continue;
-
-                CreditTextPrefab.text += $"\n{line}";
-            }
-
+                var res = UnityEngine.Object.Instantiate(CreditTextPrefab, CreditsContent);
+                res.GetComponentInChildren<TextMeshProUGUI>().GetComponent<LocalizedStr>().Setup(line.Key, line.Value);
+                res.gameObject.SetActive(true);
+                res.transform.SetSiblingIndex(indx++);
+            } 
+            
             indx = CreditButtonPrefab.transform.GetSiblingIndex();
 
             foreach (var btn in socialBtns)
             {
                 var res = UnityEngine.Object.Instantiate(CreditButtonPrefab, CreditsContent);
-                res.GetComponentInChildren<TextMeshProUGUI>().text = btn.Key;
+                res.GetComponentInChildren<TextMeshProUGUI>().GetComponent<LocalizedStr>().Setup(btn.Key);
                 res.onClick.AddListener(new Action(() =>
                 {
                     Application.OpenURL(btn.Value);
@@ -554,6 +562,9 @@ namespace NOTFGT.FLZ_Common.GUI
                 InitRoundsDropdown();
                 CreateCreditsScreen();
                 SetupLogsScreen();
+
+                LocalizationManager.ConfigureDropdown(LocaleSelectDropdown);
+
                 GUIInstance.gameObject.SetActive(true);
                 SucceedGUISetup = true;
             }
@@ -873,10 +884,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             var toggleTitle = toggleInst.transform.Find("Toggle").GetComponentInChildren<TextMeshProUGUI>();
                             var toggleDesc = toggleInst.transform.Find("ToggleDesc").GetComponent<TextMeshProUGUI>();
 
-                            var toggleDescRes = toggleDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
-                            if (toggleDescRes)
-                                toggleDesc.text = $"*{toggleDesc.text}";
-                            else
+                            var toggleDescRes = toggleDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description, prefix: "*");
+                            if (!toggleDescRes)
                                 toggleDesc.gameObject.SetActive(false);
 
                             toggleTitle.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
@@ -912,10 +921,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             var fieldTitle = fieldInst.transform.Find("FieldTitle").GetComponent<TextMeshProUGUI>();
                             var fieldDesc = fieldInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            var fieldDescRes = fieldDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
-                            if (fieldDescRes)
-                                fieldDesc.text = $"*{fieldDesc.text}";
-                            else
+                            var fieldDescRes = fieldDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description, prefix: "*");
+                            if (!fieldDescRes)
                                 fieldDesc.gameObject.SetActive(false);
 
                             fieldTitle.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
@@ -975,10 +982,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             var sliderTitle = sliderInst.transform.Find("SliderTitle").GetComponent<TextMeshProUGUI>();
                             var sliderDesc = sliderInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            var sliderDescRes = sliderDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
-                            if (sliderDescRes)
-                                sliderDesc.text = $"*{sliderDesc.text}";
-                            else
+                            var sliderDescRes = sliderDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description, prefix: "*");
+                            if (!sliderDescRes)
                                 sliderDesc.gameObject.SetActive(false);
 
                             sliderTitle?.gameObject.GetComponent<LocalizedStr>().Setup(entry.DisplayName);
@@ -1032,10 +1037,8 @@ namespace NOTFGT.FLZ_Common.GUI
                             button.gameObject.AddComponent<UnityDragFix>()._ScrollRect = CheatsScrollView;
                             var buttonDesc = buttonInst.transform.Find("FieldDesc").GetComponent<TextMeshProUGUI>();
 
-                            var btnDescRes = buttonDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description);
-                            if (btnDescRes)
-                                buttonDesc.text = $"*{buttonDesc.text}";
-                            else
+                            var btnDescRes = buttonDesc.gameObject.GetComponent<LocalizedStr>().Setup(entry.Description, prefix: "*");
+                            if (!btnDescRes)
                                 buttonDesc.gameObject.SetActive(false);
 
                             var buttonTracker = button.transform.parent.gameObject.AddComponent<TrackedEntry>();

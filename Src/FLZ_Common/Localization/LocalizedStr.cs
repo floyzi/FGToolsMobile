@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -15,9 +16,15 @@ namespace NOTFGT.FLZ_Common.Localization
 
         TextMeshProUGUI Text;
         string ContentID;
-        internal bool Setup(string idOverride = null)
+        string UnlocalizedValue;
+        object[] Formatting;
+        string Prefix;
+        internal bool Setup(string idOverride = null, object[] formatting = null, string prefix = null)
         {
             Text = gameObject.GetComponent<TextMeshProUGUI>();
+            Formatting = formatting;
+            Prefix = prefix;
+
             if (Text == null)
             {
                 MelonLogger.Error($"[{GetType().Name}] Lacks TextMeshProUGUI on gameobject!");
@@ -26,12 +33,14 @@ namespace NOTFGT.FLZ_Common.Localization
             }
 
             var hasOverride = !string.IsNullOrEmpty(idOverride);
-            if (!hasOverride && !Text.text.StartsWith('$'))
+            if (!hasOverride && !Text.text.Contains('$'))
             {
-                MelonLogger.Error($"[{GetType().Name}] Lacks configured string ID!");
                 GameObject.Destroy(this);
                 return false;
             }
+
+            if (!hasOverride)
+                UnlocalizedValue = Text.text;
 
             ContentID = !hasOverride ? Text.text[1..] : idOverride;
 
@@ -41,7 +50,23 @@ namespace NOTFGT.FLZ_Common.Localization
             return !string.IsNullOrEmpty(Text.text);
         }
 
-        void LocalizeString() => Text?.SetText(LocalizationManager.LocalizedString(ContentID));
+        void LocalizeString()
+        {
+            if (string.IsNullOrEmpty(UnlocalizedValue))
+            {
+                Text?.SetText(LocalizationManager.LocalizedString(ContentID, Formatting));
+            }
+            else
+            {
+                Text.SetText(Regex.Replace(UnlocalizedValue, @"\$(\w+)", match =>
+                {
+                    return LocalizationManager.LocalizedString(match.Groups[1].Value, Formatting);
+                }));
+            }
+
+            if (!string.IsNullOrEmpty(Prefix) && !string.IsNullOrEmpty(Text.text))
+                Text.text = $"{Prefix}{Text.text}";
+        }
 
         void OnDestroy()
         {

@@ -23,7 +23,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             FLZ_GUIExtensions.SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
 
-            headerText?.text = string.Format(headerText.text, LocalizationManager.LocalizedString(category));
+            headerText.gameObject.AddComponent<LocalizedStr>().Setup(category, prefix: "— ");
 
             expBtn.onClick.AddListener(new Action(() =>
             {

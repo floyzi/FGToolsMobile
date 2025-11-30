@@ -1,7 +1,9 @@
-﻿using MelonLoader;
+﻿using Il2CppTMPro;
+using MelonLoader;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace NOTFGT.FLZ_Common.Localization
 {
@@ -70,6 +72,17 @@ namespace NOTFGT.FLZ_Common.Localization
                     MelonLogger.Warning($"Tried to format str {key} with {format.Length} entries while string expected {waitingForFormat}");
             }
             return result;
+        }
+
+        public static void ConfigureDropdown(TMP_Dropdown locDropdown)
+        {
+            foreach (var locFile in Directory.GetFiles(Core.LocalizationDir))
+                locDropdown.options.Add(new(Path.GetFileNameWithoutExtension(locFile)));
+
+            locDropdown.onValueChanged.AddListener(new Action<int>((val =>
+            {
+                LoadLocale(locDropdown.options[val].text);
+            })));
         }
     }
 }
