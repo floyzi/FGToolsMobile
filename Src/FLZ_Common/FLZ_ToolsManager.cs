@@ -268,16 +268,12 @@ namespace NOTFGT.FLZ_Common
                 Owoify.DeOwoify();
             else
             {
-                foreach (var tmp in Resources.FindObjectsOfTypeAll<TextMeshProUGUI>())
+                var txt = Resources.FindObjectsOfTypeAll<TextMeshProUGUI>();
+
+                GUIUtil.FlashImage(1.35f);
+
+                foreach (var tmp in txt)
                     tmp.text = tmp.text; //calling setter on text so patch can do it's job
-
-                //foreach (var a in Resources.FindObjectsOfTypeAll<TextBinding>())
-                //{
-                //    var tmp = a.gameObject.GetComponent<TextMeshProUGUI>();
-                //    if (tmp == null) continue;
-
-                //    a.SendValue(Owoify.CreateString(tmp));
-                //}
             }
 
             Broadcaster.Instance.Broadcast(new LocalisedStrings.StringsChangedEvent());

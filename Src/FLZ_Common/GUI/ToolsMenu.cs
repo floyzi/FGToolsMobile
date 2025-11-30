@@ -258,6 +258,8 @@ namespace NOTFGT.FLZ_Common.GUI
                         target.Set(entry.Value);
                     }));
                 }
+
+                MelonLogger.Msg("Config loaded");
             }
             catch (Exception e)
             {

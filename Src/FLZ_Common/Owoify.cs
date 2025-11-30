@@ -31,10 +31,7 @@ namespace NOTFGT.FLZ_Common
         readonly static string[] Suffixes = [
             " :3",
             " UwU",
-            " (✿ ♡‿♡)",
             " ÙωÙ",
-            " ʕʘ‿ʘʔ",
-            " ʕ•̫͡•ʔ",
             " >_>",
             " ^_^",
             "..",
@@ -50,15 +47,14 @@ namespace NOTFGT.FLZ_Common
             " XDDD",
             ", fwendo",
             " ㅇㅅㅇ",
-            " (人◕ω◕)",
             "（＾ｖ＾）",
             " x3",
             " ._.",
-            " (　\"◟ \")",
-            " (• o •)",
             " (；ω；)",
-            " (◠‿◠✿)",
-            " >_<"
+            " >_<",
+            " >w<",
+            " ^w^",
+            " Nyaa~"
         ];
 
         readonly static Dictionary<string, string> Substitutions = new()
@@ -75,7 +71,7 @@ namespace NOTFGT.FLZ_Common
             { "The ", "Da " }
         };
 
-        static string OwoifyString(TMP_Text text, string src)
+        static string OwoifyString(string src)
         {
             if (string.IsNullOrEmpty(src)) return src;
 
@@ -97,31 +93,31 @@ namespace NOTFGT.FLZ_Common
                 return t;
             }, RegexOptions.Compiled);
 
-            var rand1 = UnityEngine.Random.Range(0, 3);
-            var rand2 = UnityEngine.Random.Range(0, 3);
+            var rand1 = UnityEngine.Random.Range(0, 4);
+            var rand2 = UnityEngine.Random.Range(0, 4);
 
-            if (rand1 < 2)
+            if (rand1 < 3)
                 src = $"{Prefixes[UnityEngine.Random.Range(0, Prefixes.Length)]} {src}";
 
-            if (rand2 < 2)
+            if (rand2 < 3)
                 src += Suffixes[UnityEngine.Random.Range(0, Suffixes.Length)];
 
             return src;
         }
 
-        internal static string CreateString(TMP_Text srcObj, string src)
+        internal static string CreateString(TMP_Text srcObj, string txt)
         {
             var h = srcObj.gameObject.GetInstanceID();
 
             if (Sources.ContainsKey(h))
             {
-                Sources[h] = src;
-                return OwoifyString(srcObj, src);
+                Sources[h] = txt;
+                return OwoifyString(txt);
             }
 
-            Sources.Add(h, src);
+            Sources.Add(h, txt);
 
-            return OwoifyString(srcObj, src);
+            return OwoifyString(txt);
         }
 
         internal static void DeOwoify()

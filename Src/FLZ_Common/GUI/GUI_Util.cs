@@ -51,6 +51,12 @@ namespace NOTFGT.FLZ_Common.GUI
         public string MaterialName { get; } = targetMaterial;
     }
 
+    [AttributeUsage(AttributeTargets.Field)]
+    public class PrefabReferenceAttribute(string target) : Attribute
+    {
+        public string Name { get; } = target;
+    }
+
     public class GUI_Util
     {
         internal enum UIState
@@ -66,9 +72,16 @@ namespace NOTFGT.FLZ_Common.GUI
         Color tabActiveCol = new(0.7028302f, 0.9941195f, 1f, 1f);
 
         AssetBundle GUI_Bundle;
-        GameObject GUIObject;
 
-        //todo: organize ts
+        #region PREFABS
+        [PrefabReference("NOT_FGToolsGUI")] readonly GameObject GUIObjectPrefab;
+        [PrefabReference("DialogWindow")] readonly GameObject DialogObjectPrefab;
+        [PrefabReference("FlashElement")] readonly GameObject FlashObjectPrefab;
+        #endregion
+
+        GameObject GUIInstance;
+
+        //TODO: organize ts
 
         [GUIReference("MainBG")] internal readonly RectTransform PanelBG;
 
@@ -153,11 +166,13 @@ namespace NOTFGT.FLZ_Common.GUI
         [GUIReference("CreditText")] readonly TextMeshProUGUI CreditTextPrefab;
 
         [GUIReference("CreditBTN")] readonly Button CreditButtonPrefab;
-        #endregion
 
         #region CREDITS IMAGE
         [GUIReference("FatefulImage")] readonly Button FatefulImage;
         [GUIReference("FatefulImageLoad")] readonly Transform FatefulImageLoading;
+        [GUIReference("ImgCreditText")] readonly Transform CreditsImgCredit;
+        #endregion
+
         #endregion
 
         readonly List<GameObject> Tabs = [];
@@ -173,15 +188,15 @@ namespace NOTFGT.FLZ_Common.GUI
         bool SucceedGUISetup = false;
         bool WasInMenu = false;
         bool CanStartUISetup = true;
-        bool AllowGUIActions => GUI_Bundle != null && GUIObject != null;
+        bool AllowGUIActions => GUI_Bundle != null && GUIInstance != null;
         internal bool EnabledSecret => EGG_Counter >= 15;
         public void Register()
         {
-            MelonCoroutines.Start(TryToLoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
+            MelonCoroutines.Start(LoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
             {
                 OnMenuEnter += MenuEvent;
 
-                MelonLogger.Msg($"[{GetType()}] Bundle loaded, loading took: {took:F2}s");
+                MelonLogger.Msg($"[{GetType()}] UI configured, loading took: {took:F2}s");
 
                 FLZ_AndroidExtensions.ShowToast($"{DefaultName} initialized successfully");
             }));
@@ -251,7 +266,7 @@ namespace NOTFGT.FLZ_Common.GUI
             Materials.ForEach(x => GameObject.DontDestroyOnLoad(x));
             FontAssets.ForEach(x => GameObject.DontDestroyOnLoad(x));
 
-            foreach (var tmp in GUIObject.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
+            foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
                 SetupFont(tmp, TMPFontFallback, "2.0_Shadow");
 
             foreach (var field in fields)
@@ -325,7 +340,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void CreateCreditsScreen()
         {
-            CreditTextPrefab.gameObject.SetActive(false);
+            CreditTextPrefab.text = string.Empty;
             CreditButtonPrefab.gameObject.SetActive(false);
 
             var aboutSb = new StringBuilder();
@@ -347,10 +362,7 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 if (string.IsNullOrEmpty(line)) continue;
 
-                var res = UnityEngine.Object.Instantiate(CreditTextPrefab, CreditsContent);
-                res.SetText(line);
-                res.gameObject.SetActive(true);
-                res.transform.SetSiblingIndex(indx++);
+                CreditTextPrefab.text += $"\n{line}";
             }
 
             indx = CreditButtonPrefab.transform.GetSiblingIndex();
@@ -371,21 +383,28 @@ namespace NOTFGT.FLZ_Common.GUI
 
         int EGG_Counter;
         Sprite CachedCreditsSpr;
+        readonly int EGG_ClicksNeeded = UnityEngine.Random.Range(15, 25);
         void EasterEgg()
         {
             EGG_Counter++;
 
-            if (EGG_Counter < 2)
+            if (EGG_Counter < 3)
                 return;
 
-            FatefulImage.transform.GetParent().DOShakePosition(0.25f, 15, 80, 400);
+            FatefulImage.transform.GetParent().DOShakePosition(0.25f, EGG_Counter > EGG_ClicksNeeded ? 15 : 15 + (EGG_Counter * 2), 80, 400);
+            FLZ_AndroidExtensions.Vibrate(EGG_Counter > EGG_ClicksNeeded ? 10 : 10 + EGG_Counter);
 
-            if (EGG_Counter < 15)
+            if (EGG_Counter < EGG_ClicksNeeded)
                 return;
-            else if (EGG_Counter == 15)
+            else if (EGG_Counter == EGG_ClicksNeeded)
             {
                 FLZ_AndroidExtensions.Vibrate(700);
                 FLZ_AndroidExtensions.ShowToast("Woowie, you found something useless!");
+            }
+
+            if (EGG_Counter == 100 + EGG_ClicksNeeded)
+            {
+                FLZ_AndroidExtensions.ShowToast("Still not tired?");
             }
 
             if (CachedCreditsSpr == null)
@@ -412,7 +431,9 @@ namespace NOTFGT.FLZ_Common.GUI
             FatefulImage.interactable = true;
             FatefulImageLoading.gameObject.SetActive(false);
 
-            FatefulImage.GetComponent<Image>().sprite = FLZ_Extensions.SetSprite(req.downloadHandler.data, CachedCreditsSpr);
+            var spr = FLZ_Extensions.SetSprite(req.downloadHandler.data, CachedCreditsSpr);
+            CreditsImgCredit.gameObject.SetActive(spr == CachedCreditsSpr);
+            FatefulImage.GetComponent<Image>().sprite = spr;
         }
 
         void SetupGUI()
@@ -480,7 +501,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 InitRoundsDropdown();
                 CreateCreditsScreen();
                 SetupLogsScreen();
-                GUIObject.gameObject.SetActive(true);
+                GUIInstance.gameObject.SetActive(true);
                 SucceedGUISetup = true;
             }
             catch (Exception e)
@@ -491,9 +512,9 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        IEnumerator TryToLoadGUI(string bPath, Action<double> onSucceed)
+        IEnumerator LoadGUI(string bPath, Action<double> onSucceed)
         {
-            if (HasGUIKilled || GUIObject != null)
+            if (HasGUIKilled || GUIInstance != null)
                 yield break;
 
             MelonLogger.Msg($"Trying to load bundle from: \"{bPath}\"");
@@ -513,39 +534,54 @@ namespace NOTFGT.FLZ_Common.GUI
 
             GUI_Bundle = bReq.assetBundle;
 
-            var assetName = "NOT_FGToolsGUI";
-
             if (GUI_Bundle == null)
             {
                 TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, bPath]));
                 yield break;
             }
 
-            var theGUI = GUI_Bundle.LoadAssetAsync<GameObject>(assetName);
-
-            while (!theGUI.isDone) yield return null;
-
-            if (theGUI.asset == null)
+            foreach (var pField in GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<PrefabReferenceAttribute>() != null).ToList())
             {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [assetName]));
-                yield break;
+                var pName = pField.GetCustomAttribute<PrefabReferenceAttribute>().Name;
+
+                MelonLogger.Msg($"Loading prefab \"{pName}\"...");
+
+                var obj = GUI_Bundle.LoadAssetAsync<GameObject>(pName);
+
+                while (!obj.isDone) yield return null;
+
+                if (obj.asset == null)
+                {
+                    TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [pName]));
+                    yield break;
+                }
+
+                var resObj = obj.asset.Cast<GameObject>();
+                resObj.hideFlags = HideFlags.HideAndDontSave;
+
+                pField.SetValue(this, resObj);
+
+                if (pName == "NOT_FGToolsGUI") //kinda sucks
+                {
+                    GUIInstance = GameObject.Instantiate(pField.GetValue(this) as GameObject);
+                    GameObject.DontDestroyOnLoad(GUIInstance);
+                    GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
+                    ConfigureObjects();
+                    GUIInstance.gameObject.SetActive(false);
+                    RepairStyle.gameObject.SetActive(false);
+                }
             }
 
-            GUIObject = UnityEngine.Object.Instantiate(theGUI.asset).Cast<GameObject>();
-            if (GUIObject != null)
-            {
-                UnityEngine.Object.DontDestroyOnLoad(GUIObject);
-                GUIObject.GetComponent<Canvas>().sortingOrder = 9999;
-                ConfigureObjects();
-                GUIObject.gameObject.SetActive(false);
-                RepairStyle.gameObject.SetActive(false);
-
-                onSucceed?.Invoke(sw.Elapsed.TotalSeconds);
-            }
-            else
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_object", [theGUI.asset.name]));
+            onSucceed?.Invoke(sw.Elapsed.TotalSeconds);
 
             sw.Stop();
+        }
+
+        internal void FlashImage(float length)
+        {
+            var flashInst = GameObject.Instantiate(FlashObjectPrefab);
+            flashInst.GetComponentInChildren<Image>().DOColor(new Color(255, 255, 255, 0), length);
+            GameObject.Destroy(flashInst, length + 0.2f);
         }
 
 
@@ -671,7 +707,7 @@ namespace NOTFGT.FLZ_Common.GUI
             if (fields == null)
                 return;
 
-            foreach (var t in GUIObject.transform.GetComponentsInChildren<Transform>(true))
+            foreach (var t in GUIInstance.transform.GetComponentsInChildren<Transform>(true))
             {
                 foreach (var field in fields)
                 {
@@ -780,7 +816,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         Transform GetTransformFromGUI(string name)
         {
-            var a = GUIObject.transform.GetComponentsInChildren<Transform>(true).ToList();
+            var a = GUIInstance.transform.GetComponentsInChildren<Transform>(true).ToList();
             return a.Find(x => x.name == name);
         }
 
@@ -807,8 +843,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void CreateConfigMenu(Transform cfgTrans)
         {
-            HashSet<MenuCategory> categories = [];
-
             GUI_TogglePrefab.SetActive(false);
             GUI_TextFieldPrefab.SetActive(false);
             GUI_SliderPrefab.SetActive(false);
@@ -838,8 +872,6 @@ namespace NOTFGT.FLZ_Common.GUI
                         headerText?.text = string.Format(headerText.text, LocalizationManager.LocalizedString(entry.Category));
                         currentCateg = haderInst.AddComponent<MenuCategory>();
                         currentCateg.Create(headerText.text);
-
-                        categories.Add(currentCateg);
                     }
 
                     var localizedDesc = LocalizationManager.LocalizedString(entry.Description);
