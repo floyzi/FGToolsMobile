@@ -54,8 +54,8 @@ namespace NOTFGT.FLZ_Common.Localization
             {
                 var refKey = match.Groups[1].Value;
 
-                if (!LangEntries.TryGetValue(key, out var value_2))
-                    InitialLocale.TryGetValue(key, out value_2);
+                if (!LangEntries.TryGetValue(refKey, out var value_2))
+                    InitialLocale.TryGetValue(refKey, out value_2);
 
                 if (!string.IsNullOrEmpty(value_2))
                     result = result.Replace(match.Value, value_2);

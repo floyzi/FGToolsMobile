@@ -64,8 +64,13 @@ namespace NOTFGT.FLZ_Common.Localization
                 }));
             }
 
-            if (!string.IsNullOrEmpty(Prefix) && !string.IsNullOrEmpty(Text.text))
-                Text.text = $"{Prefix}{Text.text}";
+            if (!string.IsNullOrEmpty(Text.text))
+            {
+                if (!string.IsNullOrEmpty(Prefix))
+                    Text.text = $"{Prefix}{Text.text}";
+
+                gameObject.SetActive(true);
+            }
         }
 
         void OnDestroy()
