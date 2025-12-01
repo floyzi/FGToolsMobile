@@ -853,21 +853,21 @@ namespace NOTFGT.FLZ_Common.GUI
             MenuCategory currentCateg = null;
             string currentCategStr = "";
 
-            foreach (var entry in Instance.SettingsMenu.Entries.OrderBy(entry => entry.Category).ToList())
+            foreach (var entry in Instance.SettingsMenu.Entries.OrderByDescending(entry => entry.Category.Priority).ToList())
             {
                 try
                 {
                     MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
 
-                    if (!string.IsNullOrEmpty(entry.Category) && currentCategStr != entry.Category)
+                    if (!string.IsNullOrEmpty(entry.Category.LocaleID) && currentCategStr != entry.Category.LocaleID)
                     {
-                        currentCategStr = entry.Category;
+                        currentCategStr = entry.Category.LocaleID;
 
                         var haderInst = UnityEngine.Object.Instantiate(GUI_HeaderPrefab, cfgTrans);
-                        haderInst.name = $"Header_{entry.Category}";
+                        haderInst.name = $"Header_{entry.Category.LocaleID}";
 
                         currentCateg = haderInst.AddComponent<MenuCategory>();
-                        currentCateg.Create(entry.Category);
+                        currentCateg.Create(entry.Category.LocaleID);
                     }
 
                     switch (entry.EntryType)

@@ -18,17 +18,23 @@ namespace NOTFGT.FLZ_Common.GUI
 {
     public class ToolsMenu
     {
-        const string FGCC_Cat = "menu_fgcc_section";
-        const string FPS_Cat = "menu_fps_section";
-        const string Def_Cat = "menu_section";
-        const string Gameplay_Cat = "menu_gp_section";
-        const string Secret_Cat = "menu_bonus_section";
+        const string FGCC_CATEG = "menu_fgcc_section";
+        const string DEFAULT_CATEG = "menu_section";
+        const string GAMEPLAY_CATEG = "menu_gp_section";
+        const string SECRET_CATEG = "menu_bonus_section";
+
+        public struct CategoryData(int priority, string id)
+        {
+            public int Priority = priority; 
+            public string LocaleID = id;
+        }
 
         internal interface IEntryConfig {}
         internal abstract class BaseEntryConfig : IEntryConfig
         {
             public Func<bool> InteractableCondition;
             public Func<bool> DisplayCondition;
+            public Func<bool> SaveInConfigCondition;
         }
 
         internal class SliderConfig : BaseEntryConfig
@@ -37,13 +43,14 @@ namespace NOTFGT.FLZ_Common.GUI
             public float MinValue;
             public float MaxValue;
 
-            public SliderConfig(Type t, float min = -1, float max = -1, Func<bool> intCondition = null, Func<bool> dispCondition = null)
+            public SliderConfig(Type t, float min = -1, float max = -1, Func<bool> intCondition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
             {
                 ValueType = t;
                 MinValue = min;
                 MaxValue = max;
                 InteractableCondition = intCondition;
                 DisplayCondition = dispCondition;
+                SaveInConfigCondition = saveInConfCondition;
             }
         }
         internal class FieldConfig : BaseEntryConfig
@@ -51,24 +58,26 @@ namespace NOTFGT.FLZ_Common.GUI
             public Type ValueType;
             public int CharacterLimit;
 
-            public FieldConfig(Type t, int charLimit = -1, Func<bool> condition = null, Func<bool> dispCondition = null)
+            public FieldConfig(Type t, int charLimit = -1, Func<bool> condition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
             {
                 ValueType = t;
                 CharacterLimit = charLimit;
                 InteractableCondition = condition;
                 DisplayCondition = dispCondition;
+                SaveInConfigCondition = saveInConfCondition;
             }
         }
         internal class ToggleConfig : BaseEntryConfig
         {
-            public ToggleConfig(Func<bool> condition = null, Func<bool> dispCondition = null)
+            public ToggleConfig(Func<bool> condition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
             {
                 InteractableCondition = condition;
                 DisplayCondition = dispCondition;
+                SaveInConfigCondition = saveInConfCondition;
             }
         }
 
-        internal class MenuEntry(MenuEntry.Type type, string id, string category, string displayName, string desc, Func<object, object> setter = null, Action postSet = null, IEntryConfig additionalConfig = null)
+        internal class MenuEntry(MenuEntry.Type type, string id, CategoryData category, string displayName, string desc, Func<object, object> setter = null, Action postSet = null, IEntryConfig additionalConfig = null)
         {
             public enum Type
             {
@@ -87,7 +96,7 @@ namespace NOTFGT.FLZ_Common.GUI
             /// Category where element will be placed on UI.
             /// Represents ID of localized string
             /// </summary>
-            internal string Category { get; private set; } = category;
+            internal CategoryData Category { get; private set; } = category;
 
             /// <summary>
             /// Name of element that will be shown on UI.
@@ -129,8 +138,22 @@ namespace NOTFGT.FLZ_Common.GUI
             /// <summary>
             /// Indicates can be entry included in config save or no
             /// </summary>
-            internal bool CanBeSaved => EntryType != Type.Button && !string.IsNullOrEmpty(ID);
+            internal bool CanBeSaved
+            {
+                get
+                {
+                    if (EntryType == Type.Button || string.IsNullOrEmpty(ID))
+                        return false;
 
+                    if (AdditionalConfig != null)
+                    {
+                        if (AdditionalConfig is BaseEntryConfig baseConf && baseConf.SaveInConfigCondition != null)
+                            return baseConf.SaveInConfigCondition();
+                    }
+
+                    return true;
+                }
+            }
             /// <summary>
             /// Action that will be invoked after entry value is changed
             /// </summary>
@@ -156,40 +179,54 @@ namespace NOTFGT.FLZ_Common.GUI
         internal readonly List<MenuEntry> Entries = [];
         readonly Queue<Action> RollInMenu = [];
 
+        readonly List<CategoryData> CategoryDatas =
+        [
+            new(102, DEFAULT_CATEG),
+            new(90, GAMEPLAY_CATEG),
+            new(80, FGCC_CATEG),
+            new(0, SECRET_CATEG)
+        ];
+
         internal void Create()
         {
-            CreateEntry(MenuEntry.Type.Toggle, "show_debug_ui", Def_Cat, () => Core.ShowDebugUI, v => Core.ShowDebugUI = v);
-            CreateEntry(MenuEntry.Type.Toggle, "show_watermark", Def_Cat, () => Core.ShowWatermark, v => Core.ShowWatermark = v);
+            var defCat = CategoryDatas.First(x => x.LocaleID == DEFAULT_CATEG);
+            var gpCat = CategoryDatas.First(x => x.LocaleID == GAMEPLAY_CATEG);
+            var fgccCat = CategoryDatas.First(x => x.LocaleID == FGCC_CATEG);
+            var secCat = CategoryDatas.First(x => x.LocaleID == SECRET_CATEG);
 
-            CreateEntry(MenuEntry.Type.Toggle, "track_log", Def_Cat, () => Instance.TrackGameLog, v => Instance.TrackGameLog = v, Instance.ResolveLogTracking);
-            CreateEntry(MenuEntry.Type.Toggle, "fps_counter", Def_Cat, () => Instance.FPSCounter, v => Instance.FPSCounter = v, Instance.ResolveFGDebug);
-            CreateEntry(MenuEntry.Type.Toggle, "fg_debug", Def_Cat, () => Instance.FGDebug, v => Instance.FGDebug = v, Instance.ResolveFGDebug);
-            CreateEntry(MenuEntry.Type.Toggle, "unlock_fps", Def_Cat, () => Instance.UnlockFPS, v => Instance.UnlockFPS = v, Instance.ResolveFPS);
-            CreateEntry<float>(MenuEntry.Type.Slider, "unlock_fps_target", Def_Cat, () => Instance.TargetFPS, v => Instance.TargetFPS = Convert.ToInt32(v), new(() => { Application.targetFrameRate = Instance.UnlockFPS ? Instance.TargetFPS : 60; }), new SliderConfig(typeof(int), 10, 300, (() => Instance.UnlockFPS)));
-            CreateEntry(MenuEntry.Type.Slider, "fg_debug_scale", Def_Cat, () => Instance.FGDebugScale, v => Instance.FGDebugScale = v, Instance.ResolveFGDebug, new SliderConfig(typeof(float), 0.1f, 1f));
 
-            CreateEntry(MenuEntry.Type.Toggle, "names_toggle", Gameplay_Cat, () => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames, v => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames = v);
-            CreateEntry(MenuEntry.Type.Toggle, "advanced_names", Gameplay_Cat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v, Instance.InGameManager.SetNames);
+            CreateEntry(MenuEntry.Type.Toggle, "show_debug_ui", defCat, () => Core.ShowDebugUI, v => Core.ShowDebugUI = v);
+            CreateEntry(MenuEntry.Type.Toggle, "show_watermark", defCat, () => Core.ShowWatermark, v => Core.ShowWatermark = v);
+
+            CreateEntry(MenuEntry.Type.Toggle, "track_log", defCat, () => Instance.TrackGameLog, v => Instance.TrackGameLog = v, Instance.ResolveLogTracking);
+            CreateEntry(MenuEntry.Type.Toggle, "fps_counter", defCat, () => Instance.FPSCounter, v => Instance.FPSCounter = v, Instance.ResolveFGDebug);
+            CreateEntry(MenuEntry.Type.Toggle, "fg_debug", defCat, () => Instance.FGDebug, v => Instance.FGDebug = v, Instance.ResolveFGDebug);
+            CreateEntry(MenuEntry.Type.Toggle, "unlock_fps", defCat, () => Instance.UnlockFPS, v => Instance.UnlockFPS = v, Instance.ResolveFPS);
+            CreateEntry<float>(MenuEntry.Type.Slider, "unlock_fps_target", defCat, () => Instance.TargetFPS, v => Instance.TargetFPS = Convert.ToInt32(v), new(() => { Application.targetFrameRate = Instance.UnlockFPS ? Instance.TargetFPS : 60; }), new SliderConfig(typeof(int), 10, 300, (() => Instance.UnlockFPS)));
+            CreateEntry(MenuEntry.Type.Slider, "fg_debug_scale", defCat, () => Instance.FGDebugScale, v => Instance.FGDebugScale = v, Instance.ResolveFGDebug, new SliderConfig(typeof(float), 0.1f, 1f));
+
+            CreateEntry(MenuEntry.Type.Toggle, "names_toggle", gpCat, () => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames, v => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames = v);
+            CreateEntry(MenuEntry.Type.Toggle, "advanced_names", gpCat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v, Instance.InGameManager.SetNames);
 #if CHEATS
-            CreateEntry(MenuEntry.Type.Toggle, "capture_tools", Gameplay_Cat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
-            CreateEntry(MenuEntry.Type.Toggle, "disable_afk", Gameplay_Cat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
-            CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", Gameplay_Cat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
-            CreateEntry(MenuEntry.Type.InputField, "run_modifier", Gameplay_Cat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "jump_y", Gameplay_Cat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "dive_sens", Gameplay_Cat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "air_velocity", Gameplay_Cat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.InputField, "air_dive_force", Gameplay_Cat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
-            CreateEntry(MenuEntry.Type.Toggle, "spectator_join", Gameplay_Cat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
+            CreateEntry(MenuEntry.Type.Toggle, "capture_tools", gpCat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
+            CreateEntry(MenuEntry.Type.Toggle, "disable_afk", gpCat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
+            CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", fgccCat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
+            CreateEntry(MenuEntry.Type.InputField, "run_modifier", fgccCat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "jump_y", fgccCat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "dive_sens", fgccCat, () => Instance.InGameManager.DiveSens, v => Instance.InGameManager.DiveSens = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "air_velocity", fgccCat, () => Instance.InGameManager.GravityModifier, v => Instance.InGameManager.GravityModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "dive_force", fgccCat, () => Instance.InGameManager.DiveForce, v => Instance.InGameManager.DiveForce = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.InputField, "air_dive_force", fgccCat, () => Instance.InGameManager.DiveForceInAir, v => Instance.InGameManager.DiveForceInAir = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
+            CreateEntry(MenuEntry.Type.Toggle, "spectator_join", gpCat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
 
-            CreateEntry(MenuEntry.Type.Button, "to_finish", Gameplay_Cat, Instance.InGameManager.TeleportToFinish);
-            CreateEntry(MenuEntry.Type.Button, "to_safe", Gameplay_Cat, Instance.InGameManager.TeleportToSafeZone);
-            CreateEntry(MenuEntry.Type.Button, "to_random_player", Gameplay_Cat, Instance.InGameManager.TeleportToRandomPlayer);
-            CreateEntry(MenuEntry.Type.Button, "toggle_players", Gameplay_Cat, Instance.InGameManager.TogglePlayers);
+            CreateEntry(MenuEntry.Type.Button, "to_finish", gpCat, Instance.InGameManager.TeleportToFinish);
+            CreateEntry(MenuEntry.Type.Button, "to_safe", gpCat, Instance.InGameManager.TeleportToSafeZone);
+            CreateEntry(MenuEntry.Type.Button, "to_random_player", gpCat, Instance.InGameManager.TeleportToRandomPlayer);
+            CreateEntry(MenuEntry.Type.Button, "toggle_players", gpCat, Instance.InGameManager.TogglePlayers);
 #endif
-            CreateEntry(MenuEntry.Type.Button, "force_menu", Gameplay_Cat, Instance.ForceMainMenu);
+            CreateEntry(MenuEntry.Type.Button, "force_menu", defCat, Instance.ForceMainMenu);
 
-            CreateEntry(MenuEntry.Type.Toggle, "owoify", Secret_Cat, () => Instance.IsOwoifyEnabled, v => Instance.IsOwoifyEnabled = v, Instance.ResolveOwoify, new ToggleConfig(dispCondition: () => Instance.GUIUtil.EnabledSecret));
+            CreateEntry(MenuEntry.Type.Toggle, "owoify", secCat, () => Instance.IsOwoifyEnabled, v => Instance.IsOwoifyEnabled = v, Instance.ResolveOwoify, new ToggleConfig(dispCondition: () => Instance.GUIUtil.EnabledSecret, saveInConfCondition: () => false));
         }
 
         internal void ConfigureSave(List<ConfigEntry> entries)
@@ -233,7 +270,7 @@ namespace NOTFGT.FLZ_Common.GUI
             return list;
         }
 
-        void CreateEntry<T>(MenuEntry.Type type, string id, string category, Func<T> getter = null, Action<T> setter = null, Action onSet = null, IEntryConfig additionalConfig = null)
+        void CreateEntry<T>(MenuEntry.Type type, string id, CategoryData category, Func<T> getter = null, Action<T> setter = null, Action onSet = null, IEntryConfig additionalConfig = null)
         {
             if (Entries.Any(x => x.ID == id))
             {
@@ -244,7 +281,7 @@ namespace NOTFGT.FLZ_Common.GUI
             Entries.Add(new(type, id, category, $"{id}_title", $"{id}_desc", val => { if (val is T v) setter(v); return getter(); }, onSet, additionalConfig));
         }
 
-        void CreateEntry(MenuEntry.Type type, string id, string category, Action onSet = null, IEntryConfig additionalConfig = null)
+        void CreateEntry(MenuEntry.Type type, string id, CategoryData category, Action onSet = null, IEntryConfig additionalConfig = null)
         {
             if (Entries.Any(x => x.ID == id))
             {
