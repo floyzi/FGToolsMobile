@@ -71,7 +71,7 @@ namespace NOTFGT.FLZ_Common
             { "The ", "Da " }
         };
 
-        static string OwoifyString(string src)
+        internal static string OwoifyString(string src)
         {
             if (string.IsNullOrEmpty(src)) return src;
 

@@ -14,7 +14,7 @@ using static MelonLoader.MelonLogger;
 using static NOTFGT.FLZ_Common.HarmonyPatches;
 
 //version from this attribute is not used, change version in project instead
-[assembly: MelonInfo(typeof(Core), DefaultName, "0.0.0", "Floyzi", null)]
+[assembly: MelonInfo(typeof(Core), Constants.DefaultName, "0.0.0", "Floyzi", Constants.GitHubURL)]
 [assembly: MelonGame("Mediatonic", "Fall Guys")]
 namespace NOTFGT
 {
@@ -71,6 +71,7 @@ namespace NOTFGT
         readonly HashSet<string> MelonLogs = [];
         StreamReader LogsReader;
         FileStream LogsStream;
+        internal static bool ShouldShowMelonLog = true;
 #endif
 
         public override void OnInitializeMelon()
@@ -90,11 +91,14 @@ namespace NOTFGT
 
                 BuildInfo = new BuildDetails(cfg, productVersion[0], productVersion.Length > 1 ? productVersion[1] : "LOCAL BUILD", buildDate);
 
+                Msg("---");
+                Msg(Constants.DefaultName);
                 Msg(BuildInfo.ToString());
+                Msg("---");
 
                 StartupDate = DateTime.UtcNow;
 
-                ByMarker = Description[Description.IndexOf("by")..];
+                ByMarker = Constants.Description[Constants.Description.IndexOf("by")..];
 
                 ClassInjector.RegisterTypeInIl2Cpp<LocalizedStr>();
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
@@ -115,10 +119,9 @@ namespace NOTFGT
 #endif
             }
 
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Error($"Boot failed!\n{ex}");
-                InitFail();
+                InitFail(e);
             }
         }
 
@@ -132,22 +135,23 @@ namespace NOTFGT
             {
                 ClassInjector.RegisterTypeInIl2Cpp<FLZ_ToolsManager>();
 
-                var monoMain = new GameObject(DefaultName);
+                var monoMain = new GameObject(Constants.DefaultName);
                 monoMain.AddComponent<FLZ_ToolsManager>();
                 monoMain.hideFlags = HideFlags.HideAndDontSave;
             }
             catch (Exception e)
             {
-                Error($"Startup failed!\n{e}");
-                InitFail();
+                InitFail(e);
             }
         }
 
-        void InitFail()
+        internal static void InitFail(Exception ex = null)
         {
             SucceedLaunch = false;
+            if (ex != null)
+                Error($"InitFail() called with exception\n{ex}");
 
-            FLZ_AndroidExtensions.ShowToast($"Unable to init {DefaultName}. See logs for details");
+            FLZ_AndroidExtensions.ShowToast($"Unable to init {Constants.DefaultName}. See logs for details");
         }
 
         public override void OnUpdate()
@@ -164,7 +168,11 @@ namespace NOTFGT
 
         void WatermarkGUI()
         {
-            string watermark = $"<b>{DefaultName} V{BuildInfo.Version} {ByMarker}</b>";
+#if RELEASE
+            string watermark = $"<b>{Constants.DefaultName} V{BuildInfo.Version} {ByMarker}</b>";
+#else
+            string watermark = $"<b>{Constants.DefaultName} V{BuildInfo.Version} [{BuildInfo.Config}] {ByMarker}</b>";
+#endif
 
             GUIStyle upper = new(GUI.skin.label)
             {
@@ -202,7 +210,8 @@ namespace NOTFGT
         public override void OnGUI()
         {
 #if MELON_LOGS
-            ShowLog();
+            if (ShouldShowMelonLog)
+                ShowLog();
 #endif
             if (ShowWatermark)
                 WatermarkGUI();

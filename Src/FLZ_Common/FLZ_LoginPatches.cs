@@ -62,7 +62,7 @@ namespace NOTFGT.FLZ_Common
             PopupManager.Instance.Show(PopupInteractionType.Error, new ModalMessageData()
             {
                 Title = FLZ_Extensions.CMSString("forced_update_err_t", LocalizationManager.LocalizedString("client_update_error_title")),
-                Message = FLZ_Extensions.CMSString("forced_update_err_d", LocalizationManager.LocalizedString("client_update_error_desc", [DefaultName])),
+                Message = FLZ_Extensions.CMSString("forced_update_err_d", LocalizationManager.LocalizedString("client_update_error_desc", [Constants.DefaultName])),
                 OkButtonType = UIModalMessage.OKButtonType.CallToAction,
                 ModalType = UIModalMessage.ModalType.MT_OK_CANCEL,
                 OkTextOverrideId = FLZ_Extensions.CMSString("forced_update_err_k", LocalizationManager.LocalizedString("client_update_error_ok")),
@@ -70,7 +70,7 @@ namespace NOTFGT.FLZ_Common
                 OnCloseButtonPressed = new Action<bool>(wasok =>
                 {
                     if (wasok)
-                        Application.OpenURL($"{GitHubURL}/releases/latest");
+                        Application.OpenURL($"{Constants.GitHubURL}/releases/latest");
 
                     Application.Quit();
                 })
@@ -124,7 +124,7 @@ namespace NOTFGT.FLZ_Common
 
         static IEnumerator GetWebConfig()
         {
-            var req = new UnityWebRequest($"{URLBase}/FGTools/mobile/config.json")
+            var req = new UnityWebRequest($"{Constants.URLBase}/FGTools/mobile/config.json")
             {
                 timeout = 5,
                 downloadHandler = new DownloadHandlerBuffer()
@@ -136,14 +136,14 @@ namespace NOTFGT.FLZ_Common
             }
             catch (Exception ex)
             {
-                MelonLogger.Msg($"Conf ex\n{ex}");
+                MelonLogger.Error($"Conf ex\n{ex}");
             }
 
         }
 
         static IEnumerator GetLatestVersion()
         {
-            var req = new UnityWebRequest($"{URLBase}/fallguys/version.json")
+            var req = new UnityWebRequest($"{Constants.URLBase}/fallguys/version.json")
             {
                 timeout = 5,
                 downloadHandler = new DownloadHandlerBuffer()
@@ -157,7 +157,7 @@ namespace NOTFGT.FLZ_Common
             }
             catch (Exception ex)
             {
-                MelonLogger.Msg($"Ver ex\n{ex}");
+                MelonLogger.Error($"Ver ex\n{ex}");
             }
         }
     }

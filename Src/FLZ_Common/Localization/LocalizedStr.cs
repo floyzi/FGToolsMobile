@@ -19,6 +19,7 @@ namespace NOTFGT.FLZ_Common.Localization
         string UnlocalizedValue;
         object[] Formatting;
         string Prefix;
+
         internal bool Setup(string idOverride = null, object[] formatting = null, string prefix = null)
         {
             Text = gameObject.GetComponent<TextMeshProUGUI>();
@@ -27,7 +28,7 @@ namespace NOTFGT.FLZ_Common.Localization
 
             if (Text == null)
             {
-                MelonLogger.Error($"[{GetType().Name}] Lacks TextMeshProUGUI on gameobject!");
+                MelonLogger.Error($"[{GetType().Name}] Lacks TextMeshProUGUI !");
                 GameObject.Destroy(this);
                 return false;
             }
@@ -64,13 +65,12 @@ namespace NOTFGT.FLZ_Common.Localization
                 }));
             }
 
-            if (!string.IsNullOrEmpty(Text.text))
-            {
-                if (!string.IsNullOrEmpty(Prefix))
-                    Text.text = $"{Prefix}{Text.text}";
+            var hasText = !string.IsNullOrEmpty(Text.text);
 
-                gameObject.SetActive(true);
-            }
+            if (hasText && !string.IsNullOrEmpty(Prefix))
+                Text.text = $"{Prefix}{Text.text}";
+
+            gameObject.SetActive(hasText);
         }
 
         void OnDestroy()

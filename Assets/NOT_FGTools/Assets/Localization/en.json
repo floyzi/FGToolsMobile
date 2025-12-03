@@ -137,5 +137,6 @@
    "quick_respawn": "Respawn",
    "quick_checkp": "Checkpoint",
    "quick_reset_checkp": "Reset Checkpoint",
-   "setup_references_err_desc": "Can't start UI setup as missing UI references has been found, check logs to find what references are missing and resolve them"
+   "setup_references_err_desc": "Can't start UI setup as missing UI references has been found, check logs to find what references are missing and resolve them",
+   "setup_name_conflict": "Ambiguous names have been found in \"{0}\" attributes! Conflict name: \"{1}\". Make sure each object with \"{0}\" attribute uses unique name."
 }

@@ -1,63 +1,31 @@
 ﻿using Il2CppDG.Tweening;
 using Il2CppFG.Common.CMS;
 using Il2CppInterop.Runtime;
-using Il2CppSystem.Security.Cryptography;
+using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppTMPro;
 using Il2CppUniRx;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
+using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.Localization;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
-using static NOTFGT.FLZ_Common.GUI.TMPReferenceAttribute;
+using static NOTFGT.FLZ_Common.GUI.Attributes.TMPReferenceAttribute;
 using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
 using Action = System.Action;
 using Application = UnityEngine.Application;
-using Text = UnityEngine.UI.Text;
+using Image = UnityEngine.UI.Image;
 
 
 namespace NOTFGT.FLZ_Common.GUI
 {
-    /// <summary>
-    /// Use this attribute to assign object from bundle to field
-    /// </summary>
-    /// <param name="target">Name of object in UI Bundle (Names should be unique)</param>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class GUIReferenceAttribute(string target) : Attribute
-    {
-        public string Name { get; } = target;
-    }
-
-    /// <summary>
-    /// Use this attribute to setup Fall Guys font on <c>TextMeshProUGUI</c> object from bundle.
-    /// </summary>
-    /// <param name="targetMaterial">Material that will be assigned to font. Find material names via UE on Desktop version of the game</param>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class TMPReferenceAttribute(FontType targetFont, string targetMaterial) : Attribute
-    {
-        public enum FontType
-        {
-            TitanOne,
-            AsapBold
-        }
-
-        public string FontName { get; } = targetFont == FontType.TitanOne ? TMPFontTitanOne : TMPFontAsapBold;
-        public string MaterialName { get; } = targetMaterial;
-    }
-
-    [AttributeUsage(AttributeTargets.Field)]
-    public class PrefabReferenceAttribute(string target) : Attribute
-    {
-        public string Name { get; } = target;
-    }
-
+    //TODO: rewrite this trash
     public class GUI_Util
     {
         internal enum UIState
@@ -77,7 +45,7 @@ namespace NOTFGT.FLZ_Common.GUI
         #region BUNDLE REFERENCES
         #region PREFABS
         [PrefabReference("NOT_FGToolsGUI")] readonly GameObject GUIObjectPrefab;
-        [PrefabReference("DialogWindow")] readonly GameObject DialogObjectPrefab;
+        //[PrefabReference("DialogWindow")] readonly GameObject DialogObjectPrefab; //currently not implemented
         [PrefabReference("FlashElement")] readonly GameObject FlashObjectPrefab;
         #endregion
 
@@ -85,7 +53,7 @@ namespace NOTFGT.FLZ_Common.GUI
         [PrefabReference("ExpandLess")] internal readonly Sprite SpriteExpandLess;
         #endregion
 
-        GameObject GUIInstance;
+        internal GameObject GUIInstance;
 
         //TODO: organize ts
 
@@ -166,8 +134,6 @@ namespace NOTFGT.FLZ_Common.GUI
         [TMPReference(FontType.TitanOne, "PinkOutline")]
         [GUIReference("CreditSocialsHeader")] readonly TextMeshProUGUI CreditsSocialHeader;
 
-        [GUIReference("CreditsContent")] readonly Transform CreditsAboutContent;
-
         [TMPReference(FontType.AsapBold, "2.0_Shadow")]
         [GUIReference("CreditText")] readonly TextMeshProUGUI CreditTextPrefab;
 
@@ -203,7 +169,7 @@ namespace NOTFGT.FLZ_Common.GUI
         internal bool EnabledSecret => EGG_Counter >= 15;
         public GUI_Util(Action onInit)
         {
-            MelonCoroutines.Start(LoadGUI(Path.Combine(Core.AssetsDir, BundleName), (took) =>
+            MelonCoroutines.Start(LoadGUI(Path.Combine(Core.AssetsDir, Constants.BundleName), (took) =>
             {
                 OnMenuEnter += MenuEvent;
 
@@ -211,7 +177,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 onInit?.Invoke();
 
-                FLZ_AndroidExtensions.ShowToast($"{DefaultName} initialized successfully");
+                FLZ_AndroidExtensions.ShowToast($"{Constants.DefaultName} initialized successfully");
             }));
         }
 
@@ -224,7 +190,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (!File.Exists(bPath))
             {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [bPath, DefaultName]));
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_bundle_missing", [bPath, Constants.DefaultName]));
                 yield break;
             }
 
@@ -239,44 +205,59 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (GUI_Bundle == null)
             {
-                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [BundleName, bPath]));
+                TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_bundle", [Constants.BundleName, bPath]));
                 yield break;
             }
 
-            foreach (var pField in GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<PrefabReferenceAttribute>() != null).ToList())
-            {
-                var pName = pField.GetCustomAttribute<PrefabReferenceAttribute>().Name;
+            var map = GetFieldsOf<PrefabReferenceAttribute>();
 
+            var tasks = new List<(FieldInfo field, AssetBundleRequest request, string name)>();
+
+            foreach (var mapped in map)
+            {
+                var pName = mapped.Value.GetCustomAttribute<PrefabReferenceAttribute>().Name;
                 MelonLogger.Msg($"Loading prefab \"{pName}\"...");
 
-                var obj = GUI_Bundle.LoadAssetAsync(pName, Il2CppType.From(pField.FieldType));
+                var req = GUI_Bundle.LoadAssetAsync(pName, Il2CppType.From(mapped.Value.FieldType));
+                tasks.Add((mapped.Value, req, pName));
+            }
 
-                while (!obj.isDone) yield return null;
+            var cast = typeof(Il2CppObjectBase).GetMethod("TryCast", BindingFlags.Instance | BindingFlags.Public);
 
-                if (obj.asset == null)
+            foreach (var (field, request, name) in tasks)
+            {
+                while (!request.isDone) yield return null;
+
+                try
                 {
-                    TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [pName]));
-                    yield break;
+                    var a = request.asset;
+
+                    if (a == null)
+                    {
+                        TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("init_fail_null_asset", [name]));
+                        yield break;
+                    }
+
+                    MelonLogger.Msg($"Loaded \"{name}\"...");
+
+                    a.hideFlags = HideFlags.HideAndDontSave;
+
+                    field.SetValue(this, cast.MakeGenericMethod(field.FieldType).Invoke(a, null));
+
+                    if (name == "NOT_FGToolsGUI") //sucks
+                    {
+                        GUIInstance = GameObject.Instantiate(field.GetValue(this) as GameObject);
+                        GameObject.DontDestroyOnLoad(GUIInstance);
+                        GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
+                        ConfigureObjects();
+                        GUIInstance.gameObject.SetActive(false);
+                        RepairStyle.gameObject.SetActive(false);
+                    }
                 }
-
-                obj.asset.hideFlags = HideFlags.HideAndDontSave;
-
-                //sucks
-                if (pField.FieldType == typeof(GameObject))
-                    pField.SetValue(this, obj.asset.Cast<GameObject>());
-                else if (pField.FieldType == typeof(Sprite))
-                    pField.SetValue(this, obj.asset.Cast<Sprite>());
-                else
-                    MelonLogger.Error($"TYPE {pField.FieldType.FullName} IS NOT IMPLEMENTED!!!");
-
-                if (pName == "NOT_FGToolsGUI") //also sucks
+                catch (Exception e)
                 {
-                    GUIInstance = GameObject.Instantiate(pField.GetValue(this) as GameObject);
-                    GameObject.DontDestroyOnLoad(GUIInstance);
-                    GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
-                    ConfigureObjects();
-                    GUIInstance.gameObject.SetActive(false);
-                    RepairStyle.gameObject.SetActive(false);
+                    Core.InitFail(e);
+                    yield break;
                 }
             }
 
@@ -326,7 +307,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 if (!WasInMenu)
                 {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>((wasok) =>
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [Constants.DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [Constants.DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>((wasok) =>
                     {
                         WasInMenu = true;
                         ToggleGUI(UIState.Active);
@@ -337,7 +318,7 @@ namespace NOTFGT.FLZ_Common.GUI
             }
             catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [DefaultName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [Constants.DefaultName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
             }
         }
 
@@ -350,7 +331,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
             {
-                FLZ_GUIExtensions.SetupFont(tmp, TMPFontFallback, "2.0_Shadow");
+                FLZ_GUIExtensions.SetupFont(tmp, Constants.TMPFontFallback, "2.0_Shadow");
                 tmp.gameObject.AddComponent<LocalizedStr>().Setup();
             }
 
@@ -405,17 +386,17 @@ namespace NOTFGT.FLZ_Common.GUI
 
             var aboutStrings = new Dictionary<string, object[]>()
             {
-                { "about_by", [DefaultName] },
+                { "about_by", [Constants.DefaultName] },
                 { "about_build_date", [Core.BuildInfo.BuildDate] },
                 { "about_commit", [Core.BuildInfo.GetCommit()] },
             };
 
             var socialBtns = new Dictionary<string, string>()
             {
-                { "about_sources", GitHubURL },
-                { "about_check_commit", $"{GitHubURL}/commit/{Core.BuildInfo.Commit}" },
-                { "twitter", TwitterURL },
-                { "discord", DiscordURL },
+                { "about_sources", Constants.GitHubURL },
+                { "about_check_commit", $"{Constants.GitHubURL}/commit/{Core.BuildInfo.Commit}" },
+                { "twitter", Constants.TwitterURL },
+                { "discord", Constants.DiscordURL },
             };
 
             var indx = CreditTextPrefab.transform.GetSiblingIndex();
@@ -483,7 +464,7 @@ namespace NOTFGT.FLZ_Common.GUI
             FatefulImage.interactable = false;
             FatefulImageLoading.gameObject.SetActive(true);
 
-            var req = new UnityWebRequest(ImagesAPI)
+            var req = new UnityWebRequest(Constants.ImagesAPI)
             {
                 timeout = 5,
                 downloadHandler = new DownloadHandlerBuffer()
@@ -556,8 +537,9 @@ namespace NOTFGT.FLZ_Common.GUI
                 
                 }));
                 RoundIDEntryV2.gameObject.SetActive(false);
-                Header.text = $"{DefaultName} V{Core.BuildInfo.Version}";
-                Slogan.text = $"{Description}";
+
+                Header.text = $"{Constants.DefaultName} V{Core.BuildInfo.Version}";
+                Slogan.text = $"{Constants.Description}";
 
                 ConfigureTabs();
                 CreateConfigMenu(configMenu);
@@ -578,9 +560,13 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        internal void FlashImage(float length)
+        internal void FlashImage(float length) => MelonCoroutines.Start(FlashImpl(length));
+
+        IEnumerator FlashImpl(float length)
         {
             var flashInst = GameObject.Instantiate(FlashObjectPrefab);
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForSeconds(0.15f);
             flashInst.GetComponentInChildren<Image>().DOColor(new Color(255, 255, 255, 0), length);
             GameObject.Destroy(flashInst, length + 0.2f);
         }
@@ -657,7 +643,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
 
 
-        public void CleanupScreen(Transform screen, bool includeOnlyActive)
+        static void CleanupScreen(Transform screen, bool includeOnlyActive)
         {
             for (int i = screen.childCount - 1; i >= 0; i--)
             {
@@ -697,54 +683,68 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-        static void TryTriggerFailedToLoadUIModal(string addotionalMsg)
+        static void TryTriggerFailedToLoadUIModal(string addotionalMsg) 
         {
-           FLZ_AndroidExtensions.ShowModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]));
+            Core.InitFail();
+            FLZ_AndroidExtensions.ShowModal(LocalizationManager.LocalizedString("gui_init_fail_generic_title"), LocalizationManager.LocalizedString("gui_init_fail_generic_desc", [addotionalMsg]));
+        }
+
+        Dictionary<string, FieldInfo> GetFieldsOf<T>() where T : NameAttribute
+        {
+            var map = new Dictionary<string, FieldInfo>();
+
+            var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<T>() != null);
+            if (fields == null)
+                return map;
+
+            foreach (var field in fields)
+            {
+                var reference = field.GetCustomAttribute<T>();
+                if (map.ContainsKey(reference.Name))
+                {
+                    TryTriggerFailedToLoadUIModal(LocalizationManager.LocalizedString("setup_name_conflict", [reference.GetType().Name, reference.Name]));
+                    break;
+                }
+                if (reference != null) map[reference.Name] = field;
+            }
+
+            return map;
         }
 
         void ConfigureObjects()
         {
-            var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => field.GetCustomAttribute<GUIReferenceAttribute>() != null);
-            if (fields == null)
-                return;
+            var map = GetFieldsOf<GUIReferenceAttribute>();
+
+            var cast = typeof(Il2CppObjectBase).GetMethod("TryCast", BindingFlags.Instance | BindingFlags.Public);
 
             foreach (var t in GUIInstance.transform.GetComponentsInChildren<Transform>(true))
             {
-                foreach (var field in fields)
+                if (map.TryGetValue(t.name, out var field))
                 {
-                    var refrerence = field.GetCustomAttribute<GUIReferenceAttribute>();
-                    if (refrerence != null && refrerence.Name == t.name)
-                    {
-                        object component = null;
+                    object component = null;
 
-                        if (field.FieldType == typeof(GameObject))
-                            component = t.gameObject;
-                        else if (field.FieldType == typeof(Transform))
-                            component = t;
-                        else if (field.FieldType == typeof(Button))
-                            component = t.GetComponent<Button>();
-                        else if (field.FieldType == typeof(Text))
-                            component = t.GetComponent<Text>();
-                        else if (field.FieldType == typeof(InputField))
-                            component = t.GetComponent<InputField>();
-                        else if (field.FieldType == typeof(Dropdown))
-                            component = t.GetComponent<Dropdown>();
-                        else if (field.FieldType == typeof(TextMeshProUGUI))
-                            component = t.GetComponent<TextMeshProUGUI>();
-                        else if (field.FieldType == typeof(TMP_InputField))
-                            component = t.GetComponent<TMP_InputField>();
-                        else if (field.FieldType == typeof(TMP_Dropdown))
-                            component = t.GetComponent<TMP_Dropdown>();
-                        else if (field.FieldType == typeof(ScrollRect))
-                            component = t.GetComponent<ScrollRect>();
-                        else if (field.FieldType == typeof(RectTransform))
-                            component = t.GetComponent<RectTransform>();
-                        else
-                            MelonLogger.Error($"TYPE {field.FieldType.Name} ON {refrerence.Name} IS NOT IMPLEMENTED!!!");
+                    if (field.FieldType == typeof(GameObject))
+                        component = t.gameObject;
+                    else
+                    {
+                        component = t.GetComponent(Il2CppType.From(field.FieldType));
 
                         if (component != null)
-                            field.SetValue(this, component);
+                            component = cast.MakeGenericMethod(field.FieldType).Invoke(component, null);
                     }
+
+                    if (component != null)
+                        field.SetValue(this, component);
+                    else
+                        MelonLogger.Error($"COMPONENT {field.FieldType.Name} ON {t.name} IS NULL!");
+
+                    if (field.GetValue(this) == null)
+                    {
+                        MelonLogger.Error($"VALUE OF FIELD \"{field.Name}\" (type of \"{field.FieldType.Name}\") IS NULL AFTER SET!!!");
+                        CanStartUISetup = false;
+                    }
+
+                    map.Remove(t.name); 
                 }
 
                 if (t.gameObject.name.StartsWith("NavTab_") && !TabsButtons.Exists(target => target.name == t.gameObject.name))
@@ -752,15 +752,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 if (t.gameObject.name.StartsWith("TAB_") && !Tabs.Exists(target => target.name == t.gameObject.name))
                     Tabs.Add(t.gameObject);
-            }
-
-            foreach (var f in fields)
-            {
-                if (f.GetValue(this) == null)
-                {
-                    MelonLogger.Error($"VALUE OF FIELD \"{f.Name}\" (type of \"{f.FieldType.Name}\") IS NULL AFTER SET!!!");
-                    CanStartUISetup = false;
-                }
             }
         }
 
@@ -810,17 +801,6 @@ namespace NOTFGT.FLZ_Common.GUI
             activeTab.SetActive(true);
         }
 
-        public void TriggerPendingChanges(bool on)
-        {
-            PendingChanges.SetActive(on);
-        }
-
-        Transform GetTransformFromGUI(string name)
-        {
-            var a = GUIInstance.transform.GetComponentsInChildren<Transform>(true).ToList();
-            return a.Find(x => x.name == name);
-        }
-
         public void UpdateGPUI(bool keepGUIOn, bool active)
         {
             GameplayStyle.SetActive(keepGUIOn);
@@ -857,7 +837,7 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 try
                 {
-                    MelonLogger.Msg($"[{GetType()}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
+                    MelonLogger.Msg($"[{GetType().Name}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
 
                     if (!string.IsNullOrEmpty(entry.Category.LocaleID) && currentCategStr != entry.Category.LocaleID)
                     {

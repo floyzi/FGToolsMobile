@@ -1,20 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34607.119
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11222.16 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NOTFGTools", "Src\NOTFGTools.csproj", "{788BC472-59F7-46F6-B760-65C18BA74389}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Cheats|Any CPU = Cheats|Any CPU
-		NonCheats|Any CPU = NonCheats|Any CPU
+		DEV|Any CPU = DEV|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{788BC472-59F7-46F6-B760-65C18BA74389}.Cheats|Any CPU.ActiveCfg = Cheats|Any CPU
-		{788BC472-59F7-46F6-B760-65C18BA74389}.Cheats|Any CPU.Build.0 = Cheats|Any CPU
-		{788BC472-59F7-46F6-B760-65C18BA74389}.NonCheats|Any CPU.ActiveCfg = NonCheats|Any CPU
-		{788BC472-59F7-46F6-B760-65C18BA74389}.NonCheats|Any CPU.Build.0 = NonCheats|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.DEV|Any CPU.ActiveCfg = DEV|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.DEV|Any CPU.Build.0 = DEV|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{788BC472-59F7-46F6-B760-65C18BA74389}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

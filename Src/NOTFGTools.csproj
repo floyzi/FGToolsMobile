@@ -11,7 +11,7 @@
 		<IsPackable>false</IsPackable>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Configurations>NonCheats;Cheats</Configurations>
+		<Configurations>DEV;Release</Configurations>
 	</PropertyGroup>
 	
 		
@@ -24,24 +24,34 @@
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NonCheats|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DEV|AnyCPU'">
 	  <OutputPath>Output\</OutputPath>
+	  <DefineConstants>$(DefineConstants);CHEATS;MELON_LOGS</DefineConstants>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Cheats|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <OutputPath>Output\</OutputPath>
-	  <DefineConstants>TRACE;MELON_LOGS</DefineConstants>
+	  <DefineConstants>TRACE;</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="Definitions.cs" />
+		<Compile Include="Constants.cs" />
 		<Compile Include="FLZ_Common\Config.cs" />
 		<Compile Include="FLZ_Common\Extensions\FLZ_AndroidExtensions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
 		<Compile Include="FLZ_Common\Extensions\FLZ_GUIExtensions.cs" />
+		<Compile Include="FLZ_Common\GUI\Attributes\GUIReferenceAttribute.cs" />
+		<Compile Include="FLZ_Common\GUI\Attributes\NameAttribute.cs" />
+		<Compile Include="FLZ_Common\GUI\Attributes\PrefabReferenceAttribute.cs" />
+		<Compile Include="FLZ_Common\GUI\Attributes\TMPReferenceAttribute.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\MenuCategory.cs" />
+		<Compile Include="FLZ_Common\GUI\Screens\CreditsScreen.cs" />
+		<Compile Include="FLZ_Common\GUI\Screens\Logic\UIScreen.cs" />
+		<Compile Include="FLZ_Common\GUI\Screens\LogScreen.cs" />
+		<Compile Include="FLZ_Common\GUI\Screens\RoundLoaderScreen.cs" />
+		<Compile Include="FLZ_Common\GUI\Screens\ToolsScreen.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
 		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />

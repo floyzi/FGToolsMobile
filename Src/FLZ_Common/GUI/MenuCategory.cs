@@ -21,7 +21,7 @@ namespace NOTFGT.FLZ_Common.GUI
             var headerText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
             var expBtn = gameObject.GetComponentInChildren<Button>();
 
-            FLZ_GUIExtensions.SetupFont(headerText, TMPFontTitanOne, "PinkOutline");
+            FLZ_GUIExtensions.SetupFont(headerText, Constants.TMPFontTitanOne, "PinkOutline");
 
             headerText.gameObject.AddComponent<LocalizedStr>().Setup(category, prefix: "— ");
 

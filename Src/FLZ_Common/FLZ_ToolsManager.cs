@@ -118,20 +118,27 @@ namespace NOTFGT.FLZ_Common
 
             HandlePlayerState(PlayerState.Loading);
 
-            SettingsMenu = new();
-            InGameManager = new();
-            RoundLoader = new();
-            Config = new(() =>
+            try
             {
-                GUIUtil = new(() =>
+                SettingsMenu = new();
+                InGameManager = new();
+                RoundLoader = new();
+                Config = new(() =>
                 {
-                    if (TrackGameLog)
+                    GUIUtil = new(() =>
                     {
-                        OnLog = new(OnLogHandle);
-                        Application.add_logMessageReceived(OnLog);
-                    }
+                        if (TrackGameLog)
+                        {
+                            OnLog = new(OnLogHandle);
+                            Application.add_logMessageReceived(OnLog);
+                        }
+                    });
                 });
-            });
+            }
+            catch (Exception e)
+            {
+                Core.InitFail(e);
+            }
            
             Broadcaster.Instance.Register<IntroCountdownEndedEvent>(new Action<IntroCountdownEndedEvent>(OnRoundStart));
             Broadcaster.Instance.Register<IntroCameraSequenceStartedEvent>(new Action<IntroCameraSequenceStartedEvent>(OnIntroStart));
@@ -141,6 +148,8 @@ namespace NOTFGT.FLZ_Common
             Broadcaster.Instance.Register<OnRoundOver>(new Action<OnRoundOver>(OnRoundEnd));
             Broadcaster.Instance.Register<OnMainMenuDisplayed>(new Action<OnMainMenuDisplayed>(OnEnterMenu));
             Broadcaster.Instance.Register<OnLocalPlayersFinished>(new Action<OnLocalPlayersFinished>(OnFinish));
+
+            Msg("Successful startup!");
         }
 
         void FixedUpdate() => GUIUtil?.RefreshEntries();
@@ -269,7 +278,7 @@ namespace NOTFGT.FLZ_Common
                 Owoify.DeOwoify();
             else
             {
-                var txt = Resources.FindObjectsOfTypeAll<TextMeshProUGUI>();
+                var txt = FindObjectsOfType<TMP_Text>(true);
 
                 GUIUtil.FlashImage(1.35f);
 

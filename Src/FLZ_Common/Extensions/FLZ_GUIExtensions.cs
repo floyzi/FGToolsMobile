@@ -1,12 +1,6 @@
 ﻿using Il2CppTMPro;
 using MelonLoader;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
 namespace NOTFGT.FLZ_Common.Extensions
 {
@@ -40,8 +34,8 @@ namespace NOTFGT.FLZ_Common.Extensions
 
             if (tmpText.fontMaterial == null || tmpText.font == null)
             {
-                tmpText.fontMaterial = Materials.Find(x => x.name == TMPFontMaterialFallback);
-                tmpText.font = FontAssets.Find(x => x.name == TMPFontFallback);
+                tmpText.fontMaterial = Materials.Find(x => x.name == Constants.TMPFontMaterialFallback);
+                tmpText.font = FontAssets.Find(x => x.name == Constants.TMPFontFallback);
             }
 
             tmpText.fontMaterial.hideFlags = HideFlags.HideAndDontSave;
