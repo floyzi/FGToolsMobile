@@ -8,5 +8,6 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 {
     internal abstract class UIScreen
     {
+
     }
 }
