@@ -58,9 +58,14 @@
 		<Compile Include="FLZ_Common\GUI\Screens\LogScreen.cs" />
 		<Compile Include="FLZ_Common\GUI\Screens\RoundLoaderScreen.cs" />
 		<Compile Include="FLZ_Common\GUI\Screens\ToolsScreen.cs" />
-		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
+		<Compile Include="FLZ_Common\GUI\Styles\DefaultStyle.cs" />
+		<Compile Include="FLZ_Common\GUI\Styles\GameplayStyle.cs" />
+		<Compile Include="FLZ_Common\GUI\Styles\HiddenStyle.cs" />
+		<Compile Include="FLZ_Common\GUI\Styles\Logic\UIStyle.cs" />
+		<Compile Include="FLZ_Common\GUI\Styles\RepairStyle.cs" />
 		<Compile Include="FLZ_Common\GUI\GUIManager.cs" />
 		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />
+		<Compile Include="FLZ_Common\GUI\Logic\UIElement.cs" />
 		<Compile Include="FLZ_Common\GUI\UnityDragFix.cs" />
 		<Compile Include="FLZ_Common\HarmonyPatches.cs" />
 		<Compile Include="FLZ_Common\Loader\FallGuyBehaviour.cs" />

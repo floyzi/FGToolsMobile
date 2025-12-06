@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using NOTFGT.FLZ_Common.GUI.Attributes;
+using NOTFGT.FLZ_Common.GUI.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using static NOTFGT.FLZ_Common.GUI.Screens.Logic.UIScreen;
 
 namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 {
-    internal abstract class UIScreen(ScreenType type)
+    internal abstract class UIScreen(ScreenType type) : UIElement
     {
         internal enum ScreenType
         {
@@ -21,12 +22,11 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
             Credits
         }
 
-        internal GUIManager GUI => FLZ_ToolsManager.Instance.GUIUtil;
         internal ScreenType Type { get; } = type;
         internal Button ScreenTab { get; private set; }
         internal GameObject ScreenContainer { get; private set; }
 
-        internal void Initialize()
+        internal override void Initialize()
         {
             var t = GetType();
 
@@ -39,7 +39,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 
             ScreenContainer.gameObject.SetActive(false);
 
-            MelonLogger.Msg($"[{t.Name}] Initalized");
+            MelonLogger.Msg($"[{t.Name}] Screen initalized");
         }
 
         internal abstract void CreateScreen();

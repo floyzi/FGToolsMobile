@@ -7,6 +7,7 @@ using Il2CppFGClient.UI;
 using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
+using NOTFGT.FLZ_Common.GUI.Styles;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
 using System;
@@ -128,11 +129,12 @@ namespace NOTFGT.FLZ_Common
 
         void OnGameplayBegins()
         {
+            var s = Instance.GUIUtil.GetStyle<GameplayStyle>();
             playersHidden = false;
 #if CHEATS
             RollFGCCSettings();
 #endif
-            Instance.GUIUtil.UpdateGPUI(true, false);
+            s.UpdateGPUI(false);
 
             if (IsInRoundLoader)
             {
@@ -147,7 +149,7 @@ namespace NOTFGT.FLZ_Common
             else
             {
                 //something for future
-                Instance.GUIUtil.UpdateGPActions(null);
+                s.UpdateGPActions(null);
             }
         }
 

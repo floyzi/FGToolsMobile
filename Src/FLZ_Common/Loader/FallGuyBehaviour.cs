@@ -5,6 +5,7 @@ using Il2CppFGClient;
 using Il2CppFGClient.UI;
 using Il2CppLevels.Progression;
 using Il2CppLevels.SeeSaw;
+using NOTFGT.FLZ_Common.GUI.Styles;
 using UnityEngine;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 
@@ -51,7 +52,7 @@ namespace NOTFGT.FLZ_Common.Loader
 
         public void LoadGPActions()
         {
-            Instance.GUIUtil.UpdateGPActions(new()
+            Instance.GUIUtil.GetStyle<GameplayStyle>().UpdateGPActions(new()
             {
                 { "quick_respawn", RespawnPlayer },
                 { "quick_checkp", Checkpoint },
@@ -83,7 +84,7 @@ namespace NOTFGT.FLZ_Common.Loader
 
         void OnDestroy()
         {
-            Instance.GUIUtil.UpdateGPActions(null);
+            Instance.GUIUtil.GetStyle<GameplayStyle>().UpdateGPActions(null);
         }
 
         void RespawnPlayer()

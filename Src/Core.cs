@@ -102,7 +102,6 @@ namespace NOTFGT
 
                 ClassInjector.RegisterTypeInIl2Cpp<LocalizedStr>();
                 ClassInjector.RegisterTypeInIl2Cpp<FallGuyBehaviour>();
-                ClassInjector.RegisterTypeInIl2Cpp<ToolsButton>();
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
                 ClassInjector.RegisterTypeInIl2Cpp<MenuCategory>();
                 ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();

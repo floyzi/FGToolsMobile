@@ -71,10 +71,7 @@ namespace NOTFGT.FLZ_Common
                 if (__instance.name.StartsWith("PB_UI_"))
                     __instance.name = __instance.transform.position.x.ToString();
 
-                if (Instance.GUIUtil.IsUIActive)
-                    //slop!
-                    __instance.transform.localPosition = new Vector3(float.Parse(__instance.transform.name) + Instance.GUIUtil.PanelBG.rect.width + 175, __instance.transform.localPosition.y, __instance.transform.localPosition.z);
-                else
+                
                     __instance.transform.localPosition = new Vector3(float.Parse(__instance.transform.name), __instance.transform.localPosition.y, __instance.transform.localPosition.z);
             }
         }

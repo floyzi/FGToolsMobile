@@ -1,13 +1,15 @@
 ﻿using Il2CppTMPro;
 using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.GUI.Screens.Logic;
+using NOTFGT.FLZ_Common.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
+using static MelonLoader.MelonLogger;
 
 namespace NOTFGT.FLZ_Common.GUI.Screens
 {
@@ -37,6 +39,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             ClearLogsBtn.onClick.AddListener(new Action(() =>
             {
                 CleanupScreen(LogContent, true);
+                GUI_LogEntry.AllEntries.Clear();
                 GUI_LogEntry.UpdateLogStats();
             }));
 
@@ -46,6 +49,13 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             ErrorLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Error)));
 
             GUI_LogEntry.UpdateLogStats();
+        }
+
+        internal bool CanCreateLogs() => LogPrefab != null && LogContent != null && LogStats != null;
+        internal void UpdateLogStats()
+        {
+            if (!CanCreateLogs()) return;
+            LogStats?.text = LocalizationManager.LocalizedString("errors_display", [GUI_LogEntry.AllEntries.Count(e => e.IsError), GUI_LogEntry.AllEntries.Count(e => e.IsWarning), GUI_LogEntry.AllEntries.Count(e => e.IsInfo), GUI_LogEntry.AllEntries.Count]);
         }
     }
 }

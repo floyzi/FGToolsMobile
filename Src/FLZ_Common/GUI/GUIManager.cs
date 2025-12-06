@@ -8,6 +8,8 @@ using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.GUI.Screens;
 using NOTFGT.FLZ_Common.GUI.Screens.Logic;
+using NOTFGT.FLZ_Common.GUI.Styles;
+using NOTFGT.FLZ_Common.GUI.Styles.Logic;
 using NOTFGT.FLZ_Common.Localization;
 using System.Collections;
 using System.Diagnostics;
@@ -17,6 +19,7 @@ using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
 using static NOTFGT.FLZ_Common.GUI.Attributes.TMPReferenceAttribute;
+using static NOTFGT.FLZ_Common.HarmonyPatches;
 using Action = System.Action;
 using Image = UnityEngine.UI.Image;
 
@@ -27,6 +30,7 @@ namespace NOTFGT.FLZ_Common.GUI
     {
         internal const string TAB_PREFIX = "NavTab";
         internal const string SCREEN_PREFIX = "TAB";
+        internal const string STYLE_PREFIX = "Style";
         readonly Color TabActiveCol = new(0.7f, 0.9f, 1f, 1f);
 
         internal enum UIState
@@ -53,34 +57,16 @@ namespace NOTFGT.FLZ_Common.GUI
         #endregion
 
         internal GameObject GUIInstance;
+        internal DefaultStyle Default;
 
-        [GUIReference("PanelBG")] internal readonly RectTransform PanelBG;
-        [GUIReference("StyleDefault")] readonly GameObject DefaultStyle;
-        [GUIReference("ToolsButton")] readonly Button HiddenStyle;
-        [GUIReference("StyleGameplay")] readonly GameObject GameplayStyle;
-        [GUIReference("StyleRepair")] readonly GameObject RepairStyle;
-
-        [GUIReference("HideButton")] readonly Button HideButton;
-
-        [GUIReference("GPActive")] readonly GameObject GameplayActive;
-        [GUIReference("GPHidden")] readonly GameObject GameplayHidden;
-        [GUIReference("OpenGPPanel")] readonly Button OpenGP;
-        [GUIReference("HideGPPanel")] readonly Button HideGP;
-
-        [GUIReference("GPActionsView")] readonly Transform GPActionsView;
-        [GUIReference("GPButtonPrefab")] readonly Button GPBtn;
-
-        [TMPReference(FontType.TitanOne, "PinkOutline")]
-        [GUIReference("HeaderTitle")] readonly TextMeshProUGUI Header;
-        [TMPReference(FontType.AsapBold, "2.0_Shadow")]
-        [GUIReference("HeaderSlogan")] readonly TextMeshProUGUI Slogan;
+        internal List<Transform> ScreensCache;
+        internal List<Transform> StylesCache;
 
         readonly HashSet<string> KnownNames;
         List<Transform> UIContent;
-        internal List<Transform> ScreensCache;
         List<UIScreen> Screens;
+        List<UIStyle> Styles;
         Queue<Action> FontSetupQueue;
-        List<Transform> GameplayActions;
 
         bool HasGUIKilled = false;
         bool SucceedGUISetup = false;
@@ -93,7 +79,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             MelonCoroutines.Start(LoadGUI(Path.Combine(Core.AssetsDir, Constants.BundleName), (took) =>
             {
-                GameplayActions = [];
+                Styles = [];
                 Screens = [];
                 FontSetupQueue = [];
 
@@ -104,17 +90,21 @@ namespace NOTFGT.FLZ_Common.GUI
                 GUIInstance.GetComponent<Canvas>().sortingOrder = 9990;
               
                 UIContent = [.. GUIInstance.transform.GetComponentsInChildren<Transform>(true)];
+
+                StylesCache = UIContent.FindAll(x => x.name.StartsWith($"{STYLE_PREFIX}_"));
+
+                Styles.Add(new HiddenStyle());
+                Styles.Add(new DefaultStyle());
+                Styles.Add(new GameplayStyle());
+
                 ScreensCache = UIContent.FindAll(x => x.name.StartsWith(TAB_PREFIX) || x.name.StartsWith(SCREEN_PREFIX));
-
-                var map = GetFieldsOf<GUIReferenceAttribute>();
-
-                Reference(map);
 
                 Screens.Add(new ToolsScreen());
                 Screens.Add(new RoundLoaderScreen());
                 Screens.Add(new LogScreen());
                 Screens.Add(new CreditsScreen());
 
+                Default = GetStyle<DefaultStyle>();
                 ToggleGUI(UIState.Disabled);
 
                 MelonLogger.Msg($"[{GetType()}] UI configured, took: {took:F2}s");
@@ -172,12 +162,6 @@ namespace NOTFGT.FLZ_Common.GUI
                 tasks.Add((mapped.Value, req, pName));
             }
 
-            if (tasks == null || tasks.Count == 0)
-            {
-                FailPopup(LocalizationManager.LocalizedString("init_fail_no_tasks"));
-                yield break;
-            }
-
             var cast = typeof(Il2CppObjectBase).GetMethod("TryCast", BindingFlags.Instance | BindingFlags.Public);
 
             foreach (var (field, request, name) in tasks)
@@ -212,22 +196,18 @@ namespace NOTFGT.FLZ_Common.GUI
             sw.Stop();
         }
 
-        void ToggleGUI(UIState toggle)
+        internal void ToggleGUI(UIState toggle)
         {
             CurrentUIState = toggle;
+            foreach (var s in Styles) s.StyleContainer.SetActive(false);
+
             switch (toggle)
             {
-                case UIState.Disabled:
-                    DefaultStyle?.SetActive(false);
-                    HiddenStyle?.gameObject.SetActive(false);
-                    break;
                 case UIState.Hidden:
-                    DefaultStyle?.SetActive(false);
-                    HiddenStyle?.gameObject.SetActive(true);
+                    GetStyle<HiddenStyle>().StyleContainer.SetActive(true);
                     break;
                 case UIState.Active:
-                    DefaultStyle?.SetActive(true);
-                    HiddenStyle?.gameObject.SetActive(false);
+                    GetStyle<DefaultStyle>().StyleContainer.SetActive(true);
                     break;
             }
         }
@@ -237,48 +217,44 @@ namespace NOTFGT.FLZ_Common.GUI
             if (HasGUIKilled)
                 return;
 
-            try
+
+            if (!SucceedGUISetup)
             {
-                if (!SucceedGUISetup)
+                LocalizedStr.LocalizeStrings?.Invoke();
+
+                FLZ_GUIExtensions.ConfigureFonts();
+                foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
                 {
-                    LocalizedStr.LocalizeStrings?.Invoke();
-
-                    FLZ_GUIExtensions.ConfigureFonts();
-                    foreach (var tmp in GUIInstance.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
-                    {
-                        tmp.gameObject.AddComponent<LocalizedStr>().Setup();
-                        FLZ_GUIExtensions.SetupFont(tmp, Constants.TMPFontFallback, "2.0_Shadow");
-                    }
-
-                    while (FontSetupQueue.Count > 0)
-                    {
-                        FontSetupQueue.Dequeue().Invoke();
-                    }
-
-                    foreach (var s in Screens)
-                        s.CreateScreen();
-
-                    SetupGUI();
+                    tmp.gameObject.AddComponent<LocalizedStr>().Setup();
+                    FLZ_GUIExtensions.SetupFont(tmp, Constants.TMPFontFallback, "2.0_Shadow");
                 }
 
-                ResetGPUI();
-
-                Instance.HandlePlayerState(PlayerState.Menu);
-
-                if (!WasInMenu)
+                while (FontSetupQueue.Count > 0)
                 {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [Constants.DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [Constants.DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>((wasok) =>
-                    {
-                        WasInMenu = true;
-                        ToggleGUI(UIState.Active);
-                        ToggleScreen(UIScreen.ScreenType.Cheats);
-                        Instance.Config.EntriesManager.ReleaseQueue();
-                    }));
+                    FontSetupQueue.Dequeue().Invoke();
                 }
+
+                foreach (var s in Styles)
+                    s.CreateStyle();
+
+                foreach (var s in Screens)
+                    s.CreateScreen();
+
+                SetupGUI();
             }
-            catch (Exception e)
+
+
+            Instance.HandlePlayerState(PlayerState.Menu);
+
+            if (!WasInMenu)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("failed_title", [Constants.DefaultName]), FLZ_Extensions.FormatException(e), ModalType.MT_OK, OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("welcome_title", [Constants.DefaultName]), LocalizationManager.LocalizedString("welcome_desc", [Constants.DefaultName]), ModalType.MT_OK, OKButtonType.Default, new Action<bool>((wasok) =>
+                {
+                    WasInMenu = true;
+                    ToggleGUI(UIState.Active);
+                    ToggleScreen(UIScreen.ScreenType.Cheats);
+                    Instance.Config.EntriesManager.ReleaseQueue();
+                }));
             }
         }
 
@@ -327,16 +303,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             try
             {
-                HiddenStyle.gameObject.AddComponent<ToolsButton>().onClick = new Action(() => { ToggleGUI(UIState.Active); });
-
-                HideButton.onClick.AddListener(new Action(() => { ToggleGUI(UIState.Hidden); }));
-
-                HideGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, false); }));
-                OpenGP.onClick.AddListener(new Action(() => { UpdateGPUI(true, true); }));
-
-                Header.text = $"{Constants.DefaultName} V{Core.BuildInfo.Version}";
-                Slogan.text = $"{Constants.Description}";
-
+               
                 GUIInstance.gameObject.SetActive(true);
                 SucceedGUISetup = true;
             }
@@ -357,33 +324,6 @@ namespace NOTFGT.FLZ_Common.GUI
             yield return new WaitForSeconds(0.15f);
             flashInst.GetComponentInChildren<Image>().DOColor(new Color(255, 255, 255, 0), length);
             GameObject.Destroy(flashInst, length + 0.2f);
-        }
-
-        public void UpdateGPActions(Dictionary<string, Action> actions = null)
-        {
-            if (actions != null)
-            {
-                foreach (var action in actions)
-                {
-                    GameObject btnPrefab = UnityEngine.Object.Instantiate(GPBtn.gameObject, GPActionsView);
-                    btnPrefab.SetActive(true);
-                    btnPrefab.name = action.Key;
-
-                    btnPrefab.GetComponentInChildren<Button>().onClick.AddListener(action.Value);
-                    btnPrefab.GetComponentInChildren<TextMeshProUGUI>().gameObject.AddComponent<LocalizedStr>().Setup(action.Key);
-
-                    GameplayActions.Add(btnPrefab.transform);
-                }
-            }
-            else
-            {     
-                foreach (var trans in GameplayActions)
-                {
-                    UnityEngine.Object.Destroy(trans.gameObject);
-                }
-                GameplayActions.Clear();
-                UpdateGPUI(false, false);
-            }
         }
 
         static void FailPopup(string addotionalMsg) 
@@ -491,25 +431,7 @@ namespace NOTFGT.FLZ_Common.GUI
             nextScreen.ScreenContainer.SetActive(true);
         }
 
-        public void UpdateGPUI(bool keepGUIOn, bool active)
-        {
-            GameplayStyle.SetActive(keepGUIOn);
-            GameplayHidden.SetActive(!active);
-            GameplayActive.SetActive(active);
-        }
-
-        void ResetGPUI()
-        {
-            GameplayActive.SetActive(false);
-            GameplayHidden.SetActive(true);
-            GameplayStyle.SetActive(false);
-            GameplayActions.Clear();
-        }
-
-        internal void RefreshEntries()
-        {
-            if (!IsUIActive) return;
-            foreach (var e in TrackedEntry.TrackedEntries) e.Refresh();
-        }
+        internal T GetScreen<T>() where T : UIScreen => Screens.FirstOrDefault(x => x.GetType() == typeof(T)) as T;
+        internal T GetStyle<T>() where T : UIStyle => Styles.FirstOrDefault(x => x.GetType() == typeof(T)) as T;
     }
 }

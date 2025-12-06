@@ -1,5 +1,6 @@
 ﻿using Il2CppTMPro;
 using MelonLoader;
+using NOTFGT.FLZ_Common.GUI.Screens;
 using NOTFGT.FLZ_Common.Localization;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace NOTFGT.FLZ_Common.GUI
         static readonly Color ErrorColor = new(1f, 0.7028302f, 0.7028302f, 1f);
         internal static List<GUI_LogEntry> AllEntries = [];
         static Queue<Action> PendingLogs = [];
+        static LogScreen LogScreen;
         internal static LogType PreviewLogType = (LogType)1001;
 
         public GUI_LogEntry(string line, string trace, LogType type)
@@ -39,55 +41,58 @@ namespace NOTFGT.FLZ_Common.GUI
         public static bool IsInLogPreview() => PreviewLogType != (LogType)1001;
         public void CreateInstance()
         {
-            //if (HasInstance) return;
-            //if (IsInLogPreview() && PreviewLogType != Type) return;
+            if (HasInstance) return;
+            if (IsInLogPreview() && PreviewLogType != Type) return;
 
-            //if (!CanCreateInstances())
-            //{
-            //    PendingLogs ??= [];
-            //    PendingLogs.Enqueue(CreateInstance);
-            //    return;
-            //}
+            if (!CanCreateInstances())
+            {
+                PendingLogs ??= [];
+                PendingLogs.Enqueue(CreateInstance);
+                return;
+            }
 
-            //if (PendingLogs != null)
-            //{
-            //    for (int i = 0; i < PendingLogs.Count; i++)
-            //        PendingLogs.Dequeue().Invoke();
+            if (PendingLogs != null)
+            {
+                for (int i = 0; i < PendingLogs.Count; i++)
+                    PendingLogs.Dequeue().Invoke();
 
-            //    PendingLogs = null;
-            //}
+                PendingLogs = null;
+            }
 
-            //EntryInstance = UnityEngine.Object.Instantiate(Instance.GUIUtil.LogPrefab, Instance.GUIUtil.LogContent);
-            //EntryInstance.name = "Log";
-            //EntryInstance.gameObject.SetActive(true);
-            //EntryInstance.transform.SetAsFirstSibling();
+            EntryInstance = UnityEngine.Object.Instantiate(LogScreen.LogPrefab, LogScreen.LogContent);
+            EntryInstance.name = "Log";
+            EntryInstance.gameObject.SetActive(true);
+            EntryInstance.transform.SetAsFirstSibling();
 
-            //switch (Type)
-            //{
-            //    case LogType.Assert:
-            //    case LogType.Log:
-            //        EntryInstance.image.color = InfoColor;
-            //        break;
-            //    case LogType.Warning:
-            //        EntryInstance.image.color = WarningColor;
-            //        break;
-            //    case LogType.Exception:
-            //    case LogType.Error:
-            //        EntryInstance.image.color = ErrorColor;
-            //        break;
-            //}
+            switch (Type)
+            {
+                case LogType.Assert:
+                case LogType.Log:
+                    EntryInstance.image.color = InfoColor;
+                    break;
+                case LogType.Warning:
+                    EntryInstance.image.color = WarningColor;
+                    break;
+                case LogType.Exception:
+                case LogType.Error:
+                    EntryInstance.image.color = ErrorColor;
+                    break;
+            }
 
-            //UpdateLogStats();
+            UpdateLogStats();
 
-            //string result = Msg.Length > 55 ? result = string.Concat(Msg.AsSpan(0, 55), "...") : Msg;
-            //EntryInstance.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = $"{Regex.Replace(result, @"^\d{2}:\d{2}:\d{2}\.\d{3}:\s*", "")}";
-            //EntryInstance.onClick.AddListener(new Action(() => { Instance.GUIUtil.LogInfo.text = LocalizationManager.LocalizedString("advanced_log", [Type, Msg, Stacktrace]); }));
+            string result = Msg.Length > 55 ? result = string.Concat(Msg.AsSpan(0, 55), "...") : Msg;
+            EntryInstance.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = $"{Regex.Replace(result, @"^\d{2}:\d{2}:\d{2}\.\d{3}:\s*", "")}";
+            EntryInstance.onClick.AddListener(new Action(() => { LogScreen.LogInfo.text = LocalizationManager.LocalizedString("advanced_log", [Type, Msg, Stacktrace]); }));
         }
 
-        public static bool CanCreateInstances() => /*Instance.GUIUtil.LogPrefab != null && Instance.GUIUtil.LogContent != null && Instance.GUIUtil.LogStats != null*/ false;
-        public static void UpdateLogStats()
-        { /*Instance.GUIUtil.LogStats?.text = LocalizationManager.LocalizedString("errors_display", [AllEntries.Count(e => e.IsError), AllEntries.Count(e => e.IsWarning), AllEntries.Count(e => e.IsInfo), AllEntries.Count])*/
+        public static bool CanCreateInstances()
+        {
+            LogScreen ??= FLZ_ToolsManager.Instance.GUIUtil.GetScreen<LogScreen>();
+            return LogScreen != null && LogScreen.CanCreateLogs();
         }
+
+        public static void UpdateLogStats() => LogScreen?.UpdateLogStats();
 
         public void DestroyInstance()
         {

@@ -8,6 +8,7 @@ using Il2CppFGDebug;
 using Il2CppTMPro;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
+using NOTFGT.FLZ_Common.GUI.Screens;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
 using System.Text;
@@ -141,7 +142,7 @@ namespace NOTFGT.FLZ_Common
             Msg("Successful startup!");
         }
 
-        void FixedUpdate() => GUIUtil?.RefreshEntries();
+        void FixedUpdate() => GUIUtil?.Default?.RefreshEntries();
         void OnEnterMenu(OnMainMenuDisplayed evt) => OnMenuEnter();
         void OnSpectator(OnSpectatingPlayer evt) => OnSpectatorEvent();
         void OnFinish(OnLocalPlayersFinished evt) => OnFinished();
@@ -205,7 +206,7 @@ namespace NOTFGT.FLZ_Common
 
         internal void ResolveLogTracking()
         {
-            //GUIUtil.LogDisabledScreen.SetActive(!TrackGameLog);
+            GUIUtil.GetScreen<LogScreen>().LogDisabledScreen.SetActive(!TrackGameLog);
 
             if (TrackGameLog && OnLog == null)
             {
