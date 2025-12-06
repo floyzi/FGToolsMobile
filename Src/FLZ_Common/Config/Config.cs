@@ -1,6 +1,7 @@
 ﻿using Il2Cpp;
 using Il2CppFGClient;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Config.Entries;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.Localization;
 using System.Collections;
@@ -10,7 +11,7 @@ using static Il2CppFGClient.UI.UIModalMessage;
 using static UnityStandardAssets.Utility.TimedObjectActivator;
 using Action = System.Action;
 
-namespace NOTFGT.FLZ_Common
+namespace NOTFGT.FLZ_Common.Config
 {
     internal class Config
     {
@@ -31,12 +32,12 @@ namespace NOTFGT.FLZ_Common
         }
 
         internal ConfigModel SavedConfig;
-
+        internal EntriesManager EntriesManager;
         internal Config(Action onInit)
         {
             MelonCoroutines.Start(WaitForFallGuys(new(() =>
             {
-                FLZ_ToolsManager.Instance.SettingsMenu.Create();
+                EntriesManager = new();
                 CheckConfig();
                 LocalizationManager.Setup();
                 onInit.Invoke();
@@ -64,7 +65,7 @@ namespace NOTFGT.FLZ_Common
             try
             {
                 var cfg = JsonSerializer.Deserialize<ConfigModel>(File.ReadAllText(Core.ConfigFile));
-                FLZ_ToolsManager.Instance.SettingsMenu.ConfigureSave(cfg.SavedEntries);
+                EntriesManager.LoadFromSave(cfg.SavedEntries);
                 SavedConfig = cfg;
                 MelonLogger.Msg("Config loaded");
             }
@@ -77,7 +78,7 @@ namespace NOTFGT.FLZ_Common
         internal void SaveConfig(bool cleanup)
         {
             SavedConfig ??= new();
-            var res = FLZ_ToolsManager.Instance.SettingsMenu.ConfigureForSave(cleanup);
+            var res = EntriesManager.GetForSave(cleanup);
             SavedConfig.SavedEntries = res;
             File.WriteAllText(Core.ConfigFile, JsonSerializer.Serialize<ConfigModel>(SavedConfig));
         }

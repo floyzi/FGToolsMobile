@@ -1,27 +1,18 @@
 ﻿using Il2Cpp;
 using Il2CppEvents;
 using Il2CppFG.Common;
-using Il2CppFG.Common.Character;
-using Il2CppFG.Common.CMS;
 using Il2CppFGClient;
 using Il2CppFGClient.UI;
 using Il2CppFGClient.UI.Core;
 using Il2CppFGDebug;
-using Il2CppMediatonic.Tools.MVVM;
 using Il2CppTMPro;
-using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static Il2Cpp.GameStateEvents;
-using static Il2CppFG.Common.CommonEvents;
 using static Il2CppFG.Common.GameStateMachine;
 using static Il2CppFGClient.GlobalGameStateClient;
 using static Il2CppFGClient.UI.UIModalMessage;
@@ -106,9 +97,8 @@ namespace NOTFGT.FLZ_Common
         readonly string NextLogDate = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         StringBuilder AllLogs = new();
 
-        public Config Config { get; private set; }
-        public GUI_Util GUIUtil { get; private set; }
-        public ToolsMenu SettingsMenu { get; private set; }
+        public Config.Config Config { get; private set; }
+        public GUIManager GUIUtil { get; private set; }
         public RoundLoaderService RoundLoader { get; private set; }
         public FLZ_Game InGameManager { get; private set; }
 
@@ -120,7 +110,6 @@ namespace NOTFGT.FLZ_Common
 
             try
             {
-                SettingsMenu = new();
                 InGameManager = new();
                 RoundLoader = new();
                 Config = new(() =>
@@ -216,7 +205,7 @@ namespace NOTFGT.FLZ_Common
 
         internal void ResolveLogTracking()
         {
-            GUIUtil.LogDisabledScreen.SetActive(!TrackGameLog);
+            //GUIUtil.LogDisabledScreen.SetActive(!TrackGameLog);
 
             if (TrackGameLog && OnLog == null)
             {

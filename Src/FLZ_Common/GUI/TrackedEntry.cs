@@ -1,14 +1,7 @@
-﻿using Harmony;
-using Il2Cpp;
-using Il2CppTMPro;
-using MelonLoader;
-using System.Collections;
+﻿using NOTFGT.FLZ_Common.Config.Entries;
+using NOTFGT.FLZ_Common.Config.Entries.Configs;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static Il2CppMono.Security.X509.X520;
-using static Il2CppRewired.Demos.GamepadTemplateUI.GamepadTemplateUI;
-using static NOTFGT.FLZ_Common.GUI.ToolsMenu;
 
 namespace NOTFGT.FLZ_Common.GUI
 {

@@ -36,7 +36,13 @@
 
 	<ItemGroup>
 		<Compile Include="Constants.cs" />
-		<Compile Include="FLZ_Common\Config.cs" />
+		<Compile Include="FLZ_Common\Config\Config.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\Configs\BaseEntryConfig.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\Configs\FieldConfig.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\Configs\SliderConfig.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\Configs\ToggleConfig.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\EntriesManager.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\MenuEntry.cs" />
 		<Compile Include="FLZ_Common\Extensions\FLZ_AndroidExtensions.cs" />
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
@@ -53,10 +59,9 @@
 		<Compile Include="FLZ_Common\GUI\Screens\RoundLoaderScreen.cs" />
 		<Compile Include="FLZ_Common\GUI\Screens\ToolsScreen.cs" />
 		<Compile Include="FLZ_Common\GUI\ToolsButton.cs" />
-		<Compile Include="FLZ_Common\GUI\GUI_Util.cs" />
+		<Compile Include="FLZ_Common\GUI\GUIManager.cs" />
 		<Compile Include="FLZ_Common\GUI\TrackedEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\UnityDragFix.cs" />
-		<Compile Include="FLZ_Common\GUI\ToolsMenu.cs" />
 		<Compile Include="FLZ_Common\HarmonyPatches.cs" />
 		<Compile Include="FLZ_Common\Loader\FallGuyBehaviour.cs" />
 		<Compile Include="FLZ_Common\Loader\RoundLoaderService.cs" />

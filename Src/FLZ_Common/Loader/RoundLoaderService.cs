@@ -86,70 +86,68 @@ namespace NOTFGT.FLZ_Common.Loader
 
         public void LoadCmsRound(string roundToFind, LoadSceneMode mode)
         {
-            if (RoundLoadingAllowed)
+            if (!RoundLoadingAllowed)
             {
-                if (IsInRealGame)
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_not_allowed"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                return;
+            }
+            if (IsInRealGame)
+            {
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_real_game"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                return;
+            }
+
+            RoundLoadingAllowed = false;
+
+            try
+            {
+                if (CMSLoader.Instance.CMSData.Rounds.ContainsKey(roundToFind))
+                    SetNewRound(CMSLoader.Instance.CMSData.Rounds[roundToFind]);
+                else
                 {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_real_game"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                    RoundLoadingAllowed = true;
                     return;
                 }
 
-                RoundLoadingAllowed = false;
-
-                try
+                if (CurrentRound.IsUGC())
                 {
-                    if (CMSLoader.Instance.CMSData.Rounds.ContainsKey(roundToFind))
-                        SetNewRound(CMSLoader.Instance.CMSData.Rounds[roundToFind]);
-                    else
-                    {
-                        FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
-                        RoundLoadingAllowed = true;
-                        return;
-                    }
-
-                    if (CurrentRound.IsUGC())
-                    {
-                        FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_fgc"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
-                        RoundLoadingAllowed = true;
-                        return;
-                    }
-
-                    if (CurrentRound.SceneData == null)
-                    {
-                        FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_scene_data"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
-                        RoundLoadingAllowed = true;
-                        return;
-                    }
-
-                    CurrentRound.GameRules.ShowQualificationProgressUI = CurrentRound.Archetype.Id.Contains("race");
-                    if (CurrentRound.Archetype.Id == "archetype_invisibeans")
-                        CurrentRound.Archetype.TagColour = "#5cedeb";
-                    CurrentRound.GameRules.TimerVisibilityThreshold = 9999;
-                    NetworkGameData.ClearCurrentGameOptions();
-                    GlobalGameStateClient.Instance.ResetGame();
-
-                    if (mode == LoadSceneMode.Additive)
-                        Addressables.LoadScene(CurrentRound.GetSceneName(), LoadSceneMode.Additive);
-                    else
-                    {
-                        Resources.FindObjectsOfTypeAll<UICanvas>().FirstOrDefault().RemoveAllScreens();
-                        StartLoadingScreen();
-                        Instance.HandlePlayerState(PlayerState.RoundLoader);
-                        NetworkGameData.SetGameOptionsFromRoundData(CurrentRound);
-                        NetworkGameData.SetInitialRoundPlayerCount(1);
-                        GameLoading = new StateGameLoading(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), GamePermission.Player, false, false);
-                        GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(GameLoading.Cast<IGameState>());
-                    }
-                }
-                catch (Exception e)
-                {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind, mode, e.Message]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_fgc"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
                     RoundLoadingAllowed = true;
+                    return;
+                }
+
+                if (CurrentRound.SceneData == null)
+                {
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_scene_data"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                    RoundLoadingAllowed = true;
+                    return;
+                }
+
+                CurrentRound.GameRules.ShowQualificationProgressUI = CurrentRound.Archetype.Id.Contains("race");
+                if (CurrentRound.Archetype.Id == "archetype_invisibeans")
+                    CurrentRound.Archetype.TagColour = "#5cedeb";
+                CurrentRound.GameRules.TimerVisibilityThreshold = 9999;
+                NetworkGameData.ClearCurrentGameOptions();
+                GlobalGameStateClient.Instance.ResetGame();
+
+                if (mode == LoadSceneMode.Additive)
+                    Addressables.LoadScene(CurrentRound.GetSceneName(), LoadSceneMode.Additive);
+                else
+                {
+                    Resources.FindObjectsOfTypeAll<UICanvas>().FirstOrDefault().RemoveAllScreens();
+                    StartLoadingScreen();
+                    Instance.HandlePlayerState(PlayerState.RoundLoader);
+                    NetworkGameData.SetGameOptionsFromRoundData(CurrentRound);
+                    NetworkGameData.SetInitialRoundPlayerCount(1);
+                    GameLoading = new StateGameLoading(GlobalGameStateClient.Instance._gameStateMachine, GlobalGameStateClient.Instance.CreateClientGameStateData(), GamePermission.Player, false, false);
+                    GlobalGameStateClient.Instance._gameStateMachine.ReplaceCurrentState(GameLoading.Cast<IGameState>());
                 }
             }
-            else
+            catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_not_allowed"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind, mode, e.Message]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                RoundLoadingAllowed = true;
             }
         }
 

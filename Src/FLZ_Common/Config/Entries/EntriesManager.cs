@@ -1,22 +1,20 @@
-﻿using Il2Cpp;
-using Il2CppFGClient;
-using Il2CppFGClient.UI;
+﻿using Il2CppFGClient;
 using Il2CppFGDebug;
 using MelonLoader;
-using NOTFGT.FLZ_Common.Extensions;
-using NOTFGT.FLZ_Common.Localization;
-using System.Collections;
-using System.Text.Json;
+using NOTFGT.FLZ_Common.Config.Entries.Configs;
+using NOTFGT.FLZ_Common.GUI.Screens;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
-using static Il2CppFG.Benchmarking.LoadLevel.UGC.LevelLoader;
-using static Il2CppFGClient.UI.UIModalMessage;
-using static NOTFGT.FLZ_Common.Config;
+using static NOTFGT.FLZ_Common.Config.Config;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
-using File = System.IO.File;
 
-namespace NOTFGT.FLZ_Common.GUI
+namespace NOTFGT.FLZ_Common.Config.Entries
 {
-    public class ToolsMenu
+    internal class EntriesManager
     {
         const string DEBUG_CATEG = "menu_debug_section";
         const string FGCC_CATEG = "menu_fgcc_section";
@@ -26,155 +24,8 @@ namespace NOTFGT.FLZ_Common.GUI
 
         public struct CategoryData(int priority, string id)
         {
-            public int Priority = priority; 
+            public int Priority = priority;
             public string LocaleID = id;
-        }
-
-        internal interface IEntryConfig {}
-        internal abstract class BaseEntryConfig : IEntryConfig
-        {
-            public Func<bool> InteractableCondition;
-            public Func<bool> DisplayCondition;
-            public Func<bool> SaveInConfigCondition;
-        }
-
-        internal class SliderConfig : BaseEntryConfig
-        {
-            public Type ValueType;
-            public float MinValue;
-            public float MaxValue;
-
-            public SliderConfig(Type t, float min = -1, float max = -1, Func<bool> intCondition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
-            {
-                ValueType = t;
-                MinValue = min;
-                MaxValue = max;
-                InteractableCondition = intCondition;
-                DisplayCondition = dispCondition;
-                SaveInConfigCondition = saveInConfCondition;
-            }
-        }
-        internal class FieldConfig : BaseEntryConfig
-        {
-            public Type ValueType;
-            public int CharacterLimit;
-
-            public FieldConfig(Type t, int charLimit = -1, Func<bool> condition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
-            {
-                ValueType = t;
-                CharacterLimit = charLimit;
-                InteractableCondition = condition;
-                DisplayCondition = dispCondition;
-                SaveInConfigCondition = saveInConfCondition;
-            }
-        }
-        internal class ToggleConfig : BaseEntryConfig
-        {
-            public ToggleConfig(Func<bool> condition = null, Func<bool> dispCondition = null, Func<bool> saveInConfCondition = null)
-            {
-                InteractableCondition = condition;
-                DisplayCondition = dispCondition;
-                SaveInConfigCondition = saveInConfCondition;
-            }
-        }
-
-        internal class MenuEntry(MenuEntry.Type type, string id, CategoryData category, string displayName, string desc, Func<object, object> setter = null, Action postSet = null, IEntryConfig additionalConfig = null)
-        {
-            public enum Type
-            {
-                Toggle,
-                InputField,
-                Slider,
-                Button
-            }
-
-            /// <summary>
-            /// ID of the entry, should be unique for each entry.
-            /// </summary>
-            internal string ID { get; private set; } = id;
-
-            /// <summary>
-            /// Category where element will be placed on UI.
-            /// Represents ID of localized string
-            /// </summary>
-            internal CategoryData Category { get; private set; } = category;
-
-            /// <summary>
-            /// Name of element that will be shown on UI.
-            /// Represents ID of localized string
-            /// </summary>
-            internal string DisplayName { get; private set; } = displayName;
-
-            /// <summary>
-            /// Description of element that will be shown on UI.
-            /// Represents ID of localized string
-            /// </summary>
-            internal string Description { get; private set; } = desc;
-
-            /// <summary>
-            /// Type of entry, indicates how this entry will be shown on UI
-            /// </summary>
-            internal Type EntryType { get; private set; } = type;
-
-            /// <summary>
-            /// Additional properties of entry.
-            /// </summary>
-            internal IEntryConfig AdditionalConfig => additionalConfig;
-
-            /// <summary>
-            /// Used to set and get updated value of field that attached to this entry
-            /// </summary>
-            internal Func<object, object> Setter => setter;
-
-            /// <summary>
-            /// Initial field value of field. Null if field is not specefied
-            /// </summary>
-            internal object InitialValue = setter?.Invoke(null);
-
-            /// <summary>
-            /// Action that will be invoked after Setter 
-            /// </summary>
-            internal Action PostSetAction = postSet;
-
-            /// <summary>
-            /// Indicates can be entry included in config save or no
-            /// </summary>
-            internal bool CanBeSaved
-            {
-                get
-                {
-                    if (EntryType == Type.Button || string.IsNullOrEmpty(ID))
-                        return false;
-
-                    if (AdditionalConfig != null)
-                    {
-                        if (AdditionalConfig is BaseEntryConfig baseConf && baseConf.SaveInConfigCondition != null)
-                            return baseConf.SaveInConfigCondition();
-                    }
-
-                    return true;
-                }
-            }
-            /// <summary>
-            /// Action that will be invoked after entry value is changed
-            /// </summary>
-            internal Action<object> OnEntryChanged;
-
-            internal object GetValue() => setter?.Invoke(null);
-
-            internal void Set(object val)
-            {
-                try
-                {
-                    Setter?.Invoke(val);
-                    PostSetAction?.Invoke();
-                    OnEntryChanged?.Invoke(val);
-                }
-                catch (Exception ex)
-                {
-                    MelonLogger.Error($"Exception on Set on entry {ID} ({EntryType})!\n{ex}");
-                }
-            }
         }
 
         internal readonly List<MenuEntry> Entries = [];
@@ -189,7 +40,7 @@ namespace NOTFGT.FLZ_Common.GUI
             new(0, SECRET_CATEG)
         ];
 
-        internal void Create()
+        internal EntriesManager()
         {
             var devCat = CategoryDatas.First(x => x.LocaleID == DEBUG_CATEG);
             var defCat = CategoryDatas.First(x => x.LocaleID == DEFAULT_CATEG);
@@ -202,7 +53,7 @@ namespace NOTFGT.FLZ_Common.GUI
             CreateEntry(MenuEntry.Type.Toggle, "melon_log", devCat, () => Core.ShouldShowMelonLog, v => Core.ShouldShowMelonLog = v);
 #endif
             #endregion
-
+            
             #region DEFAULT CATEGORY
             CreateEntry(MenuEntry.Type.Toggle, "show_debug_ui", defCat, () => Core.ShowDebugUI, v => Core.ShowDebugUI = v);
             CreateEntry(MenuEntry.Type.Toggle, "show_watermark", defCat, () => Core.ShowWatermark, v => Core.ShowWatermark = v);
@@ -245,11 +96,11 @@ namespace NOTFGT.FLZ_Common.GUI
             #endregion
 
             #region SECRET CATEGORY
-            CreateEntry(MenuEntry.Type.Toggle, "owoify", secCat, () => Instance.IsOwoifyEnabled, v => Instance.IsOwoifyEnabled = v, Instance.ResolveOwoify, new ToggleConfig(dispCondition: () => Instance.GUIUtil.EnabledSecret, saveInConfCondition: () => false));
+            CreateEntry(MenuEntry.Type.Toggle, "owoify", secCat, () => Instance.IsOwoifyEnabled, v => Instance.IsOwoifyEnabled = v, Instance.ResolveOwoify, new ToggleConfig(dispCondition: () => CreditsScreen.EnabledSecret, saveInConfCondition: () => false));
             #endregion
         }
 
-        internal void ConfigureSave(List<ConfigEntry> entries)
+        internal void LoadFromSave(List<ConfigEntry> entries)
         {
             foreach (var entry in entries)
             {
@@ -259,12 +110,12 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 RollInMenu.Enqueue(new(() =>
                 {
-                    target.Set(entry.Value);
+                    target.SetValue(entry.Value);
                 }));
             }
         }
 
-        internal List<ConfigEntry> ConfigureForSave(bool cleanup)
+        internal List<ConfigEntry> GetForSave(bool cleanup)
         {
             var list = new List<ConfigEntry>();
 
@@ -314,7 +165,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
         internal void ReleaseQueue()
         {
-            for (int i = 0; i < RollInMenu.Count; i++)
+            while (RollInMenu.Count > 0)
             {
                 RollInMenu.Dequeue().Invoke();
             }
@@ -323,7 +174,7 @@ namespace NOTFGT.FLZ_Common.GUI
         internal void ResetSettings()
         {
             foreach (var entry in Entries.Where(x => x.CanBeSaved))
-                entry.Set(entry.InitialValue);
+                entry.SetValue(entry.InitialValue);
 
             FLZ_ToolsManager.Instance.Config.SaveConfig(true);
         }
