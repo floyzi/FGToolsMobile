@@ -105,6 +105,7 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<UnityDragFix>();
                 ClassInjector.RegisterTypeInIl2Cpp<MenuCategory>();
                 ClassInjector.RegisterTypeInIl2Cpp<TrackedEntry>();
+                ClassInjector.RegisterTypeInIl2Cpp<ElementSFX>();
 
                 HarmonyInstance.PatchAll(typeof(FLZ_LoginPatches));
                 HarmonyInstance.PatchAll(typeof(Default));

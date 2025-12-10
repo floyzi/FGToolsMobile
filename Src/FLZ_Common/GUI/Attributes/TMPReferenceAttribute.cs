@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Il2CppTMPro;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ using static NOTFGT.FLZ_Common.GUI.Attributes.TMPReferenceAttribute;
 namespace NOTFGT.FLZ_Common.GUI.Attributes
 {
     /// <summary>
-    /// Use this attribute to setup Fall Guys font on <c>TextMeshProUGUI</c> object from bundle.
+    /// Use this attribute to setup Fall Guys font on <see cref="TextMeshProUGUI"/> object from bundle.
     /// </summary>
     /// <param name="targetMaterial">Material that will be assigned to font. Find material names via UE on Desktop version of the game</param>
     [AttributeUsage(AttributeTargets.Field)]

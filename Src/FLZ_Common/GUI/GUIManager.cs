@@ -31,7 +31,7 @@ namespace NOTFGT.FLZ_Common.GUI
         internal const string TAB_PREFIX = "NavTab";
         internal const string SCREEN_PREFIX = "TAB";
         internal const string STYLE_PREFIX = "Style";
-        readonly Color TabActiveCol = new(0.7f, 0.9f, 1f, 1f);
+        internal static readonly Color TabActiveCol = new(0.7f, 0.9f, 1f, 1f);
 
         internal enum UIState
         {
@@ -107,7 +107,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 Default = GetStyle<DefaultStyle>();
                 ToggleGUI(UIState.Disabled);
 
-                MelonLogger.Msg($"[{GetType()}] UI configured, took: {took:F2}s");
+                MelonLogger.Msg($"[{GetType().Name}] UI configured, took: {took:F2}s");
 
                 onInit?.Invoke();
 
@@ -120,7 +120,7 @@ namespace NOTFGT.FLZ_Common.GUI
             if (HasGUIKilled || GUIInstance != null)
                 yield break;
 
-            MelonLogger.Msg($"Trying to load bundle from: \"{bPath}\"");
+            MelonLogger.Msg($"[{GetType().Name}] Trying to load bundle from: \"{bPath}\"");
 
             if (!File.Exists(bPath))
             {
@@ -156,7 +156,7 @@ namespace NOTFGT.FLZ_Common.GUI
             foreach (var mapped in map)
             {
                 var pName = mapped.Value.GetCustomAttribute<PrefabReferenceAttribute>().Name;
-                MelonLogger.Msg($"Loading prefab \"{pName}\"...");
+                MelonLogger.Msg($"[{GetType().Name}] Loading prefab \"{pName}\"...");
 
                 var req = GUI_Bundle.LoadAssetAsync(pName, Il2CppType.From(mapped.Value.FieldType));
                 tasks.Add((mapped.Value, req, pName));
@@ -178,7 +178,7 @@ namespace NOTFGT.FLZ_Common.GUI
                         yield break;
                     }
 
-                    MelonLogger.Msg($"Loaded \"{name}\"...");
+                    MelonLogger.Msg($"[{GetType().Name}] Loaded \"{name}\"...");
 
                     a.hideFlags = HideFlags.HideAndDontSave;
 
@@ -196,20 +196,26 @@ namespace NOTFGT.FLZ_Common.GUI
             sw.Stop();
         }
 
+
         internal void ToggleGUI(UIState toggle)
         {
             CurrentUIState = toggle;
-            foreach (var s in Styles) s.StyleContainer.SetActive(false);
 
-            switch (toggle)
+            foreach (var style in Styles) style.StyleContainer.SetActive(false);
+
+            var map = new Dictionary<UIState, List<UIStyle>>
             {
-                case UIState.Hidden:
-                    GetStyle<HiddenStyle>().StyleContainer.SetActive(true);
-                    break;
-                case UIState.Active:
-                    GetStyle<DefaultStyle>().StyleContainer.SetActive(true);
-                    break;
+                { UIState.Hidden, [GetStyle<HiddenStyle>()] },
+                { UIState.Active, [GetStyle<DefaultStyle>()] }
+            };
+
+            if (map.TryGetValue(toggle, out var v))
+            {
+                foreach (var e in v) e.StyleContainer.SetActive(true);
             }
+
+            var gps = GetStyle<GameplayStyle>();
+            gps.StyleContainer.SetActive(gps.HasItemsInside);
         }
 
         void MenuEvent()
@@ -258,36 +264,54 @@ namespace NOTFGT.FLZ_Common.GUI
             }
         }
 
-
-        void SetupText(FieldInfo field, TMPReferenceAttribute attr, object from = null)
+        bool GetField<T>(FieldInfo field, object from, out T res) where T : class
         {
-            var f = from ?? this;
             var guiAttr = field.GetCustomAttribute<GUIReferenceAttribute>();
-
-            if (attr == null)
-                return;
+            res = null;
 
             if (guiAttr == null)
             {
-                MelonLogger.Warning($"TMP Reference missing GUI Refrence on \"{field.Name}\"");
-                return;
+                MelonLogger.Error($"Field missing GUI Refrence on \"{field.Name}\"");
+                return false;
             }
 
-            if (field.FieldType != typeof(TextMeshProUGUI))
+            if (!typeof(T).IsAssignableFrom(field.FieldType))
             {
-                MelonLogger.Warning($"TMP Reference on \"{guiAttr.Name}\" is not TextMeshProUGUI");
-                return;
+                MelonLogger.Error($"Field on \"{guiAttr.Name}\" is not {typeof(T).Name} (but {field.FieldType.Name} instead)");
+                return false;
             }
 
-            if (field.GetValue(f) == null)
+            var f = from ?? this;
+            var val = field.GetValue(f);
+            if (val == null)
             {
-                MelonLogger.Warning($"TMP Reference on \"{guiAttr.Name}\" is null");
-                return;
+                MelonLogger.Error($"Field on \"{guiAttr.Name}\" is null");
+                return false;
             }
 
-            var tmpText = field.GetValue(f) as TextMeshProUGUI;
+            res = val as T;
+            return true;
+        }
 
-            FLZ_GUIExtensions.SetupFont(tmpText, attr.FontName, attr.MaterialName);
+        void SetupAudio(FieldInfo field, AudioReferenceAttribute attr, object from = null)
+        {
+            if (attr == null)
+                return;
+
+            if (GetField<Selectable>(field, from, out var res))
+            {
+                res.gameObject.AddComponent<ElementSFX>();
+                ElementSFX.RegisterPrefab(res, attr.Data);
+            }
+        }
+
+        void SetupText(FieldInfo field, TMPReferenceAttribute attr, object from = null)
+        {
+            if (attr == null)
+                return;
+
+            if (GetField<TextMeshProUGUI>(field, from, out var res))
+                FLZ_GUIExtensions.SetupFont(res, attr.FontName, attr.MaterialName);
         }
 
         void SetupGUI()
@@ -384,14 +408,23 @@ namespace NOTFGT.FLZ_Common.GUI
                     {
                         field.SetValue(f, component);
                         var tmpAttr = field.GetCustomAttribute<TMPReferenceAttribute>();
+                        var audAttr = field.GetCustomAttribute<AudioReferenceAttribute>();
 
                         if (tmpAttr != null)
                         {
-                            FontSetupQueue.Enqueue(new Action(() =>
-                            {
+                            if (WasInMenu)
                                 SetupText(field, tmpAttr, f);
-                            }));
+                            else
+                            {
+                                FontSetupQueue.Enqueue(new Action(() =>
+                                {
+                                    SetupText(field, tmpAttr, f);
+                                }));
+                            }
                         }
+
+                        if (audAttr != null)
+                            SetupAudio(field, audAttr, f);
                     }
                     else
                         MelonLogger.Error($"COMPONENT {field.FieldType.Name} ON {t.name} IS NULL!");

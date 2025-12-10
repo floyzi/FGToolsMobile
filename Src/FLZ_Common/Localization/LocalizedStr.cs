@@ -53,6 +53,8 @@ namespace NOTFGT.FLZ_Common.Localization
 
         void LocalizeString()
         {
+            if (gameObject == null) return;
+
             if (string.IsNullOrEmpty(UnlocalizedValue))
             {
                 Text?.SetText(LocalizationManager.LocalizedString(ContentID, Formatting));

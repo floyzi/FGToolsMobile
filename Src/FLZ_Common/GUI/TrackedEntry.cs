@@ -1,6 +1,8 @@
-﻿using NOTFGT.FLZ_Common.Config.Entries;
+﻿using Il2Cpp;
+using NOTFGT.FLZ_Common.Config.Entries;
 using NOTFGT.FLZ_Common.Config.Entries.Configs;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace NOTFGT.FLZ_Common.GUI
@@ -38,6 +40,10 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (AttachedEntry != null && AttachedEntry.EntryType != MenuEntry.Type.Button) 
                 TrackedEntries.Add(this);
+
+            var sfx = UIElement.gameObject.AddComponent<ElementSFX>();
+            sfx.Setup(EntryConfig);
+            sfx.SetSounds(new(Constants.Click, Constants.ValueChange));
         }
 
         void SetEntry(object newVal) 

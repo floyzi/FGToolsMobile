@@ -23,6 +23,7 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         [GUIReference("GPButtonPrefab")] readonly Button GPBtn;
 
         List<Transform> GameplayActions;
+        internal bool HasItemsInside;
 
         internal GameplayStyle() : base(StyleType.Gameplay) 
         {
@@ -53,7 +54,8 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
 
         internal void UpdateGPActions(Dictionary<string, Action> actions = null)
         {
-            StyleContainer.SetActive(actions != null && actions.Count > 0);
+            HasItemsInside = actions != null && actions.Count > 0;
+            StyleContainer.SetActive(HasItemsInside);
 
             if (actions != null)
             {

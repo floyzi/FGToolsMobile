@@ -1,4 +1,6 @@
-﻿using Il2CppFG.Common.CMS;
+﻿using Il2Cpp;
+using Il2CppFG.Common.CMS;
+using Il2CppSystem.Data;
 using Il2CppTMPro;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI.Attributes;
@@ -10,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using static Il2Cpp.CatapultAnalyticsClient;
 using static MelonLoader.MelonLogger;
 
 namespace NOTFGT.FLZ_Common.GUI.Screens
@@ -29,6 +32,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [GUIReference("ClickToCopyNote")] readonly GameObject ClickToCopy;
 
         string ReadyRound;
+        Dictionary<string, string> SceneToNameMap;
         internal RoundLoaderScreen() : base(ScreenType.RoundLoader)
         {
             Initialize();
@@ -36,16 +40,20 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
         internal override void CreateScreen()
         {
+            SceneToNameMap = [];
+
             RoundIdInputField.onValueChanged.AddListener(new Action<string>((str) => { ReadyRound = str; }));
             RoundLoadButton.onClick.AddListener(new Action(() =>
             {
                 FLZ_ToolsManager.Instance.RoundLoader.LoadRound(ReadyRound);
             }));
+
             CleanupList.onClick.AddListener(new Action(() =>
             {
                 ClickToCopy.SetActive(false);
                 CleanupScreen(RoundIdsView, true);
             }));
+
             RoundGenerateListButton.onClick.AddListener(new Action(() =>
             {
                 ClickToCopy.SetActive(false);
@@ -53,7 +61,29 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 FLZ_ToolsManager.Instance.RoundLoader.GenerateCMSList(RoundIdsView, RoundIDEntryV2);
                 ClickToCopy.SetActive(true);
             }));
-            RoundLoadRandomButton.onClick.AddListener(new Action(FLZ_ToolsManager.Instance.RoundLoader.LoadRandomCms));
+
+            RoundLoadRandomButton.onClick.AddListener(new Action(() =>
+            {
+                ReadyRound = FLZ_ToolsManager.Instance.RoundLoader.GetRandomRound();
+                if (CMSLoader.Instance.CMSData.Rounds.TryGetValue(ReadyRound, out var cmsRound))
+                {
+                    var scene = cmsRound.GetSceneName();
+                    if (scene != null && SceneToNameMap.TryGetValue(scene, out string roundName))
+                    {
+                        for (int i = 0; i < RoundsDropdown.options.Count; i++)
+                        {
+                            if (RoundsDropdown.options[i].text == roundName)
+                            {
+                                RoundsDropdown.value = i;
+                                RoundsDropdown.onValueChanged.Invoke(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                AudioManager.PlayOneShot(AudioManager.EventMasterData.CustomiserRandomise);
+            }));
 
             RoundIDEntryV2.gameObject.SetActive(false);
 
@@ -70,10 +100,9 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
             RoundsDropdown.ClearOptions();
             IdsDropdown.ClearOptions();
+            SceneToNameMap.Clear();
 
             var rounds = CMSLoader.Instance.CMSData.Rounds;
-
-            Dictionary<string, string> uniqRounds = [];
 
             foreach (var round in rounds)
             {
@@ -81,13 +110,15 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 if (scene == null || round.Value == null || round.Value.DisplayName == null)
                     continue;
 
-                if (!uniqRounds.ContainsKey(round.Value.GetSceneName()))
-                    uniqRounds.Add(scene, FLZ_Extensions.CleanStr(round.Value.DisplayName.Text));
+                if (!SceneToNameMap.ContainsKey(round.Value.GetSceneName()))
+                    SceneToNameMap.Add(scene, FLZ_Extensions.CleanStr(round.Value.DisplayName.Text));
             }
 
             Il2CppSystem.Collections.Generic.List<string> roundNames = new();
+            var uniqueNames = SceneToNameMap.Values.Distinct().ToList();
+            uniqueNames.Sort();
 
-            foreach (var round in uniqRounds.Values)
+            foreach (var round in uniqueNames)
             {
                 roundNames.Add(round);
             }
@@ -102,29 +133,19 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
             RoundsDropdown.onValueChanged.AddListener(new Action<int>(val =>
             {
-                var scene = string.Empty;
-
+                Il2CppSystem.Collections.Generic.List<string> ids = new();
                 foreach (var round in rounds)
                 {
-                    if (round.Value.DisplayName != null && FLZ_Extensions.CleanStr(round.Value.DisplayName.Text) == RoundsDropdown.options[val].text)
-                    {
-                        scene = round.Value.GetSceneName();
-                        break;
-                    }
+                    var scene = round.Value.GetSceneName();
+                    if (scene != null && SceneToNameMap.TryGetValue(scene, out string name) && name == RoundsDropdown.options[val].text)
+                        ids.Add(round.Key);
                 }
 
-                if (scene != null)
-                {
-                    Il2CppSystem.Collections.Generic.List<string> ids = new();
+                IdsDropdown.ClearOptions();
+                IdsDropdown.AddOptions(ids);
 
-                    foreach (var round in rounds)
-                        if (round.Value.GetSceneName() == scene)
-                            ids.Add(round.Key);
-
-                    IdsDropdown.ClearOptions();
-                    IdsDropdown.AddOptions(ids);
-                    ReadyRound = IdsDropdown.options[0].text;
-                }
+                if (ids.Count > 0)
+                    ReadyRound = ids[0];
             }));
 
             RoundsDropdown.onValueChanged.Invoke(0);

@@ -24,7 +24,7 @@ namespace NOTFGT.FLZ_Common.GUI.Styles.Logic
         internal StyleType Type { get; } = type;
         internal GameObject StyleContainer { get; private set; }
 
-        internal override void Initialize()
+        protected override void Initialize()
         {
             var t = GetType();
 

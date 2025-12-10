@@ -8,8 +8,7 @@ namespace NOTFGT.FLZ_Common.GUI.Logic
 {
     internal abstract class UIElement
     {
-        internal GUIManager GUI => FLZ_ToolsManager.Instance.GUIUtil;
-
-        internal abstract void Initialize();
+        protected GUIManager GUI => FLZ_ToolsManager.Instance.GUIUtil;
+        protected abstract void Initialize();
     }
 }

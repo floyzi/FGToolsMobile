@@ -1,4 +1,5 @@
-﻿using MelonLoader;
+﻿using Il2Cpp;
+using MelonLoader;
 using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.GUI.Logic;
 using System;
@@ -26,7 +27,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
         internal Button ScreenTab { get; private set; }
         internal GameObject ScreenContainer { get; private set; }
 
-        internal override void Initialize()
+        protected override void Initialize()
         {
             var t = GetType();
 
@@ -34,6 +35,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
             ScreenContainer = GUI.ScreensCache.FirstOrDefault(x => x.name == $"{GUIManager.SCREEN_PREFIX}_{Type}").gameObject;
 
             ScreenTab.onClick.AddListener(new Action(() => { GUI.ToggleScreen(Type); }));
+            var sfx = ScreenTab.gameObject.AddComponent<ElementSFX>();
+            sfx.SetSounds(new(Constants.TabMove));
 
             GUI.Reference(GUI.GetFieldsOf<GUIReferenceAttribute>(t), this);
 
@@ -44,11 +47,13 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 
         internal abstract void CreateScreen();
 
-        internal static void CleanupScreen(Transform screen, bool includeOnlyActive)
+        internal static void CleanupScreen(Transform screen, bool includeOnlyActive, List<Transform> except = null)
         {
             for (int i = screen.childCount - 1; i >= 0; i--)
             {
                 var child = screen.GetChild(i);
+                if (except != null && except.Contains(child)) continue;
+
                 if (!includeOnlyActive || child.gameObject.activeSelf)
                 {
                     UnityEngine.Object.Destroy(child.gameObject);

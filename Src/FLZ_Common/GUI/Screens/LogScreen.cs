@@ -21,12 +21,11 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [GUIReference("ClearLogsBtn")] internal readonly Button ClearLogsBtn;
         [GUIReference("LogStats")] internal readonly TextMeshProUGUI LogStats;
         [GUIReference("LogDisabled")] internal readonly GameObject LogDisabledScreen;
+        [GUIReference("NoLogsText")] internal readonly TextMeshProUGUI NoLogsText;
 
-        [GUIReference("LogBtn_All")] readonly Button AllLogsBtn;
-        [GUIReference("LogBtn_Info")] readonly Button InfoLogsBtn;
-        [GUIReference("LogBtn_Warn")] readonly Button WarnLogsBtn;
-        [GUIReference("LogBtn_Error")] readonly Button ErrorLogsBtn;
+        [GUIReference("LogTabs")] readonly Transform LogTabsСontainer;
 
+        List<Button> AllLogBtns;
         internal LogScreen() : base(ScreenType.Log)
         {
             Initialize();
@@ -34,21 +33,54 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
         internal override void CreateScreen()
         {
+            AllLogBtns = [.. LogTabsСontainer.GetComponentsInChildren<Button>()];
+
+            foreach (var btn in AllLogBtns)
+            {
+                if (btn.name.EndsWith("All"))
+                    btn.onClick.AddListener(new Action(GUI_LogEntry.CreateAllInstances));
+                else
+                    btn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(Enum.Parse<LogType>(btn.name.Split("_")[1]))));
+
+                btn.onClick.AddListener(new Action(() => ToggleLogTab(btn)));
+
+                var sfx = btn.gameObject.AddComponent<ElementSFX>();
+                sfx.SetSounds(new(Constants.TabMove));
+            }
+
+            ToggleLogTab(AllLogBtns[0]);
+
             LogPrefab.gameObject.SetActive(false);
 
             ClearLogsBtn.onClick.AddListener(new Action(() =>
             {
-                CleanupScreen(LogContent, true);
+                NoLogsText.gameObject.SetActive(false);
+                CleanupScreen(LogContent, true, [NoLogsText.transform]);
                 GUI_LogEntry.AllEntries.Clear();
                 GUI_LogEntry.UpdateLogStats();
+                LogInfo.SetText(LocalizationManager.LocalizedString("log_adv_info"));
+                NoLogsText.gameObject.SetActive(true);
             }));
 
-            AllLogsBtn.onClick.AddListener(new Action(GUI_LogEntry.CreateAllInstances));
-            InfoLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Log)));
-            WarnLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Warning)));
-            ErrorLogsBtn.onClick.AddListener(new Action(() => GUI_LogEntry.CreateInstancesOf(LogType.Error)));
-
             GUI_LogEntry.UpdateLogStats();
+        }
+
+        void ToggleLogTab(Button to)
+        {
+            foreach (var btn in AllLogBtns)
+            {
+                var block = btn.colors;
+                block.normalColor = Color.white;
+                block.selectedColor = Color.white;
+                block.highlightedColor = Color.white;
+                btn.colors = block;
+            }
+
+            var block2 = to.colors;
+            block2.normalColor = GUIManager.TabActiveCol;
+            block2.selectedColor = GUIManager.TabActiveCol;
+            block2.highlightedColor = GUIManager.TabActiveCol;
+            to.colors = block2;
         }
 
         internal bool CanCreateLogs() => LogPrefab != null && LogContent != null && LogStats != null;

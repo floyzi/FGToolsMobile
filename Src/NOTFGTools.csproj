@@ -47,10 +47,12 @@
 		<Compile Include="FLZ_Common\FLZ_Game.cs" />
 		<Compile Include="FLZ_Common\FLZ_LoginPatches.cs" />
 		<Compile Include="FLZ_Common\Extensions\FLZ_GUIExtensions.cs" />
+		<Compile Include="FLZ_Common\GUI\Attributes\AudioReferenceAttribute.cs" />
 		<Compile Include="FLZ_Common\GUI\Attributes\GUIReferenceAttribute.cs" />
 		<Compile Include="FLZ_Common\GUI\Attributes\NameAttribute.cs" />
 		<Compile Include="FLZ_Common\GUI\Attributes\PrefabReferenceAttribute.cs" />
 		<Compile Include="FLZ_Common\GUI\Attributes\TMPReferenceAttribute.cs" />
+		<Compile Include="FLZ_Common\GUI\ElementSFX.cs" />
 		<Compile Include="FLZ_Common\GUI\GUI_LogEntry.cs" />
 		<Compile Include="FLZ_Common\GUI\MenuCategory.cs" />
 		<Compile Include="FLZ_Common\GUI\Screens\CreditsScreen.cs" />

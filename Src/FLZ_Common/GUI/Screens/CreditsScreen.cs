@@ -31,6 +31,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [TMPReference(FontType.AsapBold, "2.0_Shadow")]
         [GUIReference("CreditText")] readonly TextMeshProUGUI CreditTextPrefab;
 
+        [AudioReference(Constants.Click)]
         [GUIReference("CreditBTN")] readonly Button CreditButtonPrefab;
 
         [TMPReference(FontType.TitanOne, "PinkOutline")]
@@ -44,8 +45,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
         static int EGG_Counter;
         Sprite CachedCreditsSpr;
-        readonly int EGG_ClicksNeeded = UnityEngine.Random.Range(15, 25);
-        internal static bool EnabledSecret => EGG_Counter >= 15;
+        static readonly int EGG_ClicksNeeded = UnityEngine.Random.Range(15, 25);
+        internal static bool EnabledSecret => EGG_Counter >= EGG_ClicksNeeded;
 
         internal CreditsScreen() : base(ScreenType.Credits)
         {
@@ -95,7 +96,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 res.GetComponentInChildren<TextMeshProUGUI>().GetComponent<LocalizedStr>().Setup(btn.Key);
                 res.onClick.AddListener(new Action(() =>
                 {
-                    Application.OpenURL(btn.Value);
+                    OpenConfirm(btn.Value);
                 }));
                 res.gameObject.SetActive(true);
                 res.transform.SetSiblingIndex(indx++);
@@ -104,11 +105,19 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             LocalizationManager.ConfigureDropdown(LocaleSelectDropdown);
         }
 
+        void OpenConfirm(string url)
+        {
+            FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("credits_url_confirm_title"), LocalizationManager.LocalizedString("credits_url_confirm_desc", [url]), Il2CppFGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, Il2CppFGClient.UI.UIModalMessage.OKButtonType.Positive, new Action<bool>(wasok =>
+            {
+                if (wasok) Application.OpenURL(url);
+            }));
+        }
+
         void EasterEgg()
         {
             EGG_Counter++;
 
-            if (EGG_Counter < 3)
+            if (EGG_Counter < 5)
                 return;
 
             FatefulImage.transform.GetParent().DOShakePosition(0.25f, EGG_Counter > EGG_ClicksNeeded ? 15 : 15 + (EGG_Counter * 2), 80, 400);

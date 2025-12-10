@@ -70,7 +70,7 @@ namespace NOTFGT.FLZ_Common.Loader
             }
         }
 
-        public void LoadRandomCms()
+        internal string GetRandomRound()
         {
             List<string> ids = [];
             foreach (var round in CMSLoader.Instance.CMSData.Rounds)
@@ -78,13 +78,16 @@ namespace NOTFGT.FLZ_Common.Loader
                 if (!round.Value.IsUGC() && round.Value.SceneData != null)
                     ids.Add(round.Key);
             }
-            var target = ids[Random.Range(0, ids.Count)];
-            MelonLogger.Msg($"[{GetType()}] Loading round with id {target}...");
-            LoadCmsRound(target, LoadSceneMode.Single);
+            return ids[Random.Range(0, ids.Count)];
+            
+        }
+        public void LoadRandomCms()
+        {
+            LoadCmsRound(GetRandomRound(), LoadSceneMode.Single);
         }
 
 
-        public void LoadCmsRound(string roundToFind, LoadSceneMode mode)
+        public void LoadCmsRound(string id, LoadSceneMode mode)
         {
             if (!RoundLoadingAllowed)
             {
@@ -101,11 +104,11 @@ namespace NOTFGT.FLZ_Common.Loader
 
             try
             {
-                if (CMSLoader.Instance.CMSData.Rounds.ContainsKey(roundToFind))
-                    SetNewRound(CMSLoader.Instance.CMSData.Rounds[roundToFind]);
+                if (CMSLoader.Instance.CMSData.Rounds.ContainsKey(id))
+                    SetNewRound(CMSLoader.Instance.CMSData.Rounds[id]);
                 else
                 {
-                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                    FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [id]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
                     RoundLoadingAllowed = true;
                     return;
                 }
@@ -123,6 +126,8 @@ namespace NOTFGT.FLZ_Common.Loader
                     RoundLoadingAllowed = true;
                     return;
                 }
+
+                MelonLogger.Msg($"[{GetType()}] Loading round with id {id}...");
 
                 CurrentRound.GameRules.ShowQualificationProgressUI = CurrentRound.Archetype.Id.Contains("race");
                 if (CurrentRound.Archetype.Id == "archetype_invisibeans")
@@ -146,7 +151,7 @@ namespace NOTFGT.FLZ_Common.Loader
             }
             catch (Exception e)
             {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [roundToFind, mode, e.Message]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_round_loader_generic"), LocalizationManager.LocalizedString("error_round_loader_generic_desc", [id, mode, e.Message]), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Default);
                 RoundLoadingAllowed = true;
             }
         }

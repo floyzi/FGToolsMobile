@@ -46,6 +46,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (!CanCreateInstances())
             {
+                LogScreen.NoLogsText.gameObject.SetActive(true);
                 PendingLogs ??= [];
                 PendingLogs.Enqueue(CreateInstance);
                 return;
@@ -84,6 +85,7 @@ namespace NOTFGT.FLZ_Common.GUI
             string result = Msg.Length > 55 ? result = string.Concat(Msg.AsSpan(0, 55), "...") : Msg;
             EntryInstance.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = $"{Regex.Replace(result, @"^\d{2}:\d{2}:\d{2}\.\d{3}:\s*", "")}";
             EntryInstance.onClick.AddListener(new Action(() => { LogScreen.LogInfo.text = LocalizationManager.LocalizedString("advanced_log", [Type, Msg, Stacktrace]); }));
+            LogScreen.NoLogsText.gameObject.SetActive(false);
         }
 
         public static bool CanCreateInstances()
@@ -109,6 +111,8 @@ namespace NOTFGT.FLZ_Common.GUI
             {
                 entry.CreateInstance();
             }
+
+            LogScreen.NoLogsText.gameObject.SetActive(!AllEntries.Any(x => x.HasInstance));
         }
 
         public static void DestroyAllInstances()
@@ -119,10 +123,13 @@ namespace NOTFGT.FLZ_Common.GUI
             }
 
             PreviewLogType = (LogType)1001;
+            LogScreen.NoLogsText.gameObject.SetActive(true);
         }
 
         public static void CreateInstancesOf(LogType lvl)
         {
+            if (PreviewLogType == lvl) return;
+
             DestroyAllInstances();
 
             PreviewLogType = lvl;
@@ -138,6 +145,8 @@ namespace NOTFGT.FLZ_Common.GUI
                 })
                     entry.CreateInstance();
             }
+
+            LogScreen.NoLogsText.gameObject.SetActive(!AllEntries.Any(x => x.Type == lvl && x.HasInstance));
         }
     }
 

@@ -16,4 +16,10 @@
     internal const string TMPFontFallback = "Asap-Bold SDF (Body)";
     internal const string TMPFontMaterialFallback = "Asap-Bold SDF Material";
     #endregion
+
+    #region AUDIO
+    internal const string TabMove = "UI_MainMenu_Move_Tab";
+    internal const string ValueChange = "UI_MainMenu_Settings_ChangeValue";
+    internal const string Click = "UI_Gen_Accept";
+    #endregion
 }
