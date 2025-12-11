@@ -22,6 +22,11 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         [GUIReference("GPActionsView")] readonly Transform GPActionsView;
         [GUIReference("GPButtonPrefab")] readonly Button GPBtn;
 
+        [GUIReference("Game_Pattern")] readonly Image Pattern;
+
+        [TMPReference(TMPReferenceAttribute.FontType.TitanOne, "PinkOutline")]
+        [GUIReference("QuickHeader")] readonly TextMeshProUGUI QuickHeader;
+
         List<Transform> GameplayActions;
         internal bool HasItemsInside;
 
@@ -36,6 +41,8 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
 
             HideGP.onClick.AddListener(new Action(() => { UpdateGPUI(false); }));
             OpenGP.onClick.AddListener(new Action(() => { UpdateGPUI(true); }));
+
+            Pattern.gameObject.AddComponent<UI_ScrollUvs>();
         }
 
         public void UpdateGPUI(bool active)
@@ -48,14 +55,14 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         {
             GameplayActive.SetActive(false);
             GameplayHidden.SetActive(true);
-            StyleContainer.SetActive(false);
+            CoreObject.SetActive(false);
             GameplayActions.Clear();
         }
 
         internal void UpdateGPActions(Dictionary<string, Action> actions = null)
         {
             HasItemsInside = actions != null && actions.Count > 0;
-            StyleContainer.SetActive(HasItemsInside);
+            CoreObject.SetActive(HasItemsInside);
 
             if (actions != null)
             {
@@ -80,6 +87,10 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
                 GameplayActions.Clear();
                 UpdateGPUI(false);
             }
+        }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
         }
     }
 }

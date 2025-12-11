@@ -20,6 +20,8 @@ namespace NOTFGT.FLZ_Common.GUI
 
             var headerText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
             var expBtn = gameObject.GetComponentInChildren<Button>();
+            expBtn.gameObject.AddComponent<ElementSFX>().SetSounds(new(Constants.Click));
+           
             var ico = gameObject.GetComponentsInChildren<Image>()[1]; //not a good way of doing this
 
             FLZ_GUIExtensions.SetupFont(headerText, Constants.TMPFontTitanOne, "PinkOutline");
@@ -29,8 +31,7 @@ namespace NOTFGT.FLZ_Common.GUI
             expBtn.onClick.AddListener(new Action(() =>
             {
                 KeepEntriesHidden = !KeepEntriesHidden;
-
-                ico.sprite = (KeepEntriesHidden ? FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandMore : FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandLess);
+                ico.sprite = KeepEntriesHidden ? FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandMore : FLZ_ToolsManager.Instance.GUIUtil.SpriteExpandLess;
 
                 foreach (var e in Entries)
                     e.SetActive(!KeepEntriesHidden);

@@ -37,6 +37,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [TMPReference(FontType.TitanOne, "PinkOutline")]
         [GUIReference("CreditLocaleHeader")] readonly TextMeshProUGUI CreditsLocaleHeader;
 
+        [AudioReference(Constants.Click)]
         [GUIReference("LocaleDropdown")] readonly TMP_Dropdown LocaleSelectDropdown;
 
         [GUIReference("FatefulImage")] readonly Button FatefulImage;
@@ -165,5 +166,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             FatefulImage.GetComponent<Image>().sprite = spr;
         }
 
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
+        }
     }
 }

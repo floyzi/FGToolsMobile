@@ -19,10 +19,19 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 {
     internal class RoundLoaderScreen : UIScreen
     {
+        [AudioReference(Constants.Click)]
         [GUIReference("RoundInputField")] readonly TMP_InputField RoundIdInputField;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("RoundLoadBtn")] readonly Button RoundLoadButton;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("RandomRoundBtn")] readonly Button RoundLoadRandomButton;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("RoundsDropDown")] readonly TMP_Dropdown RoundsDropdown;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("RoundsIDSDropDown")] readonly TMP_Dropdown IdsDropdown;
 
         string ReadyRound;
@@ -30,6 +39,10 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         internal RoundLoaderScreen() : base(ScreenType.RoundLoader)
         {
             Initialize();
+        }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
         }
 
         internal override void CreateScreen()

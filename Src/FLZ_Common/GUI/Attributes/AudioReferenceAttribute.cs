@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static NOTFGT.FLZ_Common.GUI.ElementSFX;
+﻿using static NOTFGT.FLZ_Common.GUI.ElementSFX;
 
 namespace NOTFGT.FLZ_Common.GUI.Attributes
 {

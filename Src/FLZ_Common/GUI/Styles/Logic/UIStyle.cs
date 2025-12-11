@@ -22,17 +22,16 @@ namespace NOTFGT.FLZ_Common.GUI.Styles.Logic
         }
 
         internal StyleType Type { get; } = type;
-        internal GameObject StyleContainer { get; private set; }
-
         protected override void Initialize()
         {
             var t = GetType();
 
-            StyleContainer = GUI.StylesCache.FirstOrDefault(x => x.name == $"{GUIManager.STYLE_PREFIX}_{Type}").gameObject;
+            CoreObject = GUI.StylesCache.FirstOrDefault(x => x.name == $"{GUIManager.STYLE_PREFIX}_{Type}").gameObject;
 
             GUI.Reference(GUI.GetFieldsOf<GUIReferenceAttribute>(t), this);
 
-            StyleContainer.gameObject.SetActive(false);
+            IsActive = false;
+            StateChangeCallback = StateChange;
 
             MelonLogger.Msg($"[{t.Name}] Style initalized");
         }

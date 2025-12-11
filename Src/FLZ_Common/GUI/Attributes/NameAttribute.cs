@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NOTFGT.FLZ_Common.GUI.Attributes
+﻿namespace NOTFGT.FLZ_Common.GUI.Attributes
 {
     internal abstract class NameAttribute : Attribute
     {

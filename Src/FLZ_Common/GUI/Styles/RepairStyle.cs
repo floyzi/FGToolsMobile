@@ -18,5 +18,10 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         {
            
         }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
+
+        }
     }
 }

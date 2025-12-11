@@ -25,14 +25,13 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 
         internal ScreenType Type { get; } = type;
         internal Button ScreenTab { get; private set; }
-        internal GameObject ScreenContainer { get; private set; }
 
         protected override void Initialize()
         {
             var t = GetType();
 
             ScreenTab = GUI.ScreensCache.FirstOrDefault(x => x.name == $"{GUIManager.TAB_PREFIX}_{Type}").GetComponent<Button>();
-            ScreenContainer = GUI.ScreensCache.FirstOrDefault(x => x.name == $"{GUIManager.SCREEN_PREFIX}_{Type}").gameObject;
+            CoreObject = GUI.ScreensCache.FirstOrDefault(x => x.name == $"{GUIManager.SCREEN_PREFIX}_{Type}").gameObject;
 
             ScreenTab.onClick.AddListener(new Action(() => { GUI.ToggleScreen(Type); }));
             var sfx = ScreenTab.gameObject.AddComponent<ElementSFX>();
@@ -40,7 +39,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens.Logic
 
             GUI.Reference(GUI.GetFieldsOf<GUIReferenceAttribute>(t), this);
 
-            ScreenContainer.gameObject.SetActive(false);
+            CoreObject.gameObject.SetActive(false);
+            StateChangeCallback = StateChange;
 
             MelonLogger.Msg($"[{t.Name}] Screen initalized");
         }

@@ -15,10 +15,15 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 {
     internal class LogScreen : UIScreen
     {
+        [AudioReference(Constants.Click)]
         [GUIReference("LogMessage")] internal readonly Button LogPrefab;
+
         [GUIReference("LogInfo")] internal readonly TextMeshProUGUI LogInfo;
         [GUIReference("LogDisplay")] internal readonly Transform LogContent;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("ClearLogsBtn")] internal readonly Button ClearLogsBtn;
+
         [GUIReference("LogStats")] internal readonly TextMeshProUGUI LogStats;
         [GUIReference("LogDisabled")] internal readonly GameObject LogDisabledScreen;
         [GUIReference("NoLogsText")] internal readonly TextMeshProUGUI NoLogsText;
@@ -88,6 +93,10 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         {
             if (!CanCreateLogs()) return;
             LogStats?.text = LocalizationManager.LocalizedString("errors_display", [GUI_LogEntry.AllEntries.Count(e => e.IsError), GUI_LogEntry.AllEntries.Count(e => e.IsWarning), GUI_LogEntry.AllEntries.Count(e => e.IsInfo), GUI_LogEntry.AllEntries.Count]);
+        }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
         }
     }
 }

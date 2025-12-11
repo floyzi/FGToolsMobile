@@ -61,7 +61,6 @@ namespace NOTFGT.FLZ_Common.GUI
             }
 
             EntryInstance = UnityEngine.Object.Instantiate(LogScreen.LogPrefab, LogScreen.LogContent);
-            EntryInstance.name = "Log";
             EntryInstance.gameObject.SetActive(true);
             EntryInstance.transform.SetAsFirstSibling();
 

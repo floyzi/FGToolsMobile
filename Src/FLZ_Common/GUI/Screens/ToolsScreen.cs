@@ -21,7 +21,11 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
     internal class ToolsScreen : UIScreen
     {
         [GUIReference("ConfigDisplay")] readonly Transform configMenu;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("WriteSave")] readonly Button ApplyChanges;
+
+        [AudioReference(Constants.Click)]
         [GUIReference("ResetConfig")] readonly Button DeleteConfig;
 
         [GUIReference("PendingChangesAlert")] readonly GameObject PendingChanges;
@@ -37,6 +41,10 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         internal ToolsScreen() : base(ScreenType.Cheats)
         {
             Initialize();
+        }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
         }
 
         internal override void CreateScreen()

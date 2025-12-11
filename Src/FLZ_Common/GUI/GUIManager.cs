@@ -203,7 +203,7 @@ namespace NOTFGT.FLZ_Common.GUI
         {
             CurrentUIState = toggle;
 
-            foreach (var style in Styles) style.StyleContainer.SetActive(false);
+            foreach (var style in Styles) style.IsActive = false;
 
             var map = new Dictionary<UIState, List<UIStyle>>
             {
@@ -213,11 +213,11 @@ namespace NOTFGT.FLZ_Common.GUI
 
             if (map.TryGetValue(toggle, out var v))
             {
-                foreach (var e in v) e.StyleContainer.SetActive(true);
+                foreach (var e in v) e.IsActive = true;
             }
 
             var gps = GetStyle<GameplayStyle>();
-            gps.StyleContainer.SetActive(gps.HasItemsInside);
+            gps.IsActive = gps.HasItemsInside;
         }
 
         void MenuEvent()
@@ -457,7 +457,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 block.highlightedColor = Color.white;
                 screen.ScreenTab.GetComponent<Button>().colors = block;
 
-                screen.ScreenContainer.gameObject.SetActive(false);
+                screen.IsActive = false;
             }
 
             var nextScreen = Screens.FirstOrDefault(x => x.Type == newScreen);
@@ -468,7 +468,7 @@ namespace NOTFGT.FLZ_Common.GUI
             block2.highlightedColor = TabActiveCol;
             nextScreen.ScreenTab.colors = block2;
 
-            nextScreen.ScreenContainer.SetActive(true);
+            nextScreen.IsActive = true;
         }
 
         internal T GetScreen<T>() where T : UIScreen => Screens.FirstOrDefault(x => x.GetType() == typeof(T)) as T;

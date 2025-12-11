@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
+using Il2Cpp;
 
 namespace NOTFGT.FLZ_Common.GUI.Styles
 {
@@ -74,9 +75,11 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
 
             RegEvent(EventTriggerType.PointerUp, new Action<BaseEventData>((data) =>
             {
+                var wasDragging = Dragging;
                 PointerDown = false;
                 MelonCoroutines.Stop(DelayCor);
-                if (Dragging) return;
+                Dragging = false;
+                if (wasDragging) return;
                 onClick?.Invoke();
             }));
 
@@ -110,6 +113,12 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
             FLZ_AndroidExtensions.Vibrate(10);
             Dragging = true;
             FGTButton.transform.GetChild(0).gameObject.SetActive(false);
+        }
+
+        protected override void StateChange(bool isActive, bool wasActive)
+        {
+            if (isActive && !wasActive)
+                AudioManager.PlayOneShot(AudioManager.EventMasterData.GenericBack);
         }
     }
 }
