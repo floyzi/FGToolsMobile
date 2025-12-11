@@ -22,14 +22,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [GUIReference("RoundInputField")] readonly TMP_InputField RoundIdInputField;
         [GUIReference("RoundLoadBtn")] readonly Button RoundLoadButton;
         [GUIReference("RandomRoundBtn")] readonly Button RoundLoadRandomButton;
-        [GUIReference("RoundID_Entry")] readonly GameObject RoundIDEntry;
-        [GUIReference("RoundID_EntryV2")] readonly Button RoundIDEntryV2;
-        [GUIReference("RoundIDSView")] readonly Transform RoundIdsView;
-        [GUIReference("RoundGenListBtn")] readonly Button RoundGenerateListButton;
-        [GUIReference("RoundListCleanup")] readonly Button CleanupList;
         [GUIReference("RoundsDropDown")] readonly TMP_Dropdown RoundsDropdown;
         [GUIReference("RoundsIDSDropDown")] readonly TMP_Dropdown IdsDropdown;
-        [GUIReference("ClickToCopyNote")] readonly GameObject ClickToCopy;
 
         string ReadyRound;
         Dictionary<string, string> SceneToNameMap;
@@ -46,20 +40,6 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             RoundLoadButton.onClick.AddListener(new Action(() =>
             {
                 FLZ_ToolsManager.Instance.RoundLoader.LoadRound(ReadyRound);
-            }));
-
-            CleanupList.onClick.AddListener(new Action(() =>
-            {
-                ClickToCopy.SetActive(false);
-                CleanupScreen(RoundIdsView, true);
-            }));
-
-            RoundGenerateListButton.onClick.AddListener(new Action(() =>
-            {
-                ClickToCopy.SetActive(false);
-                CleanupScreen(RoundIdsView, true);
-                FLZ_ToolsManager.Instance.RoundLoader.GenerateCMSList(RoundIdsView, RoundIDEntryV2);
-                ClickToCopy.SetActive(true);
             }));
 
             RoundLoadRandomButton.onClick.AddListener(new Action(() =>
@@ -84,8 +64,6 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
                 AudioManager.PlayOneShot(AudioManager.EventMasterData.CustomiserRandomise);
             }));
-
-            RoundIDEntryV2.gameObject.SetActive(false);
 
             InitRoundsDropdown();
         }

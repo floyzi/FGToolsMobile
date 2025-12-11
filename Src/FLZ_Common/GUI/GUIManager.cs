@@ -67,11 +67,12 @@ namespace NOTFGT.FLZ_Common.GUI
         List<UIScreen> Screens;
         List<UIStyle> Styles;
         Queue<Action> FontSetupQueue;
+        HashSet<string> MissingReferences;
 
         bool HasGUIKilled = false;
         bool SucceedGUISetup = false;
         bool WasInMenu = false;
-        bool CanStartUISetup = true;
+        bool CanStartUISetup => MissingReferences.Count == 0;
         bool AllowGUIActions => GUI_Bundle != null && GUIInstance != null;
         public GUIManager(Action onInit)
         {
@@ -82,6 +83,7 @@ namespace NOTFGT.FLZ_Common.GUI
                 Styles = [];
                 Screens = [];
                 FontSetupQueue = [];
+                MissingReferences = [];
 
                 OnMenuEnter += MenuEvent;
 
@@ -223,6 +225,13 @@ namespace NOTFGT.FLZ_Common.GUI
             if (HasGUIKilled)
                 return;
 
+            if (!CanStartUISetup)
+            {
+                var m = string.Join(", ", MissingReferences);
+                MelonLogger.Warning($"MISSING REFERENCES: {m}");
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("generic_error_title"), LocalizationManager.LocalizedString("setup_references_err_desc", [m]), ModalType.MT_OK, OKButtonType.Default);
+                return;
+            }
 
             if (!SucceedGUISetup)
             {
@@ -248,7 +257,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 SetupGUI();
             }
-
 
             Instance.HandlePlayerState(PlayerState.Menu);
 
@@ -316,12 +324,6 @@ namespace NOTFGT.FLZ_Common.GUI
 
         void SetupGUI()
         {
-            if (!CanStartUISetup)
-            {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("generic_error_title"), LocalizationManager.LocalizedString("setup_references_err_desc"), ModalType.MT_OK, OKButtonType.Default);
-                return;
-            }
-
             if (SucceedGUISetup)
                 return;
 
@@ -430,12 +432,17 @@ namespace NOTFGT.FLZ_Common.GUI
                         MelonLogger.Error($"COMPONENT {field.FieldType.Name} ON {t.name} IS NULL!");
 
                     if (field.GetValue(f) == null)
-                    {
                         MelonLogger.Error($"VALUE OF FIELD \"{field.Name}\" (type of \"{field.FieldType.Name}\") IS NULL AFTER SET!!!");
-                        CanStartUISetup = false;
-                    }
 
                     map.Remove(t.name);
+                }
+            }
+
+            foreach (var (name, field) in map)
+            {
+                if (field.GetValue(f) == null)
+                {
+                    MissingReferences.Add($"{name} ({field.Name})");
                 }
             }
         }
