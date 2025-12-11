@@ -28,7 +28,7 @@
 ### Project
 - Open it with Visual Studio
 - Update the references in the `Lib` folder if needed (to do that use [this version of MelonLoader](https://github.com/LemonLoader/MelonLoader/releases/tag/0.6.5.1) on the desktop version of the game)
-- To build with cheats included set "Cheats" configuration in configuration manager
+- To build with cheats included add `CHEATS` compilation symbol for selected configuration
 
 > [!TIP]
 > You can setup ADB to automatically update mod files on device after build
@@ -68,8 +68,8 @@ If configured correctly, everytime when you build the project it's files will be
 ### Will I get banned for this?
 - If you're using a version with cheats, probably. If not then you're safe, there's nothing that can ban you
 ### My game crashes, what do I do!?
-- If it was the first launch, just open it again **and wait around five or ten minutes sitting on black screen!!**
-- If the game crashes no matter what then you're out of luck, there is nothing you can do to fix it.
+- If it was the first launch, just open it again **and wait around FIVE OR TEN MINUTES sitting on black screen!!**. If the game crashes no matter what then you're out of luck, there is nothing you can do to fix it.
+- You can try [**Fall Guys Mod Menu**](https://github.com/repinek/fallguys-frida-modmenu) by [repinek](https://github.com/repinek) if you're looking for similar thing
 ### Does this thing have cheats?
 - Release versions **NEVER** includeds cheats. If you want to get cheats compile it by yourself
 ### Where is the update?

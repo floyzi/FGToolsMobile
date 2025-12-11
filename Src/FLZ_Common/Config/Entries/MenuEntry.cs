@@ -21,7 +21,6 @@ namespace NOTFGT.FLZ_Common.Config.Entries
 
         /// <summary>
         /// Category where element will be placed on UI.
-        /// Represents ID of localized string
         /// </summary>
         internal CategoryData Category { get; private set; } = category;
 
