@@ -35,6 +35,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [GUIReference("MenuHeaderReference")] readonly GameObject GUI_HeaderPrefab;
         [GUIReference("MenuHeaderDescReference")] readonly GameObject GUI_HeaderDescPrefab;
         [GUIReference("ButtonReference")] readonly GameObject GUI_ButtonPrefab;
+        [GUIReference("ErroredEntryReference")] readonly GameObject GUI_ErroredEntry;
 
         [GUIReference("CheatsScrollView")] readonly ScrollRect CheatsScrollView;
         [GUIReference("GroupLayout")] readonly Transform ToolsCategory;
@@ -68,6 +69,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             GUI_SliderPrefab.SetActive(false);
             GUI_HeaderPrefab.SetActive(false);
             GUI_ButtonPrefab.SetActive(false);
+            GUI_ErroredEntry.SetActive(false);
 
             MenuCategory currentCateg = null;
             string currentCategStr = "";
@@ -77,6 +79,11 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 try
                 {
                     MelonLogger.Msg($"[{GetType().Name}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
+
+                    var fillerInst = UnityEngine.Object.Instantiate(GUI_ErroredEntry, cfgTrans);
+                    fillerInst.SetActive(true);
+                    var fillerLoc = fillerInst.gameObject.GetComponentInChildren<TextMeshProUGUI>().gameObject.AddComponent<LocalizedStr>();
+                    fillerLoc.Setup("errored_entry", formatting: [entry.ID]);
 
                     if (!string.IsNullOrEmpty(entry.Category.LocaleID) && currentCategStr != entry.Category.LocaleID)
                     {
@@ -272,6 +279,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                             MelonLogger.Warning($"Fallback on: {entry.ID}");
                             break;
                     }
+
+                    GameObject.Destroy(fillerInst);
                 }
                 catch (Exception ex)
                 {

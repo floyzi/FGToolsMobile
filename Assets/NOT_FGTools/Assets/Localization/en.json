@@ -148,5 +148,6 @@
    "melon_log_title": "Show Melonloader Log",
    "melon_log_desc": "",
    "air_jumps_title": "Air Jumps",
-   "air_jumps_desc": ""
+   "air_jumps_desc": "",
+   "errored_entry": "Entry \"{0}\" was failed to create, check logs for details!"
 }
