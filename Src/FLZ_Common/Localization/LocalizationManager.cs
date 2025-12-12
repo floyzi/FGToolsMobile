@@ -95,7 +95,7 @@ namespace NOTFGT.FLZ_Common.Localization
 
                 locDropdown.options.Add(new(unloc));
 
-                if (locDropdown.options[i].text == unloc)
+                if (locDropdown.options[i].text == GetLocaleName(sLoc))
                     locDropdown.value = i;
             }
 

@@ -149,5 +149,6 @@
    "melon_log_desc": "",
    "air_jumps_title": "Air Jumps",
    "air_jumps_desc": "",
-   "errored_entry": "Entry \"{0}\" was failed to create, check logs for details!"
+   "errored_entry": "Entry \"{0}\" was failed to create, check logs for details!",
+   "fgmm_propaganda": "Check Out Fall Guys Mod Menu!"
 }

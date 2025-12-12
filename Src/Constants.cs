@@ -8,6 +8,7 @@
     internal const string DiscordURL = "https://discord.gg/PEysxvSE3x/";
     internal const string TwitterURL = "https://twitter.com/@floyzi102/";
     internal const string ImagesAPI = "https://api.floyzi.ru/v1/random_pic?src=fgt";
+    internal const string FGModMenuURL = "https://github.com/repinek/fallguys-frida-modmenu";
 
     #region FONTS
     internal const string TMPFontTitanOne = "TitanOne-Expanded";

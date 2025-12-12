@@ -77,6 +77,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 { "about_check_commit", $"{Constants.GitHubURL}/commit/{Core.BuildInfo.Commit}" },
                 { "twitter", Constants.TwitterURL },
                 { "discord", Constants.DiscordURL },
+                { "fgmm_propaganda", Constants.FGModMenuURL },
             };
 
             var indx = CreditTextPrefab.transform.GetSiblingIndex();
