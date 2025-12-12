@@ -1,8 +1,10 @@
-﻿using Il2CppTMPro;
+﻿using Il2Cpp;
+using Il2CppTMPro;
 using MelonLoader;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace NOTFGT.FLZ_Common.Localization
@@ -10,9 +12,10 @@ namespace NOTFGT.FLZ_Common.Localization
     public static class LocalizationManager
     {
         static Dictionary<string, string> InitialLocale =[];
-        static Dictionary<string, string> LangEntries = [];
+        static Dictionary<string, string> SelectedLocale = [];
+        static Dictionary<string, string> LangCodes = [];
 
-        const string linkDef = @"\{ref:(.*?)\}";
+        const string LINK_DEF = @"\{ref:(.*?)\}";
 
         public static void Setup()
         {
@@ -24,37 +27,41 @@ namespace NOTFGT.FLZ_Common.Localization
             }
 
             InitialLocale = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path));
+            if (File.Exists(Core.LangCodes))
+                LangCodes = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Core.LangCodes));
 
             LoadLocale(FLZ_ToolsManager.Instance.Config.SavedConfig.Locale);
         }
 
-        public static void LoadLocale(string loc)
+        public static bool LoadLocale(string loc)
         {
             var path = Path.Combine(Core.LocalizationDir, $"{loc}.json");
             if (!File.Exists(path))
             {
                 MelonLogger.Warning($"Locale {loc} can't be found.");
-                return;
+                return false;
             }
 
-            LangEntries.Clear();
-            LangEntries = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path));
+            SelectedLocale.Clear();
+            SelectedLocale = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path));
 
             LocalizedStr.LocalizeStrings?.Invoke();
+
+            return true;
         }
 
         public static string LocalizedString(string key, object[] format = null)
         {
-            if (!LangEntries.TryGetValue(key, out var value) && !InitialLocale.TryGetValue(key, out value))
+            if (!SelectedLocale.TryGetValue(key, out var value) && !InitialLocale.TryGetValue(key, out value))
                 return $"MISSING: {key}";
 
             string result = value;
 
-            foreach (Match match in Regex.Matches(result, linkDef))
+            foreach (Match match in Regex.Matches(result, LINK_DEF))
             {
                 var refKey = match.Groups[1].Value;
 
-                if (!LangEntries.TryGetValue(refKey, out var value_2))
+                if (!SelectedLocale.TryGetValue(refKey, out var value_2))
                     InitialLocale.TryGetValue(refKey, out value_2);
 
                 if (!string.IsNullOrEmpty(value_2))
@@ -76,13 +83,46 @@ namespace NOTFGT.FLZ_Common.Localization
 
         public static void ConfigureDropdown(TMP_Dropdown locDropdown)
         {
-            foreach (var locFile in Directory.GetFiles(Core.LocalizationDir))
-                locDropdown.options.Add(new(Path.GetFileNameWithoutExtension(locFile)));
+            if (locDropdown == null) return;
+
+            var sLoc = FLZ_ToolsManager.Instance.Config.SavedConfig.Locale;
+            var files = Directory.GetFiles(Core.LocalizationDir);
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                var locFile = files[i];
+                var unloc = GetLocaleName(Path.GetFileNameWithoutExtension(locFile));
+
+                locDropdown.options.Add(new(unloc));
+
+                if (locDropdown.options[i].text == unloc)
+                    locDropdown.value = i;
+            }
 
             locDropdown.onValueChanged.AddListener(new Action<int>((val =>
             {
-                LoadLocale(locDropdown.options[val].text);
+                var loc = GetLocaleCode(locDropdown.options[val].text);
+                var conf = FLZ_ToolsManager.Instance.Config;
+                if (LoadLocale(loc))
+                {
+                    conf.SavedConfig.Locale = loc;
+                    conf.SaveConfig();
+                    AudioManager.PlayOneShot(AudioManager.EventMasterData.GenericAcceptBold);
+                }
             })));
+        }
+
+        static string GetLocaleName(string code)
+        {
+            if (LangCodes.TryGetValue(code, out var name))
+                return name;
+
+            return $"{code} [FIX FILE NAME!!]";
+        }
+
+        static string GetLocaleCode(string name)
+        {
+            return LangCodes.FirstOrDefault(x => x.Value == name).Key;
         }
     }
 }

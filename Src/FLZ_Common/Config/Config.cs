@@ -75,7 +75,7 @@ namespace NOTFGT.FLZ_Common.Config
             }
         }
 
-        internal void SaveConfig(bool cleanup)
+        internal void SaveConfig(bool cleanup = false)
         {
             SavedConfig ??= new();
             var res = EntriesManager.GetForSave(cleanup);

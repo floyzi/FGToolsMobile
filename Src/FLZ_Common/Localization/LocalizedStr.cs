@@ -1,5 +1,6 @@
 ﻿using Il2CppTMPro;
 using MelonLoader;
+using NOTFGT.FLZ_Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,9 +76,11 @@ namespace NOTFGT.FLZ_Common.Localization
             gameObject.SetActive(hasText);
         }
 
+        internal void Cleanup() => LocalizeStrings -= LocalizeString;
+
         void OnDestroy()
         {
-            LocalizeStrings -= LocalizeString;
+            Cleanup();
         }
 
     }

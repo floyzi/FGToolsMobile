@@ -80,11 +80,6 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                 {
                     MelonLogger.Msg($"[{GetType().Name}] CreateConfigMenu() - Creating entry \"{entry.ID}\" with type \"{entry.EntryType}\"");
 
-                    var fillerInst = UnityEngine.Object.Instantiate(GUI_ErroredEntry, cfgTrans);
-                    fillerInst.SetActive(true);
-                    var fillerLoc = fillerInst.gameObject.GetComponentInChildren<TextMeshProUGUI>().gameObject.AddComponent<LocalizedStr>();
-                    fillerLoc.Setup("errored_entry", formatting: [entry.ID]);
-
                     if (!string.IsNullOrEmpty(entry.Category.LocaleID) && currentCategStr != entry.Category.LocaleID)
                     {
                         currentCategStr = entry.Category.LocaleID;
@@ -95,6 +90,11 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                         currentCateg = haderInst.AddComponent<MenuCategory>();
                         currentCateg.Create(entry.Category.LocaleID);
                     }
+
+                    var fillerInst = UnityEngine.Object.Instantiate(GUI_ErroredEntry, cfgTrans);
+                    fillerInst.SetActive(true);
+                    var fillerLoc = fillerInst.gameObject.GetComponentInChildren<TextMeshProUGUI>().gameObject.AddComponent<LocalizedStr>();
+                    fillerLoc.Setup("errored_entry", formatting: [entry.ID]);
 
                     switch (entry.EntryType)
                     {
@@ -280,6 +280,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
                             break;
                     }
 
+                    fillerLoc.Cleanup();
                     GameObject.Destroy(fillerInst);
                 }
                 catch (Exception ex)

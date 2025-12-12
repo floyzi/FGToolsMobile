@@ -56,6 +56,7 @@ namespace NOTFGT
         public static string MobileSplash => Path.Combine(AssetsDir, "splash.png");
         public static string ConfigFile => Path.Combine(AssetsDir, "ConfigV4.json");
         public static string LocalizationDir => Path.Combine(AssetsDir, "Localization");
+        public static string LangCodes => Path.Combine(AssetsDir, "lang_codes.json");
         #endregion
 
         internal static DateTime StartupDate;
