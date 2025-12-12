@@ -18,8 +18,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Il2CppFGClient.UI.UIModalMessage;
 using static NOTFGT.FLZ_Common.FLZ_ToolsManager;
-using static NOTFGT.FLZ_Common.GUI.Attributes.TMPReferenceAttribute;
-using static NOTFGT.FLZ_Common.HarmonyPatches;
 using Action = System.Action;
 using Image = UnityEngine.UI.Image;
 
@@ -40,7 +38,7 @@ namespace NOTFGT.FLZ_Common.GUI
             Active
         }
 
-        UIState CurrentUIState;
+        UIState CurrentUIState = UIState.Disabled;
         internal bool IsUIActive => CurrentUIState == UIState.Active;
 
         AssetBundle GUI_Bundle;
@@ -57,7 +55,6 @@ namespace NOTFGT.FLZ_Common.GUI
         #endregion
 
         internal GameObject GUIInstance;
-        internal DefaultStyle Default;
 
         internal List<Transform> ScreensCache;
         internal List<Transform> StylesCache;
@@ -106,7 +103,6 @@ namespace NOTFGT.FLZ_Common.GUI
                 Screens.Add(new LogScreen());
                 Screens.Add(new CreditsScreen());
 
-                Default = GetStyle<DefaultStyle>();
                 ToggleGUI(UIState.Disabled);
 
                 MelonLogger.Msg($"[{GetType().Name}] UI configured, took: {took:F2}s");

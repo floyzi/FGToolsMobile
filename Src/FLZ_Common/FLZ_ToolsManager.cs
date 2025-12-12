@@ -9,6 +9,7 @@ using Il2CppTMPro;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
 using NOTFGT.FLZ_Common.GUI.Screens;
+using NOTFGT.FLZ_Common.GUI.Styles;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
 using System.Text;
@@ -142,7 +143,7 @@ namespace NOTFGT.FLZ_Common
             Msg("Successful startup!");
         }
 
-        void FixedUpdate() => GUIUtil?.Default?.RefreshEntries();
+        void FixedUpdate() => DefaultStyle.RefreshEntries();
         void OnEnterMenu(OnMainMenuDisplayed evt) => OnMenuEnter();
         void OnSpectator(OnSpectatingPlayer evt) => OnSpectatorEvent();
         void OnFinish(OnLocalPlayersFinished evt) => OnFinished();

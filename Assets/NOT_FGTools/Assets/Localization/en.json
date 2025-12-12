@@ -85,7 +85,7 @@
    "delete_config_alert_desc": "This will reset all config values to default ones\nYour game will be closed.",
    "error_ruond_loader_real_game": "You can't load rounds while you're in online game. Leave to menu first",
    "error_fallguy_spawn": "Fall Guy spawn failed.\n\n{0}",
-   "generic_error_title": "ERROR",
+   "generic_error_title": "THAT WASN'T SUPPOSED TO HAPPEN!",
    "reset_config_alert_title": "RESET TO DEFAULTS?",
    "reset_config_alert_desc": "All changes that was made will be lost.",
    "advanced_names_title": "Advanced Names",
@@ -146,5 +146,7 @@
    "log_adv_info": "Click on the log to see full info.",
    "loader_set_random": "Select Random Round",
    "melon_log_title": "Show Melonloader Log",
-   "melon_log_desc": ""
+   "melon_log_desc": "",
+   "air_jumps_title": "Air Jumps",
+   "air_jumps_desc": ""
 }

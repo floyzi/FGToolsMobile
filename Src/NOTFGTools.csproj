@@ -70,7 +70,8 @@
 		<Compile Include="FLZ_Common\GUI\Logic\UIElement.cs" />
 		<Compile Include="FLZ_Common\GUI\UI_ScrollUvs.cs" />
 		<Compile Include="FLZ_Common\GUI\UnityDragFix.cs" />
-		<Compile Include="FLZ_Common\HarmonyPatches.cs" />
+		<Compile Include="FLZ_Common\Harmony\GUIPatches.cs" />
+		<Compile Include="FLZ_Common\Harmony\GameplayPatches.cs" />
 		<Compile Include="FLZ_Common\Loader\FallGuyBehaviour.cs" />
 		<Compile Include="FLZ_Common\Loader\RoundLoaderService.cs" />
 		<Compile Include="FLZ_Common\Localization\LocalizationManager.cs" />

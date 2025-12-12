@@ -45,9 +45,9 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
             InitialPos = CoreObject.transform.localPosition;
         }
 
-        internal void RefreshEntries()
+        internal static void RefreshEntries()
         {
-            if (!GUI.IsUIActive) return;
+            if (GUI == null || !GUI.IsUIActive) return;
             foreach (var e in TrackedEntry.TrackedEntries) e.Refresh();
         }
 
@@ -59,7 +59,6 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
             {
                 rect.anchoredPosition = InitialPos;
                 rect.anchoredPosition = new Vector2(rect.anchoredPosition.x + -600f, rect.anchoredPosition.y);
-
 
                 AudioManager.PlayOneShot(AudioManager.EventMasterData.GenericAcceptBold);
                 rect.DOAnchorPos(InitialPos, 0.15f).SetEase(Ease.OutQuad);

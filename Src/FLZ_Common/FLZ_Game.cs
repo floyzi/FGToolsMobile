@@ -82,6 +82,7 @@ namespace NOTFGT.FLZ_Common
         internal float GravityModifier;
         internal float DiveForce;
         internal float DiveForceInAir;
+        internal static bool IsAirJumpEnabled;
 
         public FLZ_Game()
         {

@@ -70,6 +70,7 @@ namespace NOTFGT.FLZ_Common.Config.Entries
 
             #region FGCC CATEGORY
 #if CHEATS
+            CreateEntry(MenuEntry.Type.Toggle, "air_jumps", fgccCat, () => FLZ_Game.IsAirJumpEnabled, v => FLZ_Game.IsAirJumpEnabled = v);
             CreateEntry(MenuEntry.Type.Toggle, "disable_fgcc_check", fgccCat, () => Instance.InGameManager.DisableFGCCCheck, v => Instance.InGameManager.DisableFGCCCheck = v, Instance.InGameManager.ResolveFGCC);
             CreateEntry(MenuEntry.Type.InputField, "run_modifier", fgccCat, () => Instance.InGameManager.RunSpeedModifier, v => Instance.InGameManager.RunSpeedModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
             CreateEntry(MenuEntry.Type.InputField, "jump_y", fgccCat, () => Instance.InGameManager.JumpYModifier, v => Instance.InGameManager.JumpYModifier = v, Instance.InGameManager.RollFGCCSettings, new FieldConfig(typeof(float), condition: () => Instance.InGameManager.DisableFGCCCheck));
@@ -81,7 +82,6 @@ namespace NOTFGT.FLZ_Common.Config.Entries
             #endregion
 
             #region GAMEPLAY CATEGORY
-            CreateEntry(MenuEntry.Type.Toggle, "spectator_join", gpCat, () => GlobalDebug.DebugJoinAsSpectatorEnabled, v => GlobalDebug.DebugJoinAsSpectatorEnabled = v);
             CreateEntry(MenuEntry.Type.Toggle, "names_toggle", gpCat, () => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames, v => GlobalGameStateClient.Instance.PlayerProfile.TouchSettings.ShowPlayerNames = v);
             CreateEntry(MenuEntry.Type.Toggle, "advanced_names", gpCat, () => Instance.InGameManager.SeePlayerPlatforms, v => Instance.InGameManager.SeePlayerPlatforms = v, Instance.InGameManager.SetNames);
 #if CHEATS

@@ -4,6 +4,7 @@ using NOTFGT;
 using NOTFGT.FLZ_Common;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI;
+using NOTFGT.FLZ_Common.Harmony;
 using NOTFGT.FLZ_Common.Loader;
 using NOTFGT.FLZ_Common.Localization;
 using System.Diagnostics;
@@ -11,7 +12,6 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using static MelonLoader.MelonLogger;
-using static NOTFGT.FLZ_Common.HarmonyPatches;
 
 //version from this attribute is not used, change version in project instead
 [assembly: MelonInfo(typeof(Core), Constants.DefaultName, "0.0.0", "Floyzi", Constants.GitHubURL)]
@@ -109,10 +109,8 @@ namespace NOTFGT
                 ClassInjector.RegisterTypeInIl2Cpp<UI_ScrollUvs>();
 
                 HarmonyInstance.PatchAll(typeof(FLZ_LoginPatches));
-                HarmonyInstance.PatchAll(typeof(Default));
-                HarmonyInstance.PatchAll(typeof(CaptureTools));
-                HarmonyInstance.PatchAll(typeof(GUITweaks));
-                HarmonyInstance.PatchAll(typeof(RoundLoader));
+                HarmonyInstance.PatchAll(typeof(GUIPatches));
+                HarmonyInstance.PatchAll(typeof(GameplayPatches));
 
 #if MELON_LOGS
                 LogsStream = new FileStream(CurrentMelonLog, FileMode.Open, FileAccess.Read, FileShare.Read);
