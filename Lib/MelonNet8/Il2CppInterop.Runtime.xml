@@ -21,7 +21,7 @@
         <member name="F:Il2CppInterop.Runtime.Injection.InjectorHelpers.s_ClassNameLookup">
             <summary> (namespace, class, image) : class </summary>
         </member>
-        <member name="P:Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray`1.ArrayStartPointer">
+        <member name="P:Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppArrayBase.ArrayStartPointer">
             <summary>
             The pointer to the first element in the array.
             </summary>

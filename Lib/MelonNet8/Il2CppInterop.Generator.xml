@@ -4,6 +4,16 @@
         <name>Il2CppInterop.Generator</name>
     </assembly>
     <members>
+        <member name="M:Il2CppInterop.Generator.Extensions.AsmResolverExtensions.IsPrimitive(AsmResolver.DotNet.Signatures.TypeSignature)">
+            <summary>
+            Boolean, Char, or numeric type
+            </summary>
+        </member>
+        <member name="M:Il2CppInterop.Generator.Extensions.AsmResolverExtensions.IsPrimitive(AsmResolver.PE.DotNet.Metadata.Tables.ElementType)">
+            <summary>
+            Boolean, Char, or numeric type
+            </summary>
+        </member>
         <member name="M:Il2CppInterop.Generator.Extensions.StringEx.GetUnmangledName(AsmResolver.DotNet.Signatures.TypeSignature,AsmResolver.DotNet.TypeDefinition,AsmResolver.DotNet.MethodDefinition)">
             <summary>
             Construct an unmangled name for a type signature.
