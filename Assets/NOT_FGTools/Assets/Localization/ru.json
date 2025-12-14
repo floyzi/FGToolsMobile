@@ -150,5 +150,7 @@
    "air_jumps_title": "Прыжки В Воздухе",
    "air_jumps_desc": "",
    "errored_entry": "Не удалось создать запись \"{0}\", проверьте лог!",
-   "fgmm_propaganda": "Зацените Fall Guys Mod Menu!"
+   "fgmm_propaganda": "Зацените Fall Guys Mod Menu!",
+   "kill_gui_title": "Скрыть интерфейс?",
+   "kill_gui_desc": "После скрытия интерфейса он останется в этом состоянии до перезахода в игру, у вас не будет возможности изменять настройки {0}"
 }

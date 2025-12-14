@@ -150,5 +150,7 @@
    "air_jumps_title": "Air Jumps",
    "air_jumps_desc": "",
    "errored_entry": "Entry \"{0}\" was failed to create, check logs for details!",
-   "fgmm_propaganda": "Check Out Fall Guys Mod Menu!"
+   "fgmm_propaganda": "Check Out Fall Guys Mod Menu!",
+   "kill_gui_title": "Hide UI?",
+   "kill_gui_desc": "Once UI is hidden it will stay in that state until game restart, you won't be able to change any options of {0}"
 }

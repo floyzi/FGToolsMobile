@@ -1,19 +1,21 @@
-﻿using MelonLoader;
+﻿using Il2Cpp;
+using MelonLoader;
 using NOTFGT.FLZ_Common.Extensions;
 using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.GUI.Styles.Logic;
+using NOTFGT.FLZ_Common.Localization;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System;
-using Il2Cpp;
+using static Il2Cpp.TouchJoystickElastic;
 
 namespace NOTFGT.FLZ_Common.GUI.Styles
 {
     internal class HiddenStyle : UIStyle
     {
-        [GUIReference("ToolsButton")] Button FGTButton;
+        [GUIReference("ToolsButton")] readonly Button FGTButton;
 
         RectTransform Rt;
         Canvas Canv;
@@ -21,6 +23,7 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         EventTrigger Trigger;
         object DelayCor;
         Action onClick;
+        object KillCor;
 
         bool Dragging;
         bool PointerDown;
@@ -48,10 +51,18 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
             {
                 PointerDown = true;
                 DelayCor = MelonCoroutines.Start(DragDelay(0.15f));
+                KillCor = MelonCoroutines.Start(KillDelay(1.5f));
             }));
 
             RegEvent(EventTriggerType.Drag, new Action<BaseEventData>((data) =>
             {
+                Dragging = true;
+                if (KillCor != null)
+                {
+                    MelonCoroutines.Stop(KillCor);
+                    KillCor = null;
+                }
+
                 if (!Dragging) return;
                 if (Canv == null) return;
 
@@ -111,8 +122,30 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
             }
 
             FLZ_AndroidExtensions.Vibrate(10);
-            Dragging = true;
             FGTButton.transform.GetChild(0).gameObject.SetActive(false);
+        }
+
+        IEnumerator KillDelay(float d)
+        {
+            var t = 0f;
+
+            while (t < d)
+            {
+                if (!PointerDown) yield break;   
+                t += Time.deltaTime;
+                yield return null;
+            }
+
+            PointerDown = false;
+            Dragging = false;
+            FLZ_AndroidExtensions.Vibrate(50);
+            KillCor = null;
+            FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("kill_gui_title"), LocalizationManager.LocalizedString("kill_gui_desc", [Constants.DefaultName]), Il2CppFGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, Il2CppFGClient.UI.UIModalMessage.OKButtonType.Disruptive, new Action<bool>(wasok =>
+            {
+                if (wasok) return;
+                GUI.ToggleGUI(GUIManager.UIState.Hidden);
+            }));
+            GUI.ToggleGUI(GUIManager.UIState.Disabled);
         }
 
         protected override void StateChange(bool isActive, bool wasActive)
