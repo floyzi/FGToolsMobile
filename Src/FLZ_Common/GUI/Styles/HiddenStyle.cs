@@ -56,7 +56,8 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
 
             RegEvent(EventTriggerType.Drag, new Action<BaseEventData>((data) =>
             {
-                Dragging = true;
+                if (!Dragging) return;
+
                 if (KillCor != null)
                 {
                     MelonCoroutines.Stop(KillCor);
@@ -123,6 +124,7 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
 
             FLZ_AndroidExtensions.Vibrate(10);
             FGTButton.transform.GetChild(0).gameObject.SetActive(false);
+            Dragging = true;
         }
 
         IEnumerator KillDelay(float d)

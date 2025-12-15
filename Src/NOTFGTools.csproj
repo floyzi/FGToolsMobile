@@ -38,6 +38,7 @@
 		<Compile Include="Constants.cs" />
 		<Compile Include="FLZ_Common\Config\Config.cs" />
 		<Compile Include="FLZ_Common\Config\Entries\Configs\BaseEntryConfig.cs" />
+		<Compile Include="FLZ_Common\Config\Entries\Configs\ButtonConfig.cs" />
 		<Compile Include="FLZ_Common\Config\Entries\Configs\FieldConfig.cs" />
 		<Compile Include="FLZ_Common\Config\Entries\Configs\SliderConfig.cs" />
 		<Compile Include="FLZ_Common\Config\Entries\Configs\ToggleConfig.cs" />

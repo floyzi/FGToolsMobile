@@ -88,10 +88,10 @@ namespace NOTFGT.FLZ_Common.Config.Entries
             CreateEntry(MenuEntry.Type.Toggle, "capture_tools", gpCat, () => Instance.InGameManager.UseCaptureTools, v => Instance.InGameManager.UseCaptureTools = v);
             CreateEntry(MenuEntry.Type.Toggle, "disable_afk", gpCat, () => Instance.InGameManager.DisableAFK, v => Instance.InGameManager.DisableAFK = v, Instance.ResolveAFK);
 
-            CreateEntry(MenuEntry.Type.Button, "to_finish", gpCat, Instance.InGameManager.TeleportToFinish);
-            CreateEntry(MenuEntry.Type.Button, "to_safe", gpCat, Instance.InGameManager.TeleportToSafeZone);
-            CreateEntry(MenuEntry.Type.Button, "to_random_player", gpCat, Instance.InGameManager.TeleportToRandomPlayer);
-            CreateEntry(MenuEntry.Type.Button, "toggle_players", gpCat, Instance.InGameManager.TogglePlayers);
+            CreateEntry(MenuEntry.Type.Button, "to_finish", gpCat, Instance.InGameManager.TeleportToFinish, new ButtonConfig(() => IsInGameplay && Instance.InGameManager.HasFallGuy));
+            CreateEntry(MenuEntry.Type.Button, "to_safe", gpCat, Instance.InGameManager.TeleportToSafeZone, new ButtonConfig(() => IsInGameplay && Instance.InGameManager.HasFallGuy));
+            CreateEntry(MenuEntry.Type.Button, "to_random_player", gpCat, Instance.InGameManager.TeleportToRandomPlayer, new ButtonConfig(() => IsInGameplay && Instance.InGameManager.HasFallGuy));
+            CreateEntry(MenuEntry.Type.Button, "toggle_players", gpCat, Instance.InGameManager.TogglePlayers, new ButtonConfig(() => IsInGameplay && Instance.InGameManager.HasFallGuy));
 #endif
             #endregion
 

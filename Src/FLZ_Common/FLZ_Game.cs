@@ -70,6 +70,8 @@ namespace NOTFGT.FLZ_Common
         List<ControllerElement> ControllerData;
         FallGuysCharacterController LocalFallGuy;
 
+        internal bool HasFallGuy => LocalFallGuy != null;
+
         bool playersHidden = false;
 
         internal bool SeePlayerPlatforms;
@@ -92,6 +94,7 @@ namespace NOTFGT.FLZ_Common
             OnIntroEnds += OnIntroEnd;
             OnGUIInit += OnInitOverlay;
             OnSpectatorEvent += OnSpectate;
+            OnRoundEnds += OnRoundOverEvent;
         }
 
         internal void RegisterTag(PlayerInfoDisplay tag, SpawnPlayerTagEvent evt)
@@ -193,7 +196,7 @@ namespace NOTFGT.FLZ_Common
 #endif
         }
 
-        void OnRoundOverEvent(OnRoundOver evt)
+        void OnRoundOverEvent()
         {
 #if CHEATS
             ForceUnHidePlayers();

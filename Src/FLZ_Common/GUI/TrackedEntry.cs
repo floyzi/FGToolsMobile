@@ -38,7 +38,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
             Owner?.AddEntry(gameObject);
 
-            if (AttachedEntry != null && AttachedEntry.EntryType != MenuEntry.Type.Button) 
+            if (AttachedEntry != null) 
                 TrackedEntries.Add(this);
 
             var sfx = UIElement.gameObject.AddComponent<ElementSFX>();

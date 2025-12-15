@@ -62,6 +62,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             CreateConfigMenu(configMenu);
         }
 
+        //TODO: rewrite this hell
         void CreateConfigMenu(Transform cfgTrans)
         {
             GUI_TogglePrefab.SetActive(false);
