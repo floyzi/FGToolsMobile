@@ -109,7 +109,7 @@ namespace NOTFGT.FLZ_Common.GUI
 
                 onInit?.Invoke();
 
-                FLZ_AndroidExtensions.ShowToast($"{Constants.DefaultName} initialized successfully");
+                FLZ_AndroidExtensions.ShowToast(LocalizationManager.LocalizedString("toast_init_ok", [Constants.DefaultName]));
             }));
         }
 

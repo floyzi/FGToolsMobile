@@ -45,7 +45,9 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         [GUIReference("ImgCreditText")] readonly Transform CreditsImgCredit;
 
         static int EGG_Counter;
+        int EGG_Goal;
         Sprite CachedCreditsSpr;
+        readonly int EGG_IntroClicks = UnityEngine.Random.Range(5, 10);
         static readonly int EGG_ClicksNeeded = UnityEngine.Random.Range(15, 25);
         internal static bool EnabledSecret => EGG_Counter >= EGG_ClicksNeeded;
 
@@ -66,8 +68,8 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
 
             var aboutStrings = new Dictionary<string, object[]>()
             {
-                { "about_by", [Constants.DefaultName] },
-                { "about_build_date", [Core.BuildInfo.BuildDate] },
+                { "about_by", [Constants.DefaultName, Constants.Username] },
+                { "about_build_date", [Core.BuildInfo.BuildDate.ToUniversalTime(), "UTC"] },
                 { "about_commit", [Core.BuildInfo.GetCommit()] },
             };
 
@@ -107,7 +109,7 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
             LocalizationManager.ConfigureDropdown(LocaleSelectDropdown);
         }
 
-        void OpenConfirm(string url)
+        static void OpenConfirm(string url)
         {
             FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("credits_url_confirm_title"), LocalizationManager.LocalizedString("credits_url_confirm_desc", [url]), Il2CppFGClient.UI.UIModalMessage.ModalType.MT_OK_CANCEL, Il2CppFGClient.UI.UIModalMessage.OKButtonType.Positive, new Action<bool>(wasok =>
             {
@@ -119,27 +121,26 @@ namespace NOTFGT.FLZ_Common.GUI.Screens
         {
             EGG_Counter++;
 
-            if (EGG_Counter < 5)
-                return;
+            if (EGG_Counter < EGG_IntroClicks) return;
 
             FatefulImage.transform.GetParent().DOShakePosition(0.25f, EGG_Counter > EGG_ClicksNeeded ? 15 : 15 + (EGG_Counter * 2), 80, 400);
             FLZ_AndroidExtensions.Vibrate(EGG_Counter > EGG_ClicksNeeded ? 10 : 10 + EGG_Counter);
 
-            if (EGG_Counter < EGG_ClicksNeeded)
-                return;
+            if (EGG_Counter < EGG_ClicksNeeded) return;
             else if (EGG_Counter == EGG_ClicksNeeded)
             {
                 FLZ_AndroidExtensions.Vibrate(700);
-                FLZ_AndroidExtensions.ShowToast("Woowie, you found something useless!");
+                FLZ_AndroidExtensions.ShowToast(LocalizationManager.LocalizedString($"toast_secret_enable"));
+                EGG_Goal = UnityEngine.Random.RandomRange(100, 150) + EGG_ClicksNeeded;
             }
 
-            if (EGG_Counter == 100 + EGG_ClicksNeeded)
+            if (EGG_Counter == EGG_Goal)
             {
-                FLZ_AndroidExtensions.ShowToast("Still not tired?");
+                FLZ_AndroidExtensions.ShowToast(LocalizationManager.LocalizedString($"toast_secret_goal_0"));
+                EGG_Goal += UnityEngine.Random.RandomRange(100, 200);
             }
 
-            if (CachedCreditsSpr == null)
-                CachedCreditsSpr = FatefulImage.GetComponent<Image>().sprite;
+            if (CachedCreditsSpr == null) CachedCreditsSpr = FatefulImage.GetComponent<Image>().sprite;
 
             MelonCoroutines.Start(RequestImage());
         }

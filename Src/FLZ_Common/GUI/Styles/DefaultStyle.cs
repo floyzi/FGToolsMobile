@@ -3,6 +3,7 @@ using Il2CppDG.Tweening;
 using Il2CppTMPro;
 using NOTFGT.FLZ_Common.GUI.Attributes;
 using NOTFGT.FLZ_Common.GUI.Styles.Logic;
+using NOTFGT.FLZ_Common.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +39,8 @@ namespace NOTFGT.FLZ_Common.GUI.Styles
         {
             HideButton.onClick.AddListener(new Action(() => { GUI.ToggleGUI(UIState.Hidden); }));
 
-            Header.text = $"{Constants.DefaultName} V{Core.BuildInfo.Version}";
+            var name = UnityEngine.Random.value > 0.001f ? Constants.DefaultName : LocalizationManager.LocalizedString("old_branding");
+            Header.text = $"{name} V{Core.BuildInfo.Version}";
             Slogan.text = $"{Constants.Description}";
             Pattern.gameObject.AddComponent<UI_ScrollUvs>();
 

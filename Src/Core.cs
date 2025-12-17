@@ -14,7 +14,7 @@ using UnityEngine;
 using static MelonLoader.MelonLogger;
 
 //version from this attribute is not used, change version in project instead
-[assembly: MelonInfo(typeof(Core), Constants.DefaultName, "0.0.0", "Floyzi", Constants.GitHubURL)]
+[assembly: MelonInfo(typeof(Core), Constants.DefaultName, "0.0.0", Constants.Author, Constants.GitHubURL)]
 [assembly: MelonGame("Mediatonic", "Fall Guys")]
 namespace NOTFGT
 {
@@ -151,7 +151,7 @@ namespace NOTFGT
             if (ex != null)
                 Error($"InitFail() called with exception\n{ex}");
 
-            FLZ_AndroidExtensions.ShowToast($"Unable to init {Constants.DefaultName}. See logs for details");
+            FLZ_AndroidExtensions.ShowToast(LocalizationManager.LocalizedString("toast_init_err", [Constants.DefaultName]));
         }
 
         public override void OnUpdate()

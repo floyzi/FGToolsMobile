@@ -205,7 +205,6 @@ namespace NOTFGT.FLZ_Common
         }
 
 #if CHEATS
-
         void ResetFGCCData()
         {
             foreach (var setter in ControllerData)
@@ -291,22 +290,6 @@ namespace NOTFGT.FLZ_Common
                 player.gameObject.SetActive(!playersHidden);
         }
 
-        bool DefaultCheck()
-        {
-            if (GlobalGameStateClient.Instance.IsInMainMenu)
-            {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_in_menu"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Disruptive);
-                return false;
-            }
-            if (!GlobalGameStateClient.Instance.GameStateView.IsGamePlaying)
-            {
-                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_game_not_active"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Disruptive);
-                return false;
-            }
-            
-            return true;
-        }
-
         void ForceUnHidePlayers()
         {
             playersHidden = false;
@@ -320,6 +303,22 @@ namespace NOTFGT.FLZ_Common
             if (!DisableFGCCCheck) ResetFGCCData();
         }
 #endif
+
+        static bool DefaultCheck()
+        {
+            if (GlobalGameStateClient.Instance.IsInMainMenu)
+            {
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_in_menu"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Disruptive);
+                return false;
+            }
+            if (!GlobalGameStateClient.Instance.GameStateView.IsGamePlaying)
+            {
+                FLZ_Extensions.DoModal(LocalizationManager.LocalizedString("error_generic_action_title"), LocalizationManager.LocalizedString("error_game_not_active"), UIModalMessage.ModalType.MT_OK, UIModalMessage.OKButtonType.Disruptive);
+                return false;
+            }
+
+            return true;
+        }
 
         internal void SetupControllerData()
         {

@@ -62,7 +62,7 @@ namespace NOTFGT.FLZ_Common
             PopupManager.Instance.Show(PopupInteractionType.Error, new ModalMessageData()
             {
                 Title = FLZ_Extensions.CMSString("forced_update_err_t", LocalizationManager.LocalizedString("client_update_error_title")),
-                Message = FLZ_Extensions.CMSString("forced_update_err_d", LocalizationManager.LocalizedString("client_update_error_desc", [Constants.DefaultName])),
+                Message = FLZ_Extensions.CMSString("forced_update_err_d", $"{LocalizationManager.LocalizedString("client_update_error_desc", [Constants.DefaultName])}\n\n<size=60%>{LocalizationManager.LocalizedString("client_update_error_lower")}</size>"),
                 OkButtonType = UIModalMessage.OKButtonType.CallToAction,
                 ModalType = UIModalMessage.ModalType.MT_OK_CANCEL,
                 OkTextOverrideId = FLZ_Extensions.CMSString("forced_update_err_k", LocalizationManager.LocalizedString("client_update_error_ok")),
@@ -73,7 +73,8 @@ namespace NOTFGT.FLZ_Common
                         Application.OpenURL($"{Constants.GitHubURL}/releases/latest");
 
                     Application.Quit();
-                })
+                }),
+                ShowExternalLinkIcon = true,          
             });
             return false;
         }
@@ -95,15 +96,14 @@ namespace NOTFGT.FLZ_Common
                 Properties = credential.Properties,
                 ContentBranch = __instance._config.ContentBranchOverride
             };
+
             return false;
         }
 
         static IEnumerator FetchContent()
         {
             if (Attempt > MaxAttempts)
-            {
                 yield break;
-            }
 
             Attempt++;
 

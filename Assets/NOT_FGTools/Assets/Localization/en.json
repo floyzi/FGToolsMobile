@@ -110,8 +110,8 @@
    "about_check_commit": "Commit Details",
    "twitter": "Twitter",
    "discord": "Discord",
-   "about_by": "{0} by @floyzi102 on Twitter",
-   "about_build_date": "Compiled on: {0} (UTC)",
+   "about_by": "{0} by @{1} on Twitter",
+   "about_build_date": "Compiled on: {0} ({1})",
    "about_commit": "Commit: #{0}",
    "header_about": "About",
    "header_locale": "Localization",
@@ -152,5 +152,10 @@
    "errored_entry": "Entry \"{0}\" was failed to create, check logs for details!",
    "fgmm_propaganda": "Check Out Fall Guys Mod Menu!",
    "kill_gui_title": "Hide UI?",
-   "kill_gui_desc": "Once UI is hidden it will stay in that state until game restart, you won't be able to change any options of {0}"
+   "kill_gui_desc": "Once UI is hidden it will stay in that state until game restart, you won't be able to change any options of {0}",
+   "client_update_error_lower": "If the update dropped recently you may need to wait some time until i update required information about version so spoof can work!",
+   "toast_init_err": "Unable to init {0}. See logs for details",
+   "toast_init_ok": "{0} initialized successfully!",
+   "toast_secret_enable": "Woowie, you found something useless!",
+   "toast_secret_goal_0": "Still not tired?"
 }
