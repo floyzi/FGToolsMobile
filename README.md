@@ -12,7 +12,7 @@
 - Some cheats (never included in the release version)
 
 > [!NOTE]
-> First launch takes up to ten minutes, the game may also crash
+> Work may be unstable, not all devices are supported
 > If you don't want to wait for game resources to download, backup the .obb file inside the Android/obb/com.Mediatonic FallGuys_client/ folder, just restore it after installing the APK
 
 # Screenshots
