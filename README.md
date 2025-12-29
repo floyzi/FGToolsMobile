@@ -70,6 +70,8 @@ If configured correctly, everytime when you build the project it's files will be
 ### My game crashes, what do I do!?
 - If it was the first launch, just open it again **and wait around FIVE OR TEN MINUTES sitting on black screen!!**. If the game crashes no matter what then you're out of luck, there is nothing you can do to fix it.
 - You can try [**Fall Guys Mod Menu**](https://github.com/repinek/fallguys-frida-modmenu) by [repinek](https://github.com/repinek) if you're looking for similar thing
+### Game used to work fine but now it just crashes upon launch 
+- The problem is caused by LemonLoader, to solve it you usually need to open the game around 5-10 times. In some cases you may need to reinstall the game
 ### Does this thing have cheats?
 - Release versions **NEVER** includeds cheats. If you want to get cheats compile it by yourself
 ### Where is the update?
